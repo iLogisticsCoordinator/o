@@ -2,10 +2,10 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#1B1F3B" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
   <meta name="apple-mobile-web-app-title" content="NebulaDash" />
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
@@ -22,28 +22,22 @@
       align-items: center;
       justify-content: center;
       flex-direction: column;
-      text-align: center;
     }
 
     #installBtn {
       display: none;
       margin-top: 20px;
-      background-color: #4CAF50;
-      border: none;
       padding: 12px 24px;
+      background: #4CAF50;
       color: white;
       font-size: 1rem;
+      border: none;
       border-radius: 8px;
-      cursor: pointer;
-    }
-
-    #installBtn:hover {
-      background-color: #45a049;
     }
   </style>
 </head>
 <body>
-  <h1>🚀 Bienvenido a NebulaDash</h1>
+  <h1>🚀 NebulaDash</h1>
   <button id="installBtn">Instalar App</button>
 
   <script>
@@ -53,17 +47,17 @@
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       deferredPrompt = e;
-      installBtn.style.display = 'inline-block';
+      installBtn.style.display = 'block';
     });
 
     installBtn.addEventListener('click', async () => {
       if (deferredPrompt) {
         deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        if (outcome === 'accepted') {
-          console.log('✅ App instalada');
+        const choiceResult = await deferredPrompt.userChoice;
+        if (choiceResult.outcome === 'accepted') {
+          console.log('App instalada');
         } else {
-          console.log('❌ Usuario canceló instalación');
+          console.log('Instalación cancelada');
         }
         deferredPrompt = null;
         installBtn.style.display = 'none';
@@ -72,9 +66,7 @@
 
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('service-worker.js')
-          .then(reg => console.log('Service Worker registrado'))
-          .catch(err => console.error('Error en el SW', err));
+        navigator.serviceWorker.register('service-worker.js');
       });
     }
   </script>
