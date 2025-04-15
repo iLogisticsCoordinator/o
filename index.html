@@ -8,7 +8,6 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
   <meta name="apple-mobile-web-app-title" content="PandaDash" />
   <link rel="manifest" href="manifest.json" />
-  <!-- <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/iLogisticsCoordinator/o/main/icons/icon-512.png" /> -->
   <title>PandaDash</title>
   <style>
     html, body {
@@ -24,24 +23,68 @@
       flex-direction: column;
     }
     .logo {
-      width: 150px;
+      width: 100px;
       height: auto;
-      margin-bottom: 20px;
+      margin-bottom: 5px;
     }
     h1 {
-      font-size: 2.5rem;
-      margin-bottom: 20px;
+      font-size: 1.7rem;
+      margin: 3px 0;
       color: #333;
     }
+    .name {
+      color: #348a87;
+      font-size: 0.8rem;
+      margin: 3px 0 10px;
+    }
+    
+    /* Spinner de 3 bolitas con efecto pulse */
+    .triple-pulse {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 5px;
+      margin: 5px 0;
+    }
+    .triple-pulse span {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      background-color: #348a87;
+      border-radius: 50%;
+      margin: 0 3px;
+      animation: triplePulse 1.4s infinite ease-in-out;
+    }
+    .triple-pulse span:nth-child(1) {
+      animation-delay: 0s;
+    }
+    .triple-pulse span:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+    .triple-pulse span:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+    
+    @keyframes triplePulse {
+      0%, 100% {
+        transform: scale(0.6);
+        opacity: 0.5;
+      }
+      50% {
+        transform: scale(1.1);
+        opacity: 1;
+      }
+    }
+    
     #installBtn {
       display: none;
-      margin-top: 20px;
-      padding: 12px 24px;
+      margin-top: 10px;
+      padding: 7px 14px;
       background: #4CAF50;
       color: white;
-      font-size: 1rem;
+      font-size: 0.8rem;
       border: none;
-      border-radius: 8px;
+      border-radius: 3px;
       cursor: pointer;
     }
     #installBtn:hover {
@@ -51,8 +94,18 @@
 </head>
 <body>
   <img src="https://raw.githubusercontent.com/iLogisticsCoordinator/o/main/icons/icon-512.png" alt="PandaDash Logo" class="logo">
+  
+  <!-- Spinner de 3 bolitas con efecto pulse -->
+  <div class="triple-pulse">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+  
   <h1>PandaDash</h1>
+  <div class="name">Andrés Mendoza</div>
   <button id="installBtn">Instalar App</button>
+  
   <script>
     let deferredPrompt;
     const installBtn = document.getElementById('installBtn');
