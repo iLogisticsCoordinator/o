@@ -1,10 +1,14 @@
 {
-  "name": "NebulaDash",
-  "short_name": "Nebula",
-  "start_url": "./",
+  "name": "PandaDash",
+  "short_name": "Panda",
+  "start_url": "./?source=pwa",
   "display": "standalone",
-  "background_color": "#1B1F3B",
-  "theme_color": "#1B1F3B",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "description": "Plataforma de gestión logística y seguimiento de envíos en tiempo real",
+  "lang": "es",
+  "dir": "ltr",
+  "categories": ["productivity", "business", "logistics"],
   "icons": [
     {
       "src": "https://raw.githubusercontent.com/iLogisticsCoordinator/o/main/icons/icon-192.png",
