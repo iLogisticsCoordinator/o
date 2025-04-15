@@ -3,7 +3,7 @@
   "short_name": "PandaDash",
   "start_url": "./?source=pwa",
   "display": "standalone",
-  "background_color": "#00000",
+  "background_color": "#ffffff",
   "theme_color": "#ffffff",
   "description": "Plataforma de gestión logística y seguimiento de envíos en tiempo real",
   "lang": "es",
