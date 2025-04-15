@@ -3,27 +3,36 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#1B1F3B" />
+  <meta name="theme-color" content="#ffffff" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
-  <meta name="apple-mobile-web-app-title" content="NebulaDash" />
+  <meta name="apple-mobile-web-app-title" content="PandaDash" />
   <link rel="manifest" href="manifest.json" />
-  <link rel="apple-touch-icon" href="icons/icon-192.png" />
-  <title>NebulaDash</title>
+  <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/iLogisticsCoordinator/o/main/icons/icon-512.png" />
+  <title>PandaDash™</title>
   <style>
     html, body {
       margin: 0;
       padding: 0;
       font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #1B1F3B, #2F2F4F);
-      color: white;
+      background-color: white;
+      color: #333;
       height: 100%;
       display: flex;
       align-items: center;
       justify-content: center;
       flex-direction: column;
     }
-
+    .logo {
+      width: 150px;
+      height: auto;
+      margin-bottom: 20px;
+    }
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+      color: #333;
+    }
     #installBtn {
       display: none;
       margin-top: 20px;
@@ -33,23 +42,25 @@
       font-size: 1rem;
       border: none;
       border-radius: 8px;
+      cursor: pointer;
+    }
+    #installBtn:hover {
+      background: #3e8e41;
     }
   </style>
 </head>
 <body>
-  <h1>🚀 NebulaDash</h1>
+  <img src="https://raw.githubusercontent.com/iLogisticsCoordinator/o/main/icons/icon-512.png" alt="PandaDash Logo" class="logo">
+  <h1>PandaDash™</h1>
   <button id="installBtn">Instalar App</button>
-
   <script>
     let deferredPrompt;
     const installBtn = document.getElementById('installBtn');
-
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       deferredPrompt = e;
       installBtn.style.display = 'block';
     });
-
     installBtn.addEventListener('click', async () => {
       if (deferredPrompt) {
         deferredPrompt.prompt();
@@ -63,7 +74,6 @@
         installBtn.style.display = 'none';
       }
     });
-
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('service-worker.js');
