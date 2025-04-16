@@ -1226,6 +1226,10 @@ function procesarEntrega(documento, lote, referencia, cantidad, factura, nit, bt
             <p style="margin-top: 8px; font-size: 13px; opacity: 0.6;">(Ejemplo: REC58101-805027653)</p> -->
           </div>
         `;
+
+            // Agregar evento de click al botón
+    const installBtn = document.getElementById('installBtn');
+    installBtn.addEventListener('click', installApp);
         
         playSuccessSound();
       } else {
