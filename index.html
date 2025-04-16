@@ -12,10 +12,10 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <title>PandaDash</title>
   
+      <button id="installBtn">Instalar App</button>
 
   <style>
-
-    #installBtn {
+      #installBtn {
       //display: none;
       margin-top: 20px;
       padding: 12px 24px;
@@ -25,30 +25,43 @@
       border: none;
       border-radius: 8px;
     }
+      </style>
 
-    .install-button {
-    background-color: #f2f2f7; /* Estilo iOS: gris claro elegante */
-    color: #000;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    font-size: 16px;
-    padding: 12px 24px;
-    border: none;
-    border-radius: 12px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    transition: all 0.2s ease-in-out;
-    cursor: pointer;
-  }
+  </tyle>
 
-  .install-button:hover {
-    background-color: #e5e5ea;
-    transform: scale(1.02);
-  }
+<script>
+    
+     let deferredPrompt;
+    const installBtn = document.getElementById('installBtn');
 
-  .install-button:active {
-    background-color: #d1d1d6;
-    transform: scale(0.98);
-  }
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      installBtn.style.display = 'block';
+    });
 
+    installBtn.addEventListener('click', async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const choiceResult = await deferredPrompt.userChoice;
+        if (choiceResult.outcome === 'accepted') {
+          console.log('App instalada');
+        } else {
+          console.log('Instalación cancelada');
+        }
+        deferredPrompt = null;
+        installBtn.style.display = 'none';
+      }
+    });
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('service-worker.js');
+      });
+    }
+</script>
+
+  <style>
     
     :root {
       --primary: #4361ee;
@@ -593,7 +606,6 @@
 
     <div id="status">Iniciando Sistema...</div>
     <div class="data-stats" id="data-stats">Cargando datos...</div>
-      <button id="installBtn">Instalar App</button>
     <div id="results"></div>
   </div>
 
@@ -616,35 +628,6 @@
   </div>
 
   <script>
-    
-     let deferredPrompt;
-    const installBtn = document.getElementById('installBtn');
-
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      installBtn.style.display = 'block';
-    });
-
-    installBtn.addEventListener('click', async () => {
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        const choiceResult = await deferredPrompt.userChoice;
-        if (choiceResult.outcome === 'accepted') {
-          console.log('App instalada');
-        } else {
-          console.log('Instalación cancelada');
-        }
-        deferredPrompt = null;
-        installBtn.style.display = 'none';
-      }
-    });
-
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('service-worker.js');
-      });
-    }
 
     
     // Configuración y constantes
@@ -1213,7 +1196,7 @@ function procesarEntrega(documento, lote, referencia, cantidad, factura, nit, bt
         database = serverData.data;
         cacheData(database);
         
-        statusDiv.innerHTML = '<i class="fas fa-check"></i> Sistema Listo';
+        statusDiv.innerHTML = '<i class="fas fa-check"></i> SISTEMA LISTO';
         dataStats.innerHTML = `<i class="fas fa-database"></i> ${database.length} registros | ${new Date().toLocaleTimeString()}`;
         resultsDiv.innerHTML = `
           <div class="result-item" style="text-align: center; color: var(--gray);">
@@ -1225,10 +1208,57 @@ function procesarEntrega(documento, lote, referencia, cantidad, factura, nit, bt
             <!-- <p style="margin: 0;">Escanea un código QR para consultar información</p>
             <p style="margin-top: 8px; font-size: 13px; opacity: 0.6;">(Ejemplo: REC58101-805027653)</p> -->
           </div>
+
+
+  <style>
+      #installBtn {
+      //display: none;
+      margin-top: 20px;
+      padding: 12px 24px;
+      background: #4CAF50;
+      color: white;
+      font-size: 1rem;
+      border: none;
+      border-radius: 8px;
+    }
+</style>
+
+<script>
+    
+     let deferredPrompt;
+    const installBtn = document.getElementById('installBtn');
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      installBtn.style.display = 'block';
+    });
+
+    installBtn.addEventListener('click', async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const choiceResult = await deferredPrompt.userChoice;
+        if (choiceResult.outcome === 'accepted') {
+          console.log('App instalada');
+        } else {
+          console.log('Instalación cancelada');
+        }
+        deferredPrompt = null;
+        installBtn.style.display = 'none';
+      }
+    });
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('service-worker.js');
+      });
+    }
+
+
         `;
 
-             let deferredPrompt;
-    const installBtn = document.getElementById('installBtn');
+              
+
         
         playSuccessSound();
       } else {
@@ -1247,9 +1277,12 @@ function procesarEntrega(documento, lote, referencia, cantidad, factura, nit, bt
         dataStats.innerHTML = `${database.length} registros | Última actualización: ${new Date(cachedData.timestamp).toLocaleString()}`;
         resultsDiv.innerHTML = `
           <div class="result-item" style="text-align: center; color: var(--gray);">
-            <i class="fas fa-qrcode" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>  
-            <p style="margin: 0;">Escanea un código QR para consultar información</p>
-            <p style="margin-top: 8px; font-size: 13px; opacity: 0.8;">Formato: DOCUMENTO-NIT (Ejemplo: REC58101-805027653)</p>
+            <!-- <i class="fas fa-qrcode" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>-->
+            <img src="https://raw.githubusercontent.com/iLogisticsCoordinator/o/main/icons/icon-512.png" alt="PandaDash Logo" class="logo" style="width: 4rem; height: 4rem; margin-bottom: 0.5rem;">
+            <h1>PandaDash</h1>
+  <div class="name">Andrés Mendoza</div>
+            <!-- <p style="margin: 0;">Escanea un código QR para consultar información</p>
+            <p style="margin-top: 8px; font-size: 13px; opacity: 0.6;">(Ejemplo: REC58101-805027653)</p> -->
           </div>
         `;
         offlineBanner.style.display = 'block';
