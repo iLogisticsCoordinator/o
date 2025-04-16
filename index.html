@@ -1192,61 +1192,103 @@ function procesarEntrega(documento, lote, referencia, cantidad, factura, nit, bt
     }
 
     function handleDataLoadSuccess(serverData) {
-      if (serverData && serverData.success && serverData.data) {
-        database = serverData.data;
-        cacheData(database);
-        
-        statusDiv.innerHTML = '<i class="fas fa-check"></i> SISTEMA LISTO';
-        dataStats.innerHTML = `<i class="fas fa-database"></i> ${database.length} registros | ${new Date().toLocaleTimeString()}`;
-        resultsDiv.innerHTML = `
-          <div class="result-item" style="text-align: center; color: var(--gray);">
-            <!-- <i class="fas fa-qrcode" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>-->
-            <img src="https://raw.githubusercontent.com/iLogisticsCoordinator/o/main/icons/icon-512.png" alt="PandaDash Logo" class="logo" style="width: 4rem; height: 4rem; margin-bottom: 0.5rem;">
-            <h1>PandaDash</h1>
-  <div class="name">Andrés Mendoza</div>
-  <button id="installBtn">Instalar App</button>
-            <!-- <p style="margin: 0;">Escanea un código QR para consultar información</p>
-            <p style="margin-top: 8px; font-size: 13px; opacity: 0.6;">(Ejemplo: REC58101-805027653)</p> -->
-          </div>
-        `;
+  if (serverData && serverData.success && serverData.data) {
+    database = serverData.data;
+    cacheData(database);
+    
+    statusDiv.innerHTML = '<i class="fas fa-check"></i> SISTEMA LISTO';
+    dataStats.innerHTML = `<i class="fas fa-database"></i> ${database.length} registros | ${new Date().toLocaleTimeString()}`;
+    resultsDiv.innerHTML = `
+      <div class="result-item" style="text-align: center; color: var(--gray);">
+        <img src="https://raw.githubusercontent.com/iLogisticsCoordinator/o/main/icons/icon-512.png" alt="PandaDash Logo" class="logo" style="width: 4rem; height: 4rem; margin-bottom: 0.5rem;">
+        <h1>PandaDash</h1>
+        <div class="name">Andrés Mendoza</div>
+        <button id="installBtn" style="display: none; padding: 10px 20px; background-color: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer; margin-top: 10px;">
+          <i class="fas fa-download"></i> Instalar App
+        </button>
+        <div id="installMessage" style="margin-top: 10px; font-size: 14px; color: #666;"></div>
+      </div>
+    `;
 
+    // Inicializar variables
     let deferredPrompt;
     const installBtn = document.getElementById('installBtn');
+    const installMessage = document.getElementById('installMessage');
 
+    // Verificar si la app ya está instalada
+    if (window.matchMedia('(display-mode: standalone)').matches || 
+        window.navigator.standalone === true) {
+      installMessage.textContent = '✓ App ya instalada';
+      return;
+    }
+
+    // Capturar evento de instalación
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       deferredPrompt = e;
       installBtn.style.display = 'block';
+      
+      // Mostrar mensaje informativo
+      installMessage.textContent = 'Disponible para instalar';
     });
 
+    // Manejar clic en el botón de instalación
     installBtn.addEventListener('click', async () => {
-      if (deferredPrompt) {
+      if (!deferredPrompt) {
+        return;
+      }
+      
+      // Cambiar estilo del botón
+      installBtn.disabled = true;
+      installBtn.textContent = 'Instalando...';
+
+      try {
+        // Mostrar prompt de instalación
         deferredPrompt.prompt();
         const choiceResult = await deferredPrompt.userChoice;
+        
         if (choiceResult.outcome === 'accepted') {
-          console.log('App instalada');
+          installMessage.textContent = '✓ Instalación exitosa';
+          installBtn.style.display = 'none';
         } else {
-          console.log('Instalación cancelada');
+          installMessage.textContent = 'Instalación cancelada';
+          installBtn.disabled = false;
+          installBtn.innerHTML = '<i class="fas fa-download"></i> Instalar App';
         }
-        deferredPrompt = null;
-        installBtn.style.display = 'none';
+      } catch (err) {
+        console.error('Error en la instalación:', err);
+        installMessage.textContent = 'Error en la instalación';
+        installBtn.disabled = false;
+        installBtn.innerHTML = '<i class="fas fa-download"></i> Reintentar';
       }
+
+      deferredPrompt = null;
     });
 
+    // Detectar cuando la app se instala exitosamente
+    window.addEventListener('appinstalled', (evt) => {
+      installMessage.textContent = '✓ App instalada correctamente';
+      installBtn.style.display = 'none';
+    });
+
+    // Registrar Service Worker
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('service-worker.js');
+      window.addEventListener('load', async () => {
+        try {
+          const registration = await navigator.serviceWorker.register('service-worker.js');
+          console.log('Service Worker registrado:', registration);
+        } catch (err) {
+          console.error('Error al registrar Service Worker:', err);
+        }
       });
-    };
-
-              
-
-        
-        playSuccessSound();
-      } else {
-        handleDataLoadError(new Error('Formato de datos incorrecto'));
-      }
     }
+
+    playSuccessSound();
+  } else {
+    handleDataLoadError(new Error('Formato de datos incorrecto'));
+  }
+}
+
 
     function handleDataLoadError(error) {
       console.error("Error al cargar datos:", error);
