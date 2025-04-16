@@ -11,8 +11,21 @@
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <title>PandaDash</title>
+    <button id="installBtn">Instalar App</button>
 
   <style>
+
+        #installBtn {
+      display: none;
+      margin-top: 20px;
+      padding: 12px 24px;
+      background: #4CAF50;
+      color: white;
+      font-size: 1rem;
+      border: none;
+      border-radius: 8px;
+    }
+    
     :root {
       --primary: #4361ee;
       --primary-dark: #3a56d4;
@@ -579,6 +592,37 @@
   </div>
 
   <script>
+    
+     let deferredPrompt;
+    const installBtn = document.getElementById('installBtn');
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      installBtn.style.display = 'block';
+    });
+
+    installBtn.addEventListener('click', async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const choiceResult = await deferredPrompt.userChoice;
+        if (choiceResult.outcome === 'accepted') {
+          console.log('App instalada');
+        } else {
+          console.log('Instalación cancelada');
+        }
+        deferredPrompt = null;
+        installBtn.style.display = 'none';
+      }
+    });
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('service-worker.js');
+      });
+    }
+
+    
     // Configuración y constantes
     const CONFIG = {
       VERSION: "4.0.0",
@@ -1490,34 +1534,6 @@ function procesarEntrega(documento, lote, referencia, cantidad, factura, nit, bt
       `;
     }
     
-  </script>
-
-    <script>
-    let deferredPrompt;
-    const installBtn = document.getElementById('installBtn');
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      installBtn.style.display = 'block';
-    });
-    installBtn.addEventListener('click', async () => {
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        const choiceResult = await deferredPrompt.userChoice;
-        if (choiceResult.outcome === 'accepted') {
-          console.log('App instalada');
-        } else {
-          console.log('Instalación cancelada');
-        }
-        deferredPrompt = null;
-        installBtn.style.display = 'none';
-      }
-    });
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('service-worker.js');
-      });
-    }
   </script>
 
 </body>
