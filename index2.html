@@ -1,29 +1,16 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-  <base target="_top">
-  <meta name="viewport" content="<?= viewport ?>">
-  <meta name="theme-color" content="<?= themeColor ?>">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <link rel="icon" sizes="192x192" href="https://i.ibb.co/LC188Vm/Remove-bg-ai-1712427251285.png">
-  <link rel="apple-touch-icon" href="https://i.ibb.co/LC188Vm/Remove-bg-ai-1712427251285.png">
-  <meta charset="utf-8">
-  <link rel="icon" href="https://i.ibb.co/LC188Vm/Remove-bg-ai-1712427251285.png">
-  <title>Lector PDA - Visualización Avanzada</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="mobile-web-app-capable" content="yes">
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#ffffff" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  <meta name="apple-mobile-web-app-title" content="PandaDash" />
+  <link rel="manifest" href="manifest.json" />
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-      <script>
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('?path=sw')
-          .then(() => console.log('Service Worker registrado'))
-          .catch(err => console.error('SW error', err));
-      }
-    </script>
+  <title>PandaDash</title>
 
   <style>
     :root {
@@ -80,30 +67,60 @@
       position: relative;
     }
     
-    #barcode {
-      width: auto;
-      padding: 18px 15px;
-      font-size: 18px;
-      text-align: center;
-      background: var(--card-bg);
-      color: var(--dark);
-      border: none;
-      border-bottom: 2px solid var(--primary);
-      font-weight: 500;
-      transition: var(--transition);
-    }
+/* Estilos optimizados para campo de código de barras */
+.barcode-input-container {
+  position: relative;
+  max-width: 400px;
+  margin: 20px auto;
+}
+
+#barcode {
+  width: 100%;
+  padding: 16px 16px 16px 48px;
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+  background-color: #fff;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  appearance: none;
+}
+
+#barcode::placeholder {
+  color: #888;
+  opacity: 0.7;
+}
+
+#barcode:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+}
+
+.barcode-input-container i {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #a6acad;
+  font-size: 20px;
+  pointer-events: none;
+  transition: color 0.3s ease;
+}
+
+.barcode-input-container:focus-within i {
+  color: #a6acad;
+}
+
+@media (max-width: 768px) {
+  #barcode {
+    padding: 14px 14px 14px 44px;
+    font-size: 15px;
+  }
+}
     
-    #barcode:focus {
-      outline: none;
-      box-shadow: 0 2px 5px rgba(67, 97, 238, 0.2);
-    }
-    
-    #barcode::placeholder {
-      color: var(--gray);
-      opacity: 0.7;
-    }
-    
-    #status {
+    /*#status {
       padding: 12px 10px;
       text-align: center;
       background: var(--primary);
@@ -111,13 +128,55 @@
       font-size: 12px;
       font-weight: 500;
       letter-spacing: 0.5px;
+    }*/
+
+        h1 {
+      font-size: 1.7rem;
+      margin: 3px 0;
+      color: #333;
     }
+    .name {
+      color: #599191;
+      font-size: 0.8rem;
+      margin: 3px 0 10px;
+    }
+
+#status {
+    padding: 0.5rem 1rem;
+    text-align: center;
+    background: linear-gradient(270deg, #007cf0, #00dfd8, #007cf0);
+    background-size: 600% 600%;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.75px;
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+    animation: gradientMove 8s ease infinite;
+    transition: transform 0.3s ease;
+    margin-left: 15px;
+    margin-right: 15px;
+}
+
+@keyframes gradientMove {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+
     
     #results {
       flex: 1;
       overflow-y: auto;
       padding: 15px;
-      background: var(--bg-color);
+      background: #ffffff;
     }
     
     .result-item {
@@ -338,7 +397,7 @@
       font-weight: 500;
       font-size: 14px;
       display: none;
-      align-items:       center;
+      align-items: center;
       gap: 5px;
     }
     
@@ -366,10 +425,7 @@
         min-width: auto;
       }
       
-      #barcode {
-        font-size: 16px;
-        padding: 15px 10px;
-      }
+
       
       .siesa-header {
         flex-direction: column;
@@ -382,40 +438,7 @@
       }
     }
 
-    /* Contenedor del input con ícono */
-    .barcode-input-container {
-      position: relative;
-      max-width: 400px;
-      margin: 20px auto;
-    }
-    
-    /* Estilo del input */
-    #barcode {
-      width: 100%;
-      padding: 15px 15px 15px 45px;
-      font-size: 16px;
-      border: 2px solid #ccc;
-      border-radius: 12px;
-      outline: none;
-      transition: border-color 0.3s ease, box-shadow 0.3s ease;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-    
-    /* Efecto al enfocar */
-    #barcode:focus {
-      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
-    }
-    
-    /* Ícono dentro del input */
-    .barcode-input-container i {
-      position: absolute;
-      left: 15px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: #888;
-      font-size: 18px;
-      pointer-events: none;
-    }
+
 
     /* Modal de cámara */
     .camera-modal {
@@ -508,247 +531,42 @@
     .camera-modal button {
       -webkit-tap-highlight-color: transparent;
     }
-  </style> 
-  <style> 
-  center;
-      justify-content: center;
-      -webkit-user-select: none;
-      user-select: none;
-      touch-action: manipulation;
-    }
     
-    .camera-view {
-      width: 90%;
-      max-width: 500px;
-      background: #000;
-      margin-bottom: 20px;
-      height: auto;
-      border-radius: var(--border-radius);
-      overflow: hidden;
-    }
-    
-    .camera-actions {
-      display: flex;
-      gap: 12px;
-      margin-top: 15px;
-    }
-    
-    #photoPreview {
-      display: none;
-      max-width: 90%;
-      max-height: 60vh;
-      margin-bottom: 20px;
-      object-fit: contain;
-      border-radius: var(--border-radius);
-      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-    }
-    
-    .uploading-status {
-      color: white;
-      margin-top: 15px;
-      display: none;
-      font-size: 16px;
-      font-weight: 500;
-      text-align: center;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-    }
-    
-    /* Estilos para las partes extraídas del QR */
-    .qr-info {
-      margin-bottom: 15px;
-      padding: 12px;
+    .filter-info {
       background: var(--primary-light);
       border-radius: var(--border-radius);
-      border-left: 3px solid var(--primary);
-    }
-    
-    .qr-info-row {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 5px;
-    }
-    
-    .qr-info-label {
-      font-weight: 500;
-      color: var(--primary-dark);
-    }
-    
-    .qr-info-value {
-      font-weight: 400;
-    }
-    
-    /* Para evitar que el teclado aparezca en la pantalla de cámara */
-    .camera-modal * {
-      -webkit-user-select: none;
-      user-select: none;
-    }
-    
-    /* Evitar que aparezca el resaltado de selección */
-    .camera-modal button {
-      -webkit-tap-highlight-color: transparent;
-    }
-  </style> 
-  <style> 
-  center;
-      gap: 5px;
-    }
-    
-    .save-success i {
+      padding: 10px;
+      margin-bottom: 15px;
       font-size: 14px;
-    }
-    
-    /* Action buttons container */
-    .action-buttons {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-top: 15px;
-    }
-    
-    /* Responsive */
-    @media (max-width: 600px) {
-      .result-row {
-        flex-direction: column;
-        gap: 5px;
-      }
-      
-      .col-header {
-        margin-bottom: 5px;
-        min-width: auto;
-      }
-      
-      #barcode {
-        font-size: 16px;
-        padding: 15px 10px;
-      }
-      
-      .siesa-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 5px;
-      }
-      
-      .badge {
-        margin-left: 0;
-      }
-    }
-
-    /* Contenedor del input con ícono */
-    .barcode-input-container {
-      position: relative;
-      max-width: 400px;
-      margin: 20px auto;
-    }
-    
-    /* Estilo del input */
-    #barcode {
-      width: 100%;
-      padding: 15px 15px 15px 45px;
-      font-size: 16px;
-      border: 2px solid #ccc;
-      border-radius: 12px;
-      outline: none;
-      transition: border-color 0.3s ease, box-shadow 0.3s ease;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-    
-    /* Efecto al enfocar */
-    #barcode:focus {
-      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
-    }
-    
-    /* Ícono dentro del input */
-    .barcode-input-container i {
-      position: absolute;
-      left: 15px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: #888;
-      font-size: 18px;
-      pointer-events: none;
-    }
-
-    /* Modal de cámara */
-    .camera-modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.95);
-      z-index: 10000;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-    }
-    
-    .camera-view {
-      width: 90%;
-      max-width: 500px;
-      background: #000;
-      margin-bottom: 20px;
-      height: auto;
-      border-radius: var(--border-radius);
-      overflow: hidden;
-    }
-    
-    .camera-actions {
-      display: flex;
-      gap: 12px;
-      margin-top: 15px;
-    }
-    
-    #photoPreview {
-      display: none;
-      max-width: 90%;
-      max-height: 60vh;
-      margin-bottom: 20px;
-      object-fit: contain;
-      border-radius: var(--border-radius);
-      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-    }
-    
-    .uploading-status {
-      color: white;
-      margin-top: 15px;
-      display: none;
-      font-size: 16px;
-      font-weight: 500;
-      text-align: center;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-    }
-    
-    /* Estilos para las partes extraídas del QR */
-    .qr-info {
-      margin-bottom: 15px;
-      padding: 12px;
-      background: var(--primary-light);
-      border-radius: var(--border-radius);
-      border-left: 3px solid var(--primary);
-    }
-    
-    .qr-info-row {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 5px;
-    }
-    
-    .qr-info-label {
-      font-weight: 500;
       color: var(--primary-dark);
-    }
-    
-    .qr-info-value {
-      font-weight: 400;
     }
   </style>
+
+  <style>
+  .install-button {
+    background-color: #f2f2f7; /* Estilo iOS: gris claro elegante */
+    color: #000;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 16px;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+  }
+
+  .install-button:hover {
+    background-color: #e5e5ea;
+    transform: scale(1.02);
+  }
+
+  .install-button:active {
+    background-color: #d1d1d6;
+    transform: scale(0.98);
+  }
+</style>
+
 </head>
 <body>
   <div id="scanner">
@@ -758,7 +576,7 @@
 
     <div class="barcode-input-container">
       <i class="fa-solid fa-qrcode"></i>
-      <input type="text" id="barcode" autofocus placeholder="Escanea el código QR del documento (DOC-NIT)">
+      <input type="text" id="barcode" autofocus placeholder="Escanea un código QR">
     </div>
 
     <div id="status">Iniciando Sistema...</div>
@@ -785,11 +603,32 @@
   </div>
 
   <script>
+    // Configuración y constantes
+    const CONFIG = {
+      VERSION: "4.0.0",
+      CACHE_TTL: 24 * 60 * 60 * 1000, // 24 horas en milisegundos
+      MAX_IMAGE_SIZE: 800, // Tamaño máximo para redimensionar imágenes
+      MAX_CHUNK_SIZE: 50000, // ~50KB por solicitud
+    };
+    
+    // API URLs - Variables globales que faltaban en el código original
+    const API_URL_GET = "https://script.google.com/macros/s/AKfycbwz6LT-e4m3R74wRvC5h4isRE4wmSnzpa-MJtYnAg56PCWbrwI3rdwbekWxauVPGrsmLw/exec";
+    const API_URL_POST = "https://script.google.com/macros/s/AKfycbwgnkjVCMWlWuXnVaxSBD18CGN3rXGZtQZIvX9QlBXSgbQndWC4uqQ2sc00DuNH6yrb/exec";
+
     // Variables globales
+    let database = [];
     let cameraStream = null;
     let currentDocumentData = null;
     let photoBlob = null;
     let preventKeyboardTimer = null;
+    let currentQRParts = null; // Para almacenar las partes del QR actual
+    
+    // Elementos del DOM
+    const barcodeInput = document.getElementById('barcode');
+    const statusDiv = document.getElementById('status');
+    const resultsDiv = document.getElementById('results');
+    const dataStats = document.getElementById('data-stats');
+    const offlineBanner = document.getElementById('offline-banner');
 
     // Función para abrir la cámara
     function abrirCamara(factura) {
@@ -809,7 +648,6 @@
       const cameraFeed = document.getElementById('cameraFeed');
       const photoPreview = document.getElementById('photoPreview');
       const takePhotoBtn = document.getElementById('takePhotoBtn');
-      const barcodeInput = document.getElementById('barcode');
       const dummyInput = document.getElementById('dummyInput');
       
       // Ocultar teclado al abrir la cámara
@@ -898,8 +736,8 @@
       }, 'image/jpeg', 0.85);
     }
 
-// Función actualizada para subir fotos (adaptada para usar GET en lugar de POST)
-async function subirFoto() {
+
+function subirFoto() {
   if (!currentDocumentData || !photoBlob) {
     console.error("No hay datos disponibles para subir");
     return;
@@ -909,111 +747,205 @@ async function subirFoto() {
   const takePhotoBtn = document.getElementById('takePhotoBtn');
   const uploadStatus = document.getElementById('uploadStatus');
   
+  // Deshabilitar botón y mostrar estado de carga
   takePhotoBtn.disabled = true;
   takePhotoBtn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Subiendo...';
   uploadStatus.style.display = 'flex';
   uploadStatus.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Subiendo foto...';
   
-  try {
-    // Convertir blob a base64
-    const reader = new FileReader();
-    reader.readAsDataURL(photoBlob);
+  // Convertir blob a base64
+  const reader = new FileReader();
+  reader.onloadend = function() {
+    // Extraer solo la parte base64 de la cadena (eliminar el prefijo data:image/jpeg;base64,)
+    const base64Data = reader.result.split(',')[1];
+    const nombreArchivo = factura.replace(/[^a-zA-Z0-9\-]/g, '') + '.jpg';
     
-    reader.onloadend = async () => {
-      const base64Data = reader.result.split(',')[1];
-      const nombreArchivo = factura.replace(/[^a-zA-Z0-9\-]/g, '') + '.jpg';
-      
-      try {
-        // Verificamos el tamaño de la imagen en base64
-        const imageSize = base64Data.length;
-        console.log(`Tamaño de la imagen en base64: ${(imageSize/1024).toFixed(2)} KB`);
-        
-        // Si la imagen es demasiado grande para GET, reducimos su tamaño
-        if (imageSize > 1500000) { // Más de ~1.5MB en base64
-          uploadStatus.innerHTML = '<i class="fas fa-compress"></i> Optimizando imagen...';
-          const smallerBase64 = await reduceImageSize(base64Data);
-          
-          // Enviamos la imagen reducida
-          await uploadImageToServer(smallerBase64, nombreArchivo, factura, btnElement, takePhotoBtn, uploadStatus);
-        } else {
-          // La imagen es lo suficientemente pequeña
-          await uploadImageToServer(base64Data, nombreArchivo, factura, btnElement, takePhotoBtn, uploadStatus);
-        }
-      } catch (error) {
-        console.error("Error al subir foto:", error);
-        uploadStatus.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error al subir foto';
-        takePhotoBtn.disabled = false;
-        takePhotoBtn.innerHTML = '<i class="fas fa-redo"></i> Reintentar';
-        
-        // Si estamos offline, guardamos localmente para sincronizar después
-        if (!navigator.onLine) {
-          saveOfflinePhoto(base64Data, nombreArchivo, factura);
-          uploadStatus.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Guardada offline';
-          setTimeout(cerrarCamara, 2000);
+    // Obtener NIT de las partes actuales del QR
+    const nit = currentQRParts ? currentQRParts.nit : '';
+    const documento = currentQRParts ? currentQRParts.documento : '';
+    
+    // Obtener valores de lote, referencia y cantidad de manera segura
+    let lote = '';
+    let referencia = '';
+    let cantidad = 0;
+    
+    try {
+      // Buscar elemento de lote
+      const loteElements = document.querySelectorAll('.result-row');
+      for (let i = 0; i < loteElements.length; i++) {
+        if (loteElements[i].textContent.includes('Lote')) {
+          const valueElement = loteElements[i].querySelector('.json-value');
+          if (valueElement) {
+            lote = valueElement.textContent.trim();
+          }
+          break;
         }
       }
-    };
-  } catch (error) {
-    console.error("Error al procesar foto:", error);
-    uploadStatus.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error al procesar foto';
-    takePhotoBtn.disabled = false;
-  }
-}
-
-
-// Función auxiliar para reducir el tamaño de la imagen
-async function reduceImageSize(base64Data) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = function() {
-      const canvas = document.createElement('canvas');
       
-      // Calcular nuevas dimensiones manteniendo la proporción
-      let width = img.width;
-      let height = img.height;
-      
-      // Reducir a máximo 800px de ancho o alto
-      const MAX_SIZE = 800;
-      if (width > height) {
-        if (width > MAX_SIZE) {
-          height = Math.round(height * (MAX_SIZE / width));
-          width = MAX_SIZE;
+      // Buscar elemento de referencia
+      const refElements = document.querySelectorAll('.result-row');
+      for (let i = 0; i < refElements.length; i++) {
+        if (refElements[i].textContent.includes('Referencia')) {
+          const valueElement = refElements[i].querySelector('.json-value');
+          if (valueElement) {
+            referencia = valueElement.textContent.trim();
+          }
+          break;
         }
+      }
+      
+      // Buscar elemento de cantidad
+      const cantElements = document.querySelectorAll('.result-row');
+      for (let i = 0; i < cantElements.length; i++) {
+        if (cantElements[i].textContent.includes('Cantidad')) {
+          const valueElement = cantElements[i].querySelector('.json-value');
+          if (valueElement) {
+            cantidad = parseFloat(valueElement.textContent.trim()) || 0;
+          }
+          break;
+        }
+      }
+    } catch (e) {
+      console.warn("Error al extraer datos de la UI:", e);
+    }
+    
+    console.log("Datos extraídos:", {
+      lote: lote,
+      referencia: referencia,
+      cantidad: cantidad
+    });
+    
+    // Crear FormData para la solicitud
+    const formData = new FormData();
+    formData.append('documento', documento);
+    formData.append('lote', lote);
+    formData.append('referencia', referencia);
+    formData.append('cantidad', cantidad);
+    formData.append('factura', factura);
+    formData.append('nit', nit);
+    formData.append('fotoBase64', base64Data);
+    formData.append('fotoNombre', nombreArchivo);
+    formData.append('fotoTipo', 'image/jpeg');
+    
+    console.log("Enviando datos de foto:", {
+      documento,
+      lote,
+      referencia,
+      cantidad,
+      factura, 
+      nit,
+      fotoNombre: nombreArchivo,
+      fotoTipo: 'image/jpeg',
+      fotoBase64Length: base64Data ? base64Data.length : 0 // Solo el tamaño para debug
+    });
+    
+    // Realizar la solicitud fetch
+    fetch(API_URL_POST, {
+      method: 'POST',
+      body: formData
+    })
+    .then(response => {
+      // Verificar respuesta HTTP
+      if (!response.ok) {
+        throw new Error(`Error HTTP: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(result => {
+      console.log("Respuesta del servidor:", result);
+      
+      if (result.success) {
+        // Éxito
+        uploadStatus.innerHTML = '<i class="fas fa-check-circle"></i> Foto subida correctamente';
+        takePhotoBtn.innerHTML = '<i class="fas fa-check"></i> Foto subida';
+        
+        // Marcar como completado en el botón de entregas
+        if (btnElement) {
+          btnElement.innerHTML = '<i class="fas fa-check-circle"></i> Entregado con foto';
+          btnElement.style.backgroundColor = '#28a745';
+        }
+        
+        setTimeout(cerrarCamara, 1500);
       } else {
-        if (height > MAX_SIZE) {
-          width = Math.round(width * (MAX_SIZE / height));
-          height = MAX_SIZE;
-        }
+        throw new Error(result.message || "Error al guardar la foto");
       }
+    })
+    .catch(error => {
+      console.error("Error al subir foto:", error);
+      uploadStatus.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error al subir foto';
+      takePhotoBtn.disabled = false;
+      takePhotoBtn.innerHTML = '<i class="fas fa-redo"></i> Reintentar';
       
-      canvas.width = width;
-      canvas.height = height;
-      
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, width, height);
-      
-      // Calidad menor para reducir tamaño (0.6 = 60% de calidad)
-      const smallerBase64 = canvas.toDataURL('image/jpeg', 0.6).split(',')[1];
-      resolve(smallerBase64);
-    };
-    
-    img.onerror = function() {
-      reject(new Error('Error al cargar la imagen para reducir su tamaño'));
-    };
-    
-    img.src = 'data:image/jpeg;base64,' + base64Data;
-  });
+      // Si estamos offline, guardamos localmente para sincronizar después
+      if (!navigator.onLine) {
+        saveOfflinePhoto(base64Data, nombreArchivo, factura);
+        uploadStatus.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Guardada offline';
+        setTimeout(cerrarCamara, 2000);
+      }
+    });
+  };
+  
+  reader.onerror = function() {
+    console.error("Error al leer la imagen");
+    uploadStatus.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error al leer la imagen';
+    takePhotoBtn.disabled = false;
+    takePhotoBtn.innerHTML = '<i class="fas fa-redo"></i> Reintentar';
+  };
+  
+  // Iniciar la lectura del blob de la imagen
+  reader.readAsDataURL(photoBlob);
 }
 
-// Función para subir imagen al servidor
+
+
+    // Función auxiliar para reducir el tamaño de la imagen
+    async function reduceImageSize(base64Data) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          
+          // Calcular nuevas dimensiones manteniendo la proporción
+          let width = img.width;
+          let height = img.height;
+          
+          // Reducir a máximo 800px de ancho o alto
+          if (width > height) {
+            if (width > CONFIG.MAX_IMAGE_SIZE) {
+              height = Math.round(height * (CONFIG.MAX_IMAGE_SIZE / width));
+              width = CONFIG.MAX_IMAGE_SIZE;
+            }
+          } else {
+            if (height > CONFIG.MAX_IMAGE_SIZE) {
+              width = Math.round(width * (CONFIG.MAX_IMAGE_SIZE / height));
+              height = CONFIG.MAX_IMAGE_SIZE;
+            }
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          // Calidad menor para reducir tamaño (0.6 = 60% de calidad)
+          const smallerBase64 = canvas.toDataURL('image/jpeg', 0.6).split(',')[1];
+          resolve(smallerBase64);
+        };
+        
+        img.onerror = function() {
+          reject(new Error('Error al cargar la imagen para reducir su tamaño'));
+        };
+        
+        img.src = 'data:image/jpeg;base64,' + base64Data;
+      });
+    }
+
+// Función actualizada para subir imágenes sin restricción de tamaño
 async function uploadImageToServer(base64Data, nombreArchivo, factura, btnElement, takePhotoBtn, uploadStatus) {
-  // Adaptamos para usar GET en lugar de POST para evitar CORS
-  // Dividimos la imagen en partes si es necesario debido a límites de URL
-  const MAX_CHUNK_SIZE = 50000; // ~50KB por solicitud
-  
-  if (base64Data.length <= MAX_CHUNK_SIZE) {
-    // Si la imagen es pequeña, la enviamos en una sola solicitud
-    const url = `${API_URL}?action=guardarFoto&base64Data=${encodeURIComponent(base64Data)}&nombreArchivo=${encodeURIComponent(nombreArchivo)}&factura=${encodeURIComponent(factura)}&nocache=${new Date().getTime()}`;
+  try {
+    // Enviar la imagen completa sin dividirla
+    const url = `${API_URL_POST}?action=guardarFoto&base64Data=${encodeURIComponent(base64Data)}&nombreArchivo=${encodeURIComponent(nombreArchivo)}&factura=${encodeURIComponent(factura)}&nocache=${new Date().getTime()}`;
     
     const response = await fetch(url);
     if (!response.ok) {
@@ -1035,59 +967,61 @@ async function uploadImageToServer(base64Data, nombreArchivo, factura, btnElemen
     }
     
     setTimeout(cerrarCamara, 1500);
-  } else {
-    // Para imágenes grandes, informamos que no se pueden procesar
-    uploadStatus.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Imagen demasiado grande';
-    takePhotoBtn.innerHTML = '<i class="fas fa-compress"></i> Imagen demasiado grande';
-    takePhotoBtn.disabled = false;
-    
-    // Mostrar mensaje al usuario
-    alert("La imagen es demasiado grande para procesarla. Por favor, intenta tomar una foto con menor resolución o más cerca del código.");
-  }
-}
-
-// Funciones para manejo offline
-
-// Guardar datos para sincronizar después
-function saveOfflineData(action, data) {
-  try {
-    // Obtenemos los datos actuales o inicializamos un array vacío
-    const savedData = JSON.parse(localStorage.getItem('pdaOfflineData') || '[]');
-    
-    // Agregamos el nuevo item
-    savedData.push({
-      id: Date.now(),
-      action: action,
-      data: data,
-      timestamp: new Date().toISOString()
-    });
-    
-    // Guardamos de vuelta en localStorage
-    localStorage.setItem('pdaOfflineData', JSON.stringify(savedData));
-    
-    // Registramos para sync cuando haya conexión
-    if ('serviceWorker' in navigator && 'SyncManager' in window) {
-      navigator.serviceWorker.ready
-        .then(reg => reg.sync.register('sync-guardados-pendientes'))
-        .catch(err => console.log('Error al registrar sync:', err));
-    }
   } catch (error) {
-    console.error("Error al guardar datos offline:", error);
+    console.error("Error al subir foto:", error);
+    uploadStatus.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error al subir foto';
+    takePhotoBtn.disabled = false;
+    takePhotoBtn.innerHTML = '<i class="fas fa-redo"></i> Reintentar';
+    
+    // Si estamos offline, guardamos localmente para sincronizar después
+    if (!navigator.onLine) {
+      saveOfflinePhoto(base64Data, nombreArchivo, factura);
+      uploadStatus.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Guardada offline';
+      setTimeout(cerrarCamara, 2000);
+    }
   }
 }
 
-// Guardar foto offline (versión simplificada)
-function saveOfflinePhoto(base64Data, nombreArchivo, factura) {
-  saveOfflineData('guardarFoto', {
-    base64Data: base64Data.substring(0, 100) + '...', // Solo guardamos una referencia
-    nombreArchivo: nombreArchivo,
-    factura: factura,
-    timestamp: new Date().toISOString()
-  });
-  
-  alert("Las fotos no se pueden guardar completamente en modo offline. Se registrará la entrega, pero deberás subir la foto cuando tengas conexión.");
-}
+    // Funciones para manejo offline
+    // Guardar datos para sincronizar después
+    function saveOfflineData(action, data) {
+      try {
+        // Obtenemos los datos actuales o inicializamos un array vacío
+        const savedData = JSON.parse(localStorage.getItem('pdaOfflineData') || '[]');
+        
+        // Agregamos el nuevo item
+        savedData.push({
+          id: Date.now(),
+          action: action,
+          data: data,
+          timestamp: new Date().toISOString()
+        });
+        
+        // Guardamos de vuelta en localStorage
+        localStorage.setItem('pdaOfflineData', JSON.stringify(savedData));
+        
+        // Registramos para sync cuando haya conexión
+        if ('serviceWorker' in navigator && 'SyncManager' in window) {
+          navigator.serviceWorker.ready
+            .then(reg => reg.sync.register('sync-guardados-pendientes'))
+            .catch(err => console.log('Error al registrar sync:', err));
+        }
+      } catch (error) {
+        console.error("Error al guardar datos offline:", error);
+      }
+    }
 
+    // Guardar foto offline (versión simplificada)
+    function saveOfflinePhoto(base64Data, nombreArchivo, factura) {
+      saveOfflineData('guardarFoto', {
+        base64Data: base64Data.substring(0, 100) + '...', // Solo guardamos una referencia
+        nombreArchivo: nombreArchivo,
+        factura: factura,
+        timestamp: new Date().toISOString()
+      });
+      
+      alert("Las fotos no se pueden guardar completamente en modo offline. Se registrará la entrega, pero deberás subir la foto cuando tengas conexión.");
+    }
 
     // Función para cerrar la cámara
     function cerrarCamara() {
@@ -1121,92 +1055,25 @@ function saveOfflinePhoto(base64Data, nombreArchivo, factura) {
     // Configurar botón cancelar
     document.getElementById('cancelCaptureBtn').addEventListener('click', cerrarCamara);
 
-    // Función para procesar entregas (modificada para incluir el NIT)
-    function procesarEntrega(documento, lote, referencia, cantidad, factura, nit, btnElement) {
-      // Guardamos el registro incluyendo el NIT
-      guardarRegistroSiesa(documento, lote, referencia, cantidad, factura, nit, btnElement);
-      
-      // Luego abrimos la cámara automáticamente
-      setTimeout(() => {
-        abrirCamara(factura);
-      }, 500);
-    }
-
-// Función actualizada para guardar registros (adaptada para usar GET en lugar de POST)
-async function guardarRegistroSiesa(documento, lote, referencia, cantidad, factura, nit, btnElement) {
-  const successElement = btnElement.nextElementSibling;
-  btnElement.disabled = true;
-  btnElement.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Guardando...';
-
-  // Crear objeto estructurado con todos los datos
-  const datosParaGuardar = {
+// Función actualizada para procesar entregas
+function procesarEntrega(documento, lote, referencia, cantidad, factura, nit, btnElement) {
+  // Crear objeto con los datos completos
+  const datos = {
     documento: documento,
     lote: lote || '',
     referencia: referencia || '',
-    cantidad: cantidad,
+    cantidad: parseFloat(cantidad) || 0,
     factura: factura,
-    nit: nit || '' 
+    nit: nit || ''
   };
-
-  console.log("Datos a enviar:", datosParaGuardar);
-
-  try {
-    // Adaptamos para usar GET en lugar de POST para evitar CORS
-    const jsonData = encodeURIComponent(JSON.stringify(datosParaGuardar));
-    const url = `${API_URL}?action=guardarSoporte&data=${jsonData}`;
-    
-    // Limitador de caché para prevenir que el navegador use respuestas en caché
-    const noCacheUrl = `${url}&nocache=${new Date().getTime()}`;
-    
-    const response = await fetch(noCacheUrl);
-    
-    if (!response.ok) {
-      throw new Error(`Error HTTP: ${response.status}`);
-    }
-    
-    const result = await response.json();
-    
-    if (result.success) {
-      btnElement.innerHTML = '<i class="fas fa-check"></i> Registro guardado';
-      btnElement.style.backgroundColor = '#28a745';
-      successElement.style.display = 'flex';
-    } else {
-      throw new Error(result.error || "Error al guardar el registro");
-    }
-  } catch (error) {
-    console.error("Error al guardar:", error);
-    btnElement.disabled = false;
-    btnElement.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error, intentar nuevamente';
-    btnElement.style.backgroundColor = '';
-    
-    // Si estamos offline, guardamos localmente para sincronizar después
-    if (!navigator.onLine) {
-      saveOfflineData('guardarSoporte', datosParaGuardar);
-      alert("Guardado offline. Se sincronizará cuando vuelva la conexión.");
-      btnElement.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Guardado offline';
-      btnElement.style.backgroundColor = '#FFA500';
-    }
-  }
+  
+  // Luego abrimos la cámara automáticamente
+  setTimeout(() => {
+    abrirCamara(factura);
+  }, 500);
 }
 
-  </script>
-
-  <script>
-    // Configuración
-    const CONFIG = {
-      VERSION: "4.0.0",
-      CACHE_TTL: 24 * 60 * 60 * 1000 // 24 horas en milisegundos
-    };
-
-    // Variables globales
-    let database = [];
-    const barcodeInput = document.getElementById('barcode');
-    const statusDiv = document.getElementById('status');
-    const resultsDiv = document.getElementById('results');
-    const dataStats = document.getElementById('data-stats');
-    const offlineBanner = document.getElementById('offline-banner');
-
-    // Función para sonido de éxito
+    // Funciones para sonidos de feedback
     function playSuccessSound() {
       try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)(); 
@@ -1224,7 +1091,6 @@ async function guardarRegistroSiesa(documento, lote, referencia, cantidad, factu
       }
     }
 
-    // Función para sonido de error
     function playErrorSound() {
       try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)(); 
@@ -1244,8 +1110,9 @@ async function guardarRegistroSiesa(documento, lote, referencia, cantidad, factu
       }
     }
 
-  document.addEventListener('DOMContentLoaded', () => {
-      // Cargar datos desde el servidor (GAS)
+    // Inicialización al cargar el documento
+    document.addEventListener('DOMContentLoaded', () => {
+      // Cargar datos desde el servidor
       loadDataFromServer();
       
       setupEventListeners();
@@ -1267,16 +1134,34 @@ async function guardarRegistroSiesa(documento, lote, referencia, cantidad, factu
           }, 300);
         }
       });
+      
+      // Verificar si estamos en modo offline
+      window.addEventListener('online', function() {
+        offlineBanner.style.display = 'none';
+        statusDiv.innerHTML = '<i class="fas fa-wifi"></i> Conexión restablecida';
+        setTimeout(() => loadDataFromServer(), 1000);
+      });
+      
+      window.addEventListener('offline', function() {
+        offlineBanner.style.display = 'block';
+        statusDiv.innerHTML = '<i class="fas fa-wifi-slash"></i> Sin conexión - Modo offline';
+      });
     });
 
     function loadDataFromServer() {
       statusDiv.innerHTML = '<i class="fas fa-sync fa-spin"></i> Cargando Datos...';
       dataStats.innerHTML = '<i class="fas fa-server"></i> Conectando con el servidor...';
       
-      google.script.run
-        .withSuccessHandler(handleDataLoadSuccess)
-        .withFailureHandler(handleDataLoadError)
-        .obtenerDatosCombinados();
+      // Usamos fetch para obtener los datos del servidor
+      fetch(`${API_URL_GET}?nocache=${new Date().getTime()}`)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`Error HTTP: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(serverData => handleDataLoadSuccess(serverData))
+        .catch(error => handleDataLoadError(error));
     }
 
     function handleDataLoadSuccess(serverData) {
@@ -1288,9 +1173,14 @@ async function guardarRegistroSiesa(documento, lote, referencia, cantidad, factu
         dataStats.innerHTML = `<i class="fas fa-database"></i> ${database.length} registros | ${new Date().toLocaleTimeString()}`;
         resultsDiv.innerHTML = `
           <div class="result-item" style="text-align: center; color: var(--gray);">
-            <i class="fas fa-qrcode" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>  
-            <p style="margin: 0;">Escanea un código QR para consultar información</p>
-            <p style="margin-top: 8px; font-size: 13px; opacity: 0.8;">Formato: DOCUMENTO-NIT (Ejemplo: REC58101-805027653)</p>
+            <!-- <i class="fas fa-qrcode" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>-->
+            <img src="https://raw.githubusercontent.com/iLogisticsCoordinator/o/main/icons/icon-512.png" alt="PandaDash Logo" class="logo" style="width: 4rem; height: 4rem; margin-bottom: 0.5rem;">
+            <h1>PandaDash</h1>
+  <div class="name">Andrés Mendoza</div>
+  <!-- <button id="installBtn">Instalar App</button>-->
+  <button id="installBtn" class="install-button">Instalar App</button>
+            <!-- <p style="margin: 0;">Escanea un código QR para consultar información</p>
+            <p style="margin-top: 8px; font-size: 13px; opacity: 0.6;">(Ejemplo: REC58101-805027653)</p> -->
           </div>
         `;
         
@@ -1307,8 +1197,8 @@ async function guardarRegistroSiesa(documento, lote, referencia, cantidad, factu
       const cachedData = getCachedData();
       if (cachedData) {
         database = cachedData.data;
-        statusDiv.textContent = "SISTEMA LISTO (DATOS CACHEADOS)";
-        dataStats.textContent = `${database.length} registros | Última actualización: ${new Date(cachedData.timestamp).toLocaleString()}`;
+        statusDiv.innerHTML = '<i class="fas fa-database"></i> SISTEMA LISTO (DATOS CACHEADOS)';
+        dataStats.innerHTML = `${database.length} registros | Última actualización: ${new Date(cachedData.timestamp).toLocaleString()}`;
         resultsDiv.innerHTML = `
           <div class="result-item" style="text-align: center; color: var(--gray);">
             <i class="fas fa-qrcode" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>  
@@ -1398,6 +1288,7 @@ async function guardarRegistroSiesa(documento, lote, referencia, cantidad, factu
         const parts = parseQRCode(code);
         
         if (parts) {
+          currentQRParts = parts; // Guardar las partes para uso posterior
           const startTime = Date.now();
           processQRCodeParts(parts);
           const searchTime = Date.now() - startTime;
@@ -1479,12 +1370,12 @@ async function guardarRegistroSiesa(documento, lote, referencia, cantidad, factu
             </div>
           ` : ''}
           
-          ${displayItemData(item, 'Datos del Documento')}
+          ${displayItemData(item, 'Datos del Documento', qrParts)}
         </div>
       `;
     }
 
-    function displayItemData(data, title = 'Datos') {
+    function displayItemData(data, title = 'Datos', qrParts) {
       let html = `<div class="siesa-header">${title} <span class="timestamp">${new Date().toLocaleString()}</span></div>`;
       
       // Asegurar que se muestra el lote en primer lugar, seguido de otras propiedades
@@ -1555,24 +1446,20 @@ async function guardarRegistroSiesa(documento, lote, referencia, cantidad, factu
               `;
             }
             
-            // Botón de entregas que maneja todo el proceso
+            // Botón de entregas que maneja todo el proceso con el NIT correcto
             html += `
               <div class="action-buttons">
-
-<!-- Botón de entregas modificado para incluir el NIT en la llamada -->
-<button class="delivery-btn" 
-  data-factura="${siesa.factura}"
-  onclick="procesarEntrega(
-    '${data.documento}', 
-    '${siesa.lote || data.lote}', 
-    '${siesa.referencia || data.referencia}', 
-    '${siesa.cantidad}', 
-    '${siesa.factura}', 
-    '${siesa.nit || qrParts.nit}', 
-    this
-  )">
-
-
+                <button class="delivery-btn" 
+                  data-factura="${siesa.factura}"
+                  onclick="procesarEntrega(
+                    '${data.documento}', 
+                    '${siesa.lote || data.lote}', 
+                    '${siesa.referencia || data.referencia}', 
+                    '${siesa.cantidad}', 
+                    '${siesa.factura}', 
+                    '${siesa.nit || qrParts.nit}', 
+                    this
+                  )">
                   <i class="fas fa-truck"></i> Procesar Entrega
                 </button>
                 <span class="save-success" style="display: none;">
@@ -1627,6 +1514,36 @@ async function guardarRegistroSiesa(documento, lote, referencia, cantidad, factu
         </div>
       `;
     }
+    
   </script>
+
+    <script>
+    let deferredPrompt;
+    const installBtn = document.getElementById('installBtn');
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      installBtn.style.display = 'block';
+    });
+    installBtn.addEventListener('click', async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const choiceResult = await deferredPrompt.userChoice;
+        if (choiceResult.outcome === 'accepted') {
+          console.log('App instalada');
+        } else {
+          console.log('Instalación cancelada');
+        }
+        deferredPrompt = null;
+        installBtn.style.display = 'none';
+      }
+    });
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('service-worker.js');
+      });
+    }
+  </script>
+
 </body>
 </html>
