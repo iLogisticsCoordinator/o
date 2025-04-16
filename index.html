@@ -1227,9 +1227,8 @@ function procesarEntrega(documento, lote, referencia, cantidad, factura, nit, bt
           </div>
         `;
 
-            // Agregar evento de click al botón
+             let deferredPrompt;
     const installBtn = document.getElementById('installBtn');
-    installBtn.addEventListener('click', installApp);
         
         playSuccessSound();
       } else {
