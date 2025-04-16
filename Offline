@@ -1,0 +1,2282 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#ffffff" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  <meta name="apple-mobile-web-app-title" content="PandaDash" />
+  <link rel="manifest" href="manifest.json" />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <title>PandaDash</title>
+  
+  <style>
+    :root {
+      --primary: #4361ee;
+      --primary-dark: #3a56d4;
+      --primary-light: #eef2ff;
+      --secondary: #3f37c9;
+      --success: #4cc9f0;
+      --success-dark: #3ab7dc;
+      --danger: #f72585;
+      --danger-dark: #e51775;
+      --warning: #f8961e;
+      --warning-dark: #e6870d;
+      --light: #f8f9fa;
+      --dark: #212529;
+      --gray: #6c757d;
+      --gray-light: #e9ecef;
+      --bg-color: #f5f7fa;
+      --card-bg: #ffffff;
+      --border-color: #e0e0e0;
+      --border-radius: 8px;
+      --box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      --transition: all 0.3s ease;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: var(--bg-color);
+      color: var(--dark);
+      touch-action: manipulation;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+      line-height: 1.5;
+      font-size: 15px;
+    }
+    
+    /* Pantalla de carga */
+    #loadingScreen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #fff;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      transition: opacity 0.5s ease;
+    }
+    
+    .logo {
+      width: 100px;
+      height: auto;
+      margin-bottom: 5px;
+    }
+    
+    h1 {
+      font-size: 1.7rem;
+      margin: 3px 0;
+      color: #333;
+    }
+    
+    .name {
+      color: #599191;
+      font-size: 0.8rem;
+      margin: 3px 0 10px;
+    }
+    
+    /* Spinner de 3 bolitas con efecto pulse */
+    .triple-pulse {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 10px;
+      margin: 10px 0;
+    }
+    
+    .triple-pulse span {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      background-color: #348a87;
+      border-radius: 50%;
+      margin: 0 3px;
+      animation: triplePulse 1.4s infinite ease-in-out;
+    }
+    
+    .triple-pulse span:nth-child(1) {
+      animation-delay: 0s;
+    }
+    
+    .triple-pulse span:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+    
+    .triple-pulse span:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+    
+    @keyframes triplePulse {
+      0%, 100% {
+        transform: scale(0.5);
+        opacity: 0;
+      }
+      50% {
+        transform: scale(1.1);
+        opacity: 0.4;
+      }
+    }
+    
+    /* Botón de instalación */
+    #installBtn {
+      display: none;
+      margin-top: 10px;
+      padding: 7px 14px;
+      background: #4CAF50;
+      color: white;
+      font-size: 0.8rem;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+    
+    #installBtn:hover {
+      background: #3e8e41;
+    }
+    
+    #scanner {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      max-width: 800px;
+      margin: 0 auto;
+      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+      background: var(--card-bg);
+      position: relative;
+    }
+    
+    /* Estilos de la barra de código QR */
+    .barcode-input-container {
+      position: relative;
+      max-width: 400px;
+      margin: 20px auto;
+    }
+    
+    #barcode {
+      width: 100%;
+      padding: 16px 16px 16px 48px;
+      font-size: 16px;
+      font-weight: 500;
+      color: #333;
+      background-color: #fff;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      transition: all 0.3s ease;
+      appearance: none;
+    }
+    
+    #barcode::placeholder {
+      color: #888;
+      opacity: 0.7;
+    }
+    
+    #barcode:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+    }
+    
+    .barcode-input-container i {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #a6acad;
+      font-size: 20px;
+      pointer-events: none;
+      transition: color 0.3s ease;
+    }
+    
+    .barcode-input-container:focus-within i {
+      color: #a6acad;
+    }
+    
+    @media (max-width: 768px) {
+      #barcode {
+        padding: 14px 14px 14px 44px;
+        font-size: 15px;
+      }
+    }
+    
+    #status {
+      padding: 0.5rem 1rem;
+      text-align: center;
+      background: linear-gradient(270deg, #007cf0, #00dfd8, #007cf0);
+      background-size: 600% 600%;
+      color: #ffffff;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.75px;
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+      animation: gradientMove 8s ease infinite;
+      transition: transform 0.3s ease;
+      margin-left: 15px;
+      margin-right: 15px;
+    }
+    
+    @keyframes gradientMove {
+      0% {
+        background-position: 0% 50%;
+      }
+      50% {
+        background-position: 100% 50%;
+      }
+      100% {
+        background-position: 0% 50%;
+      }
+    }
+    
+    #results {
+      flex: 1;
+      overflow-y: auto;
+      padding: 15px;
+      background: #ffffff;
+    }
+    
+    .result-item {
+      margin-bottom: 20px;
+      padding: 18px;
+      background: var(--card-bg);
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      border-left: 4px solid var(--primary);
+    }
+    
+    .result-row {
+      display: flex;
+      margin-bottom: 10px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border-color);
+      align-items: flex-start;
+    }
+    
+    .result-row:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+    
+    .col-header {
+      min-width: 140px;
+      font-weight: 500;
+      color: var(--primary-dark);
+      font-size: 15px;
+    }
+    
+    .error {
+      color: var(--danger);
+      text-align: center;
+      padding: 20px;
+      background: var(--card-bg);
+      border-radius: var(--border-radius);
+      margin: 15px;
+      box-shadow: var(--box-shadow);
+      font-weight: 500;
+    }
+    
+    .data-stats {
+      text-align: center;
+      padding: 12px 10px;
+      color: var(--gray);
+      font-size: 14px;
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--border-color);
+    }
+    
+    .loading {
+      color: var(--primary);
+      text-align: center;
+      padding: 30px 15px;
+      font-size: 16px;
+    }
+    
+    .offline-banner {
+      background: var(--warning);
+      color: var(--dark);
+      text-align: center;
+      padding: 8px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+    
+    .siesa-item {
+      margin-top: 15px;
+      padding: 15px;
+      background: rgba(67, 97, 238, 0.05);
+      border-radius: var(--border-radius);
+      border-left: 3px solid var(--success);
+    }
+    
+    .siesa-header {
+      font-weight: 600;
+      color: var(--secondary);
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(0,0,0,0.1);
+      font-size: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .json-value {
+      word-break: break-word;
+      flex: 1;
+      font-size: 15px;
+    }
+    
+    .no-data {
+      color: var(--gray);
+      font-style: italic;
+    }
+    
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-left: 8px;
+    }
+    
+    .badge-success {
+      background: rgba(76, 201, 240, 0.2);
+      color: var(--success-dark);
+    }
+    
+    .badge-warning {
+      background: rgba(248, 150, 30, 0.2);
+      color: var(--warning-dark);
+    }
+    
+    .numeric-value {
+      font-family: 'Roboto Mono', monospace;
+      font-weight: 500;
+    }
+    
+    .timestamp {
+      font-size: 12px;
+      color: var(--gray);
+      margin-top: 5px;
+    }
+    
+    /* Botones */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 18px;
+      border-radius: var(--border-radius);
+      font-weight: 500;
+      font-size: 14px;
+      cursor: pointer;
+      transition: var(--transition);
+      border: none;
+      gap: 8px;
+    }
+    
+    .btn-primary {
+      background-color: var(--primary);
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background-color: var(--primary-dark);
+    }
+    
+    .btn-success {
+      background-color: var(--success);
+      color: white;
+    }
+    
+    .btn-success:hover {
+      background-color: var(--success-dark);
+    }
+    
+    .btn-danger {
+      background-color: var(--danger);
+      color: white;
+    }
+    
+    .btn-danger:hover {
+      background-color: var(--danger-dark);
+    }
+    
+    .btn-warning {
+      background-color: var(--warning);
+      color: white;
+    }
+    
+    .btn-warning:hover {
+      background-color: var(--warning-dark);
+    }
+    
+    .btn-sm {
+      padding: 8px 14px;
+      font-size: 13px;
+    }
+    
+    .btn-block {
+      display: flex;
+      width: 100%;
+    }
+    
+    /* Botón de entregas */
+    .delivery-btn {
+      background-color: var(--success);
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: var(--border-radius);
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    
+    .delivery-btn:hover {
+      background-color: var(--success-dark);
+    }
+    
+    .delivery-btn i {
+      font-size: 16px;
+    }
+    
+    .save-success {
+      color: var(--success-dark);
+      font-weight: 500;
+      font-size: 14px;
+      display: none;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .save-success i {
+      font-size: 14px;
+    }
+    
+    /* Action buttons container */
+    .action-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 15px;
+    }
+    
+    /* Responsive */
+    @media (max-width: 600px) {
+      .result-row {
+        flex-direction: column;
+        gap: 5px;
+      }
+      
+      .col-header {
+        margin-bottom: 5px;
+        min-width: auto;
+      }
+      
+      .siesa-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+      }
+      
+      .badge {
+        margin-left: 0;
+      }
+    }
+    
+    /* Modal de cámara */
+    .camera-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.95);
+      z-index: 10000;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      -webkit-user-select: none;
+      user-select: none;
+      touch-action: manipulation;
+    }
+    
+    .camera-view {
+      width: 90%;
+      max-width: 500px;
+      background: #000;
+      margin-bottom: 20px;
+      height: auto;
+      border-radius: var(--border-radius);
+      overflow: hidden;
+    }
+    
+    .camera-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 15px;
+    }
+    
+    #photoPreview {
+      display: none;
+      max-width: 90%;
+      max-height: 60vh;
+      margin-bottom: 20px;
+      object-fit: contain;
+      border-radius: var(--border-radius);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+    
+    .uploading-status {
+      color: white;
+      margin-top: 15px;
+      display: none;
+      font-size: 16px;
+      font-weight: 500;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    
+    /* Estilos para las partes extraídas del QR */
+    .qr-info {
+      margin-bottom: 15px;
+      padding: 12px;
+      background: var(--primary-light);
+      border-radius: var(--border-radius);
+      border-left: 3px solid var(--primary);
+    }
+    
+    .qr-info-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 5px;
+    }
+    
+    .qr-info-label {
+      font-weight: 500;
+      color: var(--primary-dark);
+    }
+    
+    .qr-info-value {
+      font-weight: 400;
+    }
+    
+    /* Para evitar que el teclado aparezca en la pantalla de cámara */
+    .camera-modal * {
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    
+    /* Evitar que aparezca el resaltado de selección */
+    .camera-modal button {
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    .filter-info {
+      background: var(--primary-light);
+      border-radius: var(--border-radius);
+      padding: 10px;
+      margin-bottom: 15px;
+      font-size: 14px;
+      color: var(--primary-dark);
+    }
+
+    /* NUEVO: Contador de elementos pendientes */
+    .pending-counter {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background-color: var(--danger);
+      color: white;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 14px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      z-index: 1000;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% {
+        transform: scale(1);
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      }
+      50% {
+        transform: scale(1.05);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      }
+      100% {
+        transform: scale(1);
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      }
+    }
+
+    /* NUEVO: Toast de notificación para procesos en segundo plano */
+    .toast-notification {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: rgba(51, 51, 51, 0.9);
+      color: white;
+      padding: 10px 15px;
+      border-radius: 4px;
+      font-size: 14px;
+      max-width: 80%;
+      z-index: 1001;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+      transition: opacity 0.3s, transform 0.3s;
+      opacity: 0;
+      transform: translateX(-50%) translateY(20px);
+    }
+
+    .toast-notification.visible {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .toast-notification.success {
+      background-color: rgba(40, 167, 69, 0.9);
+    }
+
+    .toast-notification.error {
+      background-color: rgba(220, 53, 69, 0.9);
+    }
+
+    /* NUEVO: Modal de pendientes */
+    .pending-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.7);
+      z-index: 10001;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .pending-modal-content {
+      background-color: white;
+      width: 90%;
+      max-width: 500px;
+      border-radius: 8px;
+      padding: 20px;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    .pending-modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .pending-modal-title {
+      font-size: 18px;
+      font-weight: bold;
+      color: var(--dark);
+    }
+
+    .pending-modal-close {
+      font-size: 22px;
+      color: var(--gray);
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+
+    .pending-modal-footer {
+      margin-top: 15px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .pending-item {
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 4px;
+      background-color: var(--light);
+      border-left: 3px solid var(--warning);
+    }
+
+    .pending-item-header {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 500;
+      margin-bottom: 5px;
+    }
+
+    .pending-item-time {
+      font-size: 12px;
+      color: var(--gray);
+    }
+
+    .sync-btn {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 8px 12px;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .sync-btn:hover {
+      background-color: var(--primary-dark);
+    }
+
+    /* NUEVO: Indicador de progreso mini */
+    .mini-progress {
+      width: 100%;
+      height: 4px;
+      background-color: var(--gray-light);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-top: 5px;
+    }
+
+    .mini-progress-bar {
+      height: 100%;
+      background-color: var(--success);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+  </style>
+</head>
+<body>
+  <!-- Pantalla de carga -->
+  <div id="loadingScreen">
+    <img src="https://raw.githubusercontent.com/iLogisticsCoordinator/o/main/icons/icon-512.png" alt="PandaDash Logo" class="logo">
+    <div class="triple-pulse">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+    <h1>PandaDash</h1>
+    <div class="name">Andrés Mendoza</div>
+    <button id="installBtn">Instalar App</button>
+  </div>
+
+  <!-- NUEVO: Contador de pendientes -->
+  <div id="pendingCounter" class="pending-counter" style="display: none;">0</div>
+
+  <!-- NUEVO: Toast de notificación -->
+  <div id="toastNotification" class="toast-notification">
+    <span id="toastMessage"></span>
+  </div>
+
+  <!-- NUEVO: Modal para ver elementos pendientes -->
+  <div id="pendingModal" class="pending-modal">
+    <div class="pending-modal-content">
+      <div class="pending-modal-header">
+        <div class="pending-modal-title">Elementos pendientes de sincronizar</div>
+        <button class="pending-modal-close" id="pendingModalClose">&times;</button>
+      </div>
+      <div id="pendingItems"></div>
+      <div class="pending-modal-footer">
+        <button id="syncAllBtn" class="sync-btn">
+          <i class="fas fa-sync-alt"></i> Sincronizar todos
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenido principal -->
+  <div id="scanner" style="display: none;">
+    <div id="offline-banner" class="offline-banner" style="display: none;">
+      <i class="fas fa-wifi-slash"></i> Modo Offline - Datos Cacheados
+    </div>
+
+    <div class="barcode-input-container">
+      <i class="fa-solid fa-qrcode"></i>
+      <input type="text" id="barcode" autofocus placeholder="Escanea un código QR">
+    </div>
+
+    <div id="status">Iniciando Sistema...</div>
+    <div class="data-stats" id="data-stats">Cargando datos...</div>
+    <div id="results"></div>
+  </div>
+
+  <div id="cameraModal" class="camera-modal">
+    <video id="cameraFeed" class="camera-view" autoplay playsinline></video>
+    <img id="photoPreview" alt="Vista previa de la foto">
+    <div class="camera-actions">
+      <button id="takePhotoBtn" class="btn btn-primary">
+        <i class="fas fa-camera"></i> Tomar Foto
+      </button>
+      <button id="cancelCaptureBtn" class="btn btn-danger">
+        <i class="fas fa-times"></i> Cancelar
+      </button>
+    </div>
+    <div id="uploadStatus" class="uploading-status">
+      <i class="fas fa-spinner fa-pulse"></i> Subiendo foto...
+    </div>
+    <!-- Input oculto para evitar que el teclado aparezca en dispositivos móviles -->
+    <input type="text" id="dummyInput" style="position: absolute; opacity: 0; height: 0; width: 0;" readonly />
+  </div>
+
+  <script>
+    // Configuración y constantes
+    const CONFIG = {
+      VERSION: "4.1.0", // Incrementado por nuevas funcionalidades
+      CACHE_TTL: 24 * 60 * 60 * 1000, // 24 horas en milisegundos
+      MAX_IMAGE_SIZE: 800, // Tamaño máximo para redimensionar imágenes
+      MAX_CHUNK_SIZE: 50000, // ~50KB por solicitud
+      SYNC_INTERVAL: 60 * 1000, // Intentar sincronización cada 60 segundos
+      TOAST_DURATION: 3000, // Duración de las notificaciones toast en ms
+    };
+    
+    // API URLs
+    const API_URL_GET = "https://script.google.com/macros/s/AKfycbwz6LT-e4m3R74wRvC5h4isRE4wmSnzpa-MJtYnAg56PCWbrwI3rdwbekWxauVPGrsmLw/exec";
+    const API_URL_POST = "https://script.google.com/macros/s/AKfycbwgnkjVCMWlWuXnVaxSBD18CGN3rXGZtQZIvX9QlBXSgbQndWC4uqQ2sc00DuNH6yrb/exec";
+
+    // Variables globales
+    let database = [];
+    let cameraStream = null;
+    let currentDocumentData = null;
+    let photoBlob = null;
+    let preventKeyboardTimer = null;
+    let currentQRParts = null; // Para almacenar las partes del QR actual
+    let dataLoaded = false;
+    let syncInProgress = false; // NUEVO: Para controlar sincronización en segundo plano
+    let backgroundUploadQueue = []; // NUEVO: Cola para subir fotos en segundo plano
+    let pendingItemsCount = 0; // NUEVO: Contador de elementos pendientes
+    let syncInterval = null; // NUEVO: Intervalo para sincronización periódica
+    
+    // Elementos del DOM
+    const loadingScreen = document.getElementById('loadingScreen');
+    const scanner = document.getElementById('scanner');
+    const barcodeInput = document.getElementById('barcode');
+    const statusDiv = document.getElementById('status');
+    const resultsDiv = document.getElementById('results');
+    const dataStats = document.getElementById('data-stats');
+    const offlineBanner = document.getElementById('offline-banner');
+    const installBtn = document.getElementById('installBtn');
+    const pendingCounter = document.getElementById('pendingCounter'); // NUEVO
+    const toastNotification = document.getElementById('toastNotification'); // NUEVO
+    const toastMessage = document.getElementById('toastMessage'); // NUEVO
+    const pendingModal = document.getElementById('pendingModal'); // NUEVO
+    const pendingItems = document.getElementById('pendingItems'); // NUEVO
+    const pendingModalClose = document.getElementById('pendingModalClose'); // NUEVO
+    const syncAllBtn = document.getElementById('syncAllBtn'); // NUEVO
+    
+    // NUEVO: Detector de click en el contador de pendientes
+    if (pendingCounter) {
+      pendingCounter.addEventListener('click', showPendingModal);
+    }
+
+    // NUEVO: Funciones para mostrar y ocultar el modal de pendientes
+    function showPendingModal() {
+      updatePendingItems();
+      pendingModal.style.display = 'flex';
+    }
+    
+    function hidePendingModal() {
+      pendingModal.style.display = 'none';
+    }
+    
+    // NUEVO: Botón para cerrar el modal
+    if (pendingModalClose) {
+      pendingModalClose.addEventListener('click', hidePendingModal);
+    }
+    
+    // NUEVO: Botón para sincronizar todos los elementos pendientes
+    if (syncAllBtn) {
+      syncAllBtn.addEventListener('click', syncAllPendingItems);
+    }
+    
+    // NUEVO: Funciones para mostrar notificaciones toast
+    function showToast(message, type = '') {
+      toastMessage.textContent = message;
+      toastNotification.className = 'toast-notification';
+      if (type) {
+        toastNotification.classList.add(type);
+      }
+      toastNotification.classList.add('visible');
+      
+      // Ocultar después de un tiempo
+      setTimeout(() => {
+        toastNotification.classList.remove('visible');
+      }, CONFIG.TOAST_DURATION);
+    }
+    
+    // Detector de eventos para PWA Install
+    let deferredPrompt;
+    
+    window.addEventListener('beforeinstallprompt', (e) => {
+      // Prevenir que Chrome muestre automáticamente el prompt
+      e.preventDefault();
+      // Guardar el evento para usarlo después
+      deferredPrompt = e;
+      // Mostrar el botón de instalación
+      installBtn.style.display = 'block';
+    });
+    
+    installBtn.addEventListener('click', async () => {
+      if (deferredPrompt) {
+        // Mostrar el prompt de instalación
+        deferredPrompt.prompt();
+        // Esperar a que el usuario responda al prompt
+        const choiceResult = await deferredPrompt.userChoice;
+        if (choiceResult.outcome === 'accepted') {
+          console.log('App instalada');
+        } else {
+          console.log('Instalación cancelada');
+        }
+        // Limpiar el prompt guardado
+        deferredPrompt = null;
+        // Ocultar botón
+        installBtn.style.display = 'none';
+      }
+    });
+    
+    // Registrar Service Worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('service-worker.js')
+          .then(registration => {
+            console.log('ServiceWorker registrado con éxito:', registration.scope);
+            
+            // NUEVO: Escuchar mensaje del service worker
+            navigator.serviceWorker.addEventListener('message', function(event) {
+              if (event.data && event.data.type === 'sync-complete') {
+                updatePendingCounter();
+                showToast('Sincronización completada', 'success');
+              }
+            });
+          })
+          .catch(error => {
+            console.error('Error al registrar ServiceWorker:', error);
+          });
+      });
+    }
+
+    // Función para abrir la cámara
+    function abrirCamara(factura) {
+      // Guardar datos para uso posterior
+      currentDocumentData = {
+        factura: factura,
+        btnElement: document.querySelector(`.delivery-btn[data-factura="${factura}"]`)
+      };
+      
+      // Mostrar la cámara
+      mostrarCamara();
+    }
+
+    // Función para mostrar la cámara
+    function mostrarCamara() {
+      const cameraModal = document.getElementById('cameraModal');
+      const cameraFeed = document.getElementById('cameraFeed');
+      const photoPreview = document.getElementById('photoPreview');
+      const takePhotoBtn = document.getElementById('takePhotoBtn');
+      const dummyInput = document.getElementById('dummyInput');
+      
+      // Ocultar teclado al abrir la cámara
+      barcodeInput.blur();
+      document.activeElement.blur();
+      
+      // Forzar que no se muestre el teclado
+      if (dummyInput) {
+        dummyInput.readOnly = true; 
+        dummyInput.setAttribute('inputmode', 'none');
+      }
+      
+      // Prevenir que cualquier elemento obtenga el foco mientras la cámara está abierta
+      preventKeyboardTimer = setInterval(() => {
+        if (document.activeElement && document.activeElement.tagName === 'INPUT' && document.activeElement.id !== 'dummyInput') {
+          document.activeElement.blur();
+        }
+      }, 100);
+      
+      // Mostrar modal y ocultar vista previa
+      cameraModal.style.display = 'flex';
+      photoPreview.style.display = 'none';
+      cameraFeed.style.display = 'block';
+      
+      // Configurar cámara - usar cámara trasera por defecto
+      navigator.mediaDevices.getUserMedia({ 
+        video: { 
+          facingMode: 'environment',
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        } 
+      })
+        .then(stream => {
+          cameraStream = stream;
+          cameraFeed.srcObject = stream;
+        })
+        .catch(error => {
+          console.error("Error al acceder a la cámara:", error);
+          alert("No se pudo acceder a la cámara. Por favor permite el acceso.");
+          cerrarCamara();
+        });
+      
+      // Configurar botones
+      takePhotoBtn.innerHTML = '<i class="fas fa-camera"></i> Tomar Foto';
+      takePhotoBtn.disabled = false;
+      takePhotoBtn.onclick = capturarFoto;
+      document.getElementById('uploadStatus').style.display = 'none';
+      
+      // Agregar listener para prevenir el comportamiento predeterminado de los clics
+      cameraModal.addEventListener('touchstart', preventDefaultBehavior, { passive: false });
+      cameraModal.addEventListener('touchmove', preventDefaultBehavior, { passive: false });
+    }
+    
+    // Prevenir comportamiento predeterminado para evitar enfoque de teclado
+    function preventDefaultBehavior(e) {
+      if (e.target.tagName !== 'BUTTON') {
+        e.preventDefault();
+      }
+    }
+
+    // Función para capturar foto
+    function capturarFoto() {
+      const cameraFeed = document.getElementById('cameraFeed');
+      const photoPreview = document.getElementById('photoPreview');
+      const takePhotoBtn = document.getElementById('takePhotoBtn');
+      
+      // Crear canvas temporal
+      const canvas = document.createElement('canvas');
+      canvas.width = cameraFeed.videoWidth;
+      canvas.height = cameraFeed.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(cameraFeed, 0, 0, canvas.width, canvas.height);
+      
+      // Obtener blob de la imagen
+      canvas.toBlob(blob => {
+        photoBlob = blob;
+        
+        // Mostrar vista previa
+        photoPreview.src = URL.createObjectURL(blob);
+        photoPreview.style.display = 'block';
+        cameraFeed.style.display = 'none';
+        
+        // Cambiar botón para subir foto
+        takePhotoBtn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Subir Foto';
+        takePhotoBtn.onclick = subirFoto;
+      }, 'image/jpeg', 0.85);
+    }
+
+    // MODIFICADO: Función para subir foto usando el sistema de cola
+    function subirFoto() {
+      if (!currentDocumentData || !photoBlob) {
+        console.error("No hay datos disponibles para subir");
+        return;
+      }
+      
+      const { factura, btnElement } = currentDocumentData;
+      const takePhotoBtn = document.getElementById('takePhotoBtn');
+      const uploadStatus = document.getElementById('uploadStatus');
+      
+      // Deshabilitar botón y mostrar estado de carga
+      takePhotoBtn.disabled = true;
+      takePhotoBtn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Procesando...';
+      uploadStatus.style.display = 'flex';
+      uploadStatus.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Preparando...';
+      
+      // Convertir blob a base64
+      const reader = new FileReader();
+      reader.onloadend = function() {
+        // Extraer solo la parte base64 de la cadena (eliminar el prefijo data:image/jpeg;base64,)
+        const base64Data = reader.result.split(',')[1];
+        const nombreArchivo = factura.replace(/[^a-zA-Z0-9\-]/g, '') + '_' + Date.now() + '.jpg';
+        
+        // Obtener NIT de las partes actuales del QR
+        const nit = currentQRParts ? currentQRParts.nit : '';
+        const documento = currentQRParts ? currentQRParts.documento : '';
+        
+        // Obtener valores de lote, referencia y cantidad de manera segura
+        let lote = '';
+        let referencia = '';
+        let cantidad = 0;
+        
+        try {
+          // Extraer datos de la UI
+          const loteElements = document.querySelectorAll('.result-row');
+          for (let i = 0; i < loteElements.length; i++) {
+            if (loteElements[i].textContent.includes('Lote')) {
+              const valueElement = loteElements[i].querySelector('.json-value');
+              if (valueElement) {
+                lote = valueElement.textContent.trim();
+              }
+              break;
+            }
+          }
+          
+          // Buscar elemento de referencia
+          const refElements = document.querySelectorAll('.result-row');
+          for (let i = 0; i < refElements.length; i++) {
+            if (refElements[i].textContent.includes('Referencia')) {
+              const valueElement = refElements[i].querySelector('.json-value');
+              if (valueElement) {
+                referencia = valueElement.textContent.trim();
+              }
+              break;
+            }
+          }
+          
+          // Buscar elemento de cantidad
+          const cantElements = document.querySelectorAll('.result-row');
+          for (let i = 0; i < cantElements.length; i++) {
+            if (cantElements[i].textContent.includes('Cantidad')) {
+              const valueElement = cantElements[i].querySelector('.json-value');
+              if (valueElement) {
+                cantidad = parseFloat(valueElement.textContent.trim()) || 0;
+              }
+              break;
+            }
+          }
+        } catch (e) {
+          console.warn("Error al extraer datos de la UI:", e);
+        }
+
+        // NUEVO: Preparar datos para la cola de subida
+        const uploadData = {
+          id: Date.now().toString(),
+          type: 'photo',
+          data: {
+            documento: documento,
+            lote: lote,
+            referencia: referencia,
+            cantidad: cantidad,
+            factura: factura,
+            nit: nit,
+            nombreArchivo: nombreArchivo,
+            base64Data: base64Data,
+            timestamp: new Date().toISOString()
+          },
+          status: 'pending',
+          attempts: 0,
+          btnElement: btnElement
+        };
+        
+        // NUEVO: Agregar a la cola y guardar en localStorage
+        addToUploadQueue(uploadData);
+        
+        // Mostrar mensaje de éxito y cerrar cámara rápidamente
+        uploadStatus.innerHTML = '<i class="fas fa-check-circle"></i> Procesado correctamente';
+        takePhotoBtn.innerHTML = '<i class="fas fa-check"></i> Listo';
+        
+        // Marcar botón como procesado pero pendiente
+        if (btnElement) {
+          btnElement.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Foto en proceso';
+          btnElement.style.backgroundColor = '#f8961e'; // Color warning
+          btnElement.setAttribute('data-upload-id', uploadData.id);
+        }
+        
+        // Mostrar notificación
+        showToast('Foto procesada. Subiendo en segundo plano...', 'success');
+        
+        // Cerrar cámara rápidamente para que el usuario pueda seguir trabajando
+        setTimeout(cerrarCamara, 800);
+        
+        // Iniciar sincronización en segundo plano si no está en progreso
+        if (!syncInProgress) {
+          processUploadQueue();
+        }
+      };
+      
+      reader.onerror = function() {
+        console.error("Error al leer la imagen");
+        uploadStatus.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error al leer la imagen';
+        takePhotoBtn.disabled = false;
+        takePhotoBtn.innerHTML = '<i class="fas fa-redo"></i> Reintentar';
+        showToast('Error al procesar la imagen', 'error');
+      };
+      
+      // Iniciar la lectura del blob de la imagen
+      reader.readAsDataURL(photoBlob);
+    }
+
+    // NUEVO: Función para agregar elemento a la cola de subida
+    function addToUploadQueue(uploadData) {
+      // Cargar cola actual
+      loadBackgroundUploadQueue();
+      
+      // Agregar nuevo elemento
+      backgroundUploadQueue.push(uploadData);
+      
+      // Guardar cola actualizada
+      saveBackgroundUploadQueue();
+      
+      // Actualizar contador de pendientes
+      updatePendingCounter();
+    }
+    
+    // NUEVO: Cargar cola desde localStorage
+    function loadBackgroundUploadQueue() {
+      try {
+        const savedQueue = localStorage.getItem('pdaUploadQueue');
+        if (savedQueue) {
+          backgroundUploadQueue = JSON.parse(savedQueue);
+          
+          // Restaurar referencias de botones si es necesario
+          backgroundUploadQueue.forEach(item => {
+            if (item.data && item.data.factura) {
+              const btnSelector = `.delivery-btn[data-factura="${item.data.factura}"]`;
+              const btn = document.querySelector(btnSelector);
+              if (btn) {
+                item.btnElement = btn;
+                
+                // Actualizar apariencia de botón
+                if (item.status === 'pending') {
+                  btn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Foto en proceso';
+                  btn.style.backgroundColor = '#f8961e';
+                  btn.setAttribute('data-upload-id', item.id);
+                } else if (item.status === 'completed') {
+                  btn.innerHTML = '<i class="fas fa-check-circle"></i> Entregado con foto';
+                  btn.style.backgroundColor = '#28a745';
+                }
+              }
+            }
+          });
+        } else {
+          backgroundUploadQueue = [];
+        }
+      } catch (error) {
+        console.error("Error al cargar la cola de subida:", error);
+        backgroundUploadQueue = [];
+      }
+    }
+    
+    // NUEVO: Guardar cola en localStorage
+    function saveBackgroundUploadQueue() {
+      try {
+        // Clonar la cola para evitar guardar referencias del DOM
+        const queueToSave = backgroundUploadQueue.map(item => {
+          const itemClone = {...item};
+          delete itemClone.btnElement; // No guardar referencias del DOM
+          return itemClone;
+        });
+        
+        localStorage.setItem('pdaUploadQueue', JSON.stringify(queueToSave));
+      } catch (error) {
+        console.error("Error al guardar la cola de subida:", error);
+        // Si hay error por cuota excedida, limpiar elementos completados
+        if (error.name === 'QuotaExceededError') {
+          backgroundUploadQueue = backgroundUploadQueue.filter(item => item.status === 'pending');
+          saveBackgroundUploadQueue();
+        }
+      }
+    }
+    
+    // NUEVO: Procesar cola de subida en segundo plano
+    function processUploadQueue() {
+      if (syncInProgress || backgroundUploadQueue.length === 0) {
+        return;
+      }
+      
+      syncInProgress = true;
+      
+      // Encontrar el primer elemento pendiente
+      const pendingItem = backgroundUploadQueue.find(item => item.status === 'pending');
+      
+      if (!pendingItem) {
+        syncInProgress = false;
+        updatePendingCounter();
+        return;
+      }
+      
+      console.log(`Procesando elemento pendiente ${pendingItem.id}...`);
+      
+      // Marcar como en proceso
+      pendingItem.status = 'uploading';
+      pendingItem.attempts += 1;
+      saveBackgroundUploadQueue();
+      
+      // Preparar datos para el envío
+      const formData = new FormData();
+      
+      if (pendingItem.type === 'photo') {
+        const { documento, lote, referencia, cantidad, factura, nit, base64Data, nombreArchivo } = pendingItem.data;
+        
+        formData.append('documento', documento || '');
+        formData.append('lote', lote || '');
+        formData.append('referencia', referencia || '');
+        formData.append('cantidad', cantidad || 0);
+        formData.append('factura', factura || '');
+        formData.append('nit', nit || '');
+        formData.append('fotoBase64', base64Data || '');
+        formData.append('fotoNombre', nombreArchivo || '');
+        formData.append('fotoTipo', 'image/jpeg');
+      }
+      
+      // Actualizar UI de elementos pendientes
+      updatePendingItems();
+      
+      // Realizar solicitud
+      fetch(API_URL_POST, {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`Error HTTP: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(result => {
+        if (result.success) {
+          // Marcar como completado
+          pendingItem.status = 'completed';
+          pendingItem.completedAt = new Date().toISOString();
+          
+          // Actualizar botón en la UI si existe
+          if (pendingItem.btnElement) {
+            pendingItem.btnElement.innerHTML = '<i class="fas fa-check-circle"></i> Entregado con foto';
+            pendingItem.btnElement.style.backgroundColor = '#28a745';
+          }
+          
+          // Mostrar notificación si la sincronización fue iniciada manualmente
+          if (pendingItem.manualSync) {
+            showToast('Sincronización completada correctamente', 'success');
+          }
+        } else {
+          throw new Error(result.message || "Error al sincronizar");
+        }
+      })
+      .catch(error => {
+        console.error("Error al sincronizar:", error);
+        
+        // Si hay demasiados intentos fallidos o no hay conexión
+        if (pendingItem.attempts >= 3 || !navigator.onLine) {
+          pendingItem.status = 'failed';
+          pendingItem.error = error.message || "Error al sincronizar";
+          
+          // Mostrar notificación si la sincronización fue iniciada manualmente
+          if (pendingItem.manualSync) {
+            showToast('Error al sincronizar: ' + error.message, 'error');
+          }
+        } else {
+          // Devolver a pendiente para reintentar más tarde
+          pendingItem.status = 'pending';
+        }
+      })
+      .finally(() => {
+        // Guardar estado actualizado de la cola
+        saveBackgroundUploadQueue();
+        
+        // Actualizar UI
+        updatePendingCounter();
+        updatePendingItems();
+        
+        // Permitir procesar el siguiente elemento
+        syncInProgress = false;
+        
+        // Continuar procesando la cola si hay más elementos
+        if (backgroundUploadQueue.some(item => item.status === 'pending')) {
+          setTimeout(processUploadQueue, 1000); // Pequeña pausa entre solicitudes
+        }
+      });
+    }
+    
+    // NUEVO: Actualizar contador de elementos pendientes
+    function updatePendingCounter() {
+      // Cargar cola actual
+      loadBackgroundUploadQueue();
+      
+      // Contar elementos pendientes
+      const pendingCount = backgroundUploadQueue.filter(item => 
+        item.status === 'pending' || item.status === 'uploading'
+      ).length;
+      
+      // Actualizar contador en la UI
+      if (pendingCounter) {
+        if (pendingCount > 0) {
+          pendingCounter.textContent = pendingCount;
+          pendingCounter.style.display = 'flex';
+        } else {
+          pendingCounter.style.display = 'none';
+        }
+      }
+      
+      pendingItemsCount = pendingCount;
+      return pendingCount;
+    }
+    
+    // NUEVO: Actualizar lista de elementos pendientes en el modal
+    function updatePendingItems() {
+      if (!pendingItems) return;
+      
+      // Cargar cola actual
+      loadBackgroundUploadQueue();
+      
+      let html = '';
+      
+      if (backgroundUploadQueue.length === 0) {
+        html = '<div class="no-data" style="text-align: center; padding: 20px;">No hay elementos pendientes</div>';
+      } else {
+        // Ordenar por estado y tiempo
+        const sortedItems = [...backgroundUploadQueue].sort((a, b) => {
+          // Primero los que están en proceso
+          if (a.status === 'uploading' && b.status !== 'uploading') return -1;
+          if (b.status === 'uploading' && a.status !== 'uploading') return 1;
+          
+          // Luego los pendientes
+          if (a.status === 'pending' && b.status !== 'pending') return -1;
+          if (b.status === 'pending' && a.status !== 'pending') return 1;
+          
+          // Por último los completados y fallidos, ordenados por tiempo
+          return new Date(b.data.timestamp) - new Date(a.data.timestamp);
+        });
+        
+        sortedItems.forEach(item => {
+          let statusClass = '';
+          let statusText = '';
+          let statusIcon = '';
+          
+          switch (item.status) {
+            case 'pending':
+              statusClass = 'var(--warning)';
+              statusText = 'Pendiente';
+              statusIcon = '<i class="fas fa-clock"></i>';
+              break;
+            case 'uploading':
+              statusClass = 'var(--primary)';
+              statusText = 'Subiendo';
+              statusIcon = '<i class="fas fa-sync fa-spin"></i>';
+              break;
+            case 'completed':
+              statusClass = 'var(--success)';
+              statusText = 'Completado';
+              statusIcon = '<i class="fas fa-check-circle"></i>';
+              break;
+            case 'failed':
+              statusClass = 'var(--danger)';
+              statusText = 'Error';
+              statusIcon = '<i class="fas fa-exclamation-circle"></i>';
+              break;
+          }
+          
+          let itemDetails = '';
+          
+          if (item.type === 'photo') {
+            itemDetails = `
+              <div>Factura: ${item.data.factura || 'N/A'}</div>
+              <div>Lote: ${item.data.lote || 'N/A'}</div>
+              <div>Documento: ${item.data.documento || 'N/A'}</div>
+            `;
+          }
+          
+          // Crear barra de progreso para elementos en carga
+          let progressBar = '';
+          if (item.status === 'uploading') {
+            progressBar = `
+              <div class="mini-progress">
+                <div class="mini-progress-bar" style="width: ${Math.min((item.attempts/3) * 100, 100)}%"></div>
+              </div>
+            `;
+          }
+          
+          // Botón de reintento para elementos fallidos
+          let retryButton = '';
+          if (item.status === 'failed') {
+            retryButton = `
+              <button class="btn btn-sm btn-primary retry-btn" data-id="${item.id}">
+                <i class="fas fa-redo"></i> Reintentar
+              </button>
+            `;
+          }
+          
+          html += `
+            <div class="pending-item" style="border-left-color: ${statusClass}">
+              <div class="pending-item-header">
+                <div>${statusIcon} ${statusText}</div>
+                <div class="pending-item-time">${formatRelativeTime(new Date(item.data.timestamp))}</div>
+              </div>
+              ${itemDetails}
+              ${progressBar}
+              ${retryButton}
+            </div>
+          `;
+        });
+      }
+      
+      pendingItems.innerHTML = html;
+      
+      // Agregar listeners para botones de reintento
+      document.querySelectorAll('.retry-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const itemId = this.getAttribute('data-id');
+          retryUpload(itemId);
+        });
+      });
+    }
+    
+    // NUEVO: Función para reintentar subida de un elemento
+    function retryUpload(itemId) {
+      const itemIndex = backgroundUploadQueue.findIndex(item => item.id === itemId);
+      
+      if (itemIndex !== -1) {
+        backgroundUploadQueue[itemIndex].status = 'pending';
+        backgroundUploadQueue[itemIndex].manualSync = true; // Marcar como sincronización manual
+        backgroundUploadQueue[itemIndex].attempts = 0; // Reiniciar intentos
+        
+        saveBackgroundUploadQueue();
+        updatePendingItems();
+        
+        // Iniciar sincronización inmediatamente
+        if (!syncInProgress) {
+          processUploadQueue();
+        }
+      }
+    }
+    
+    // NUEVO: Sincronizar todos los elementos pendientes
+    function syncAllPendingItems() {
+      // Marcar todos los elementos fallidos como pendientes
+      backgroundUploadQueue.forEach(item => {
+        if (item.status === 'failed') {
+          item.status = 'pending';
+          item.attempts = 0;
+          item.manualSync = true; // Marcar como sincronización manual
+        }
+      });
+      
+      saveBackgroundUploadQueue();
+      updatePendingItems();
+      
+      showToast('Iniciando sincronización de todos los pendientes...', 'success');
+      
+      // Iniciar sincronización
+      if (!syncInProgress) {
+        processUploadQueue();
+      }
+    }
+    
+    // NUEVO: Formatear tiempo relativo
+    function formatRelativeTime(date) {
+      const now = new Date();
+      const diff = Math.floor((now - date) / 1000); // Diferencia en segundos
+      
+      if (diff < 60) return 'hace unos segundos';
+      if (diff < 3600) return `hace ${Math.floor(diff / 60)} minutos`;
+      if (diff < 86400) return `hace ${Math.floor(diff / 3600)} horas`;
+      return `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+    }
+    
+    // Función auxiliar para reducir el tamaño de la imagen
+    async function reduceImageSize(base64Data) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          
+          // Calcular nuevas dimensiones manteniendo la proporción
+          let width = img.width;
+          let height = img.height;
+          
+          // Reducir a máximo 800px de ancho o alto
+          if (width > height) {
+            if (width > CONFIG.MAX_IMAGE_SIZE) {
+              height = Math.round(height * (CONFIG.MAX_IMAGE_SIZE / width));
+              width = CONFIG.MAX_IMAGE_SIZE;
+            }
+          } else {
+            if (height > CONFIG.MAX_IMAGE_SIZE) {
+              width = Math.round(width * (CONFIG.MAX_IMAGE_SIZE / height));
+              height = CONFIG.MAX_IMAGE_SIZE;
+            }
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          // Calidad menor para reducir tamaño (0.6 = 60% de calidad)
+          const smallerBase64 = canvas.toDataURL('image/jpeg', 0.6).split(',')[1];
+          resolve(smallerBase64);
+        };
+        
+        img.onerror = function() {
+          reject(new Error('Error al cargar la imagen para reducir su tamaño'));
+        };
+        
+        img.src = 'data:image/jpeg;base64,' + base64Data;
+      });
+    }
+
+    // Guardar datos offline (ahora solo registra, la sincronización se hace por la cola)
+    function saveOfflineData(action, data) {
+      try {
+        // Si es una foto, usar el nuevo sistema de cola
+        if (action === 'guardarFoto') {
+          addToUploadQueue({
+            id: Date.now().toString(),
+            type: 'photo',
+            data: {
+              ...data,
+              timestamp: new Date().toISOString()
+            },
+            status: 'pending',
+            attempts: 0
+          });
+          return;
+        }
+        
+        // Para otros tipos de datos, usar el sistema anterior
+        const savedData = JSON.parse(localStorage.getItem('pdaOfflineData') || '[]');
+        
+        savedData.push({
+          id: Date.now(),
+          action: action,
+          data: data,
+          timestamp: new Date().toISOString()
+        });
+        
+        localStorage.setItem('pdaOfflineData', JSON.stringify(savedData));
+        
+        // Registramos para sync cuando haya conexión
+        if ('serviceWorker' in navigator && 'SyncManager' in window) {
+          navigator.serviceWorker.ready
+            .then(reg => reg.sync.register('sync-guardados-pendientes'))
+            .catch(err => console.log('Error al registrar sync:', err));
+        }
+      } catch (error) {
+        console.error("Error al guardar datos offline:", error);
+      }
+    }
+
+    // NUEVO: Versión optimizada para guardar foto offline
+    function saveOfflinePhoto(base64Data, nombreArchivo, factura) {
+      // Usar el nuevo sistema de cola
+      addToUploadQueue({
+        id: Date.now().toString(),
+        type: 'photo',
+        data: {
+          base64Data: base64Data,
+          nombreArchivo: nombreArchivo,
+          factura: factura,
+          timestamp: new Date().toISOString()
+        },
+        status: 'pending',
+        attempts: 0
+      });
+      
+      showToast('Foto guardada. Se subirá automáticamente cuando haya conexión.', 'success');
+    }
+
+    // Función para cerrar la cámara
+    function cerrarCamara() {
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
+        cameraStream = null;
+      }
+      
+      const cameraModal = document.getElementById('cameraModal');
+      
+      // Eliminar los listeners para prevenir comportamiento predeterminado
+      cameraModal.removeEventListener('touchstart', preventDefaultBehavior);
+      cameraModal.removeEventListener('touchmove', preventDefaultBehavior);
+      
+      // Limpiar el timer de prevención de teclado
+      if (preventKeyboardTimer) {
+        clearInterval(preventKeyboardTimer);
+        preventKeyboardTimer = null;
+      }
+      
+      cameraModal.style.display = 'none';
+      photoBlob = null;
+      
+      // Restauramos el foco normal después de cerrar la cámara
+      setTimeout(() => {
+        const barcodeInput = document.getElementById('barcode');
+        barcodeInput.focus();
+      }, 300);
+    }
+
+    // Configurar botón cancelar
+    document.getElementById('cancelCaptureBtn').addEventListener('click', cerrarCamara);
+
+    // Función actualizada para procesar entregas
+    function procesarEntrega(documento, lote, referencia, cantidad, factura, nit, btnElement) {
+      // Crear objeto con los datos completos
+      const datos = {
+        documento: documento,
+        lote: lote || '',
+        referencia: referencia || '',
+        cantidad: parseFloat(cantidad) || 0,
+        factura: factura,
+        nit: nit || ''
+      };
+      
+      // Luego abrimos la cámara automáticamente
+      setTimeout(() => {
+        abrirCamara(factura);
+      }, 500);
+    }
+
+    // Funciones para sonidos de feedback
+    function playSuccessSound() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)(); 
+        const osc = ctx.createOscillator(); 
+        const gainNode = ctx.createGain(); 
+        osc.type = "sine"; 
+        osc.frequency.value = 800; 
+        gainNode.gain.value = 1; 
+        osc.connect(gainNode); 
+        gainNode.connect(ctx.destination); 
+        osc.start(); 
+        osc.stop(ctx.currentTime + 0.25);
+      } catch (e) {
+        console.log("Error al reproducir sonido de éxito:", e);
+      }
+    }
+
+    function playErrorSound() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)(); 
+        const osc = ctx.createOscillator(); 
+        const gainNode = ctx.createGain(); 
+        osc.type = "sawtooth"; 
+        osc.frequency.setValueAtTime(300, ctx.currentTime); 
+        osc.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.5); 
+        gainNode.gain.value = 0.8; 
+        gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5); 
+        osc.connect(gainNode); 
+        gainNode.connect(ctx.destination); 
+        osc.start(); 
+        osc.stop(ctx.currentTime + 0.5);
+      } catch (e) {
+        console.log("Error al reproducir sonido de error:", e);
+      }
+    }
+
+    // Inicialización al cargar el documento
+    document.addEventListener('DOMContentLoaded', () => {
+      // Cargar cualquier dato pendiente que pudiera existir
+      loadBackgroundUploadQueue();
+      updatePendingCounter();
+      
+      // Cargar datos desde el servidor
+      loadDataFromServer();
+      
+      setupEventListeners();
+      
+      // Agregar eventos para prevenir el teclado virtual en la cámara
+      document.addEventListener('focusin', function(e) {
+        if (document.getElementById('cameraModal').style.display === 'flex' && 
+            e.target.id !== 'dummyInput') {
+          e.preventDefault();
+          e.target.blur();
+        }
+      });
+      
+      // Manejar el cambio de orientación en dispositivos móviles
+      window.addEventListener('orientationchange', function() {
+        if (document.getElementById('cameraModal').style.display === 'flex') {
+          setTimeout(() => {
+            document.activeElement.blur();
+          }, 300);
+        }
+      });
+      
+      // Verificar si estamos en modo offline
+      window.addEventListener('online', function() {
+        offlineBanner.style.display = 'none';
+        statusDiv.innerHTML = '<i class="fas fa-wifi"></i> Conexión restablecida';
+        
+        // Mostrar notificación
+        showToast('Conexión restablecida', 'success');
+        
+        // Intentar cargar datos si aún no lo hemos hecho
+        if (!dataLoaded) {
+          setTimeout(() => loadDataFromServer(), 1000);
+        }
+        
+        // Iniciar procesamiento de la cola de subida
+        if (!syncInProgress && backgroundUploadQueue.some(item => item.status === 'pending')) {
+          processUploadQueue();
+        }
+      });
+      
+      window.addEventListener('offline', function() {
+        offlineBanner.style.display = 'block';
+        statusDiv.innerHTML = '<i class="fas fa-wifi-slash"></i> Sin conexión - Modo offline';
+        showToast('Sin conexión. Trabajando en modo offline', 'warning');
+      });
+      
+      // NUEVO: Iniciar intervalo de sincronización
+      syncInterval = setInterval(() => {
+        if (navigator.onLine && !syncInProgress && 
+            backgroundUploadQueue.some(item => item.status === 'pending')) {
+          processUploadQueue();
+        }
+      }, CONFIG.SYNC_INTERVAL);
+    });
+
+    // Limpiar al cerrar ventana/pestaña
+    window.addEventListener('beforeunload', () => {
+      if (syncInterval) {
+        clearInterval(syncInterval);
+      }
+    });
+
+    function loadDataFromServer() {
+      statusDiv.innerHTML = '<i class="fas fa-sync fa-spin"></i> Cargando Datos...';
+      dataStats.innerHTML = '<i class="fas fa-server"></i> Conectando con el servidor...';
+      
+      // Usamos fetch para obtener los datos del servidor
+      fetch(`${API_URL_GET}?nocache=${new Date().getTime()}`)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`Error HTTP: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(serverData => handleDataLoadSuccess(serverData))
+        .catch(error => handleDataLoadError(error));
+    }
+
+    function handleDataLoadSuccess(serverData) {
+      if (serverData && serverData.success && serverData.data) {
+        database = serverData.data;
+        dataLoaded = true;
+        cacheData(database);
+        
+        statusDiv.innerHTML = '<i class="fas fa-check"></i> SISTEMA LISTO';
+        dataStats.innerHTML = `<i class="fas fa-database"></i> ${database.length} registros | ${new Date().toLocaleTimeString()}`;
+        resultsDiv.innerHTML = `
+          <div class="result-item" style="text-align: center; color: var(--gray);">
+            <img src="https://raw.githubusercontent.com/iLogisticsCoordinator/o/main/icons/icon-512.png" alt="PandaDash Logo" class="logo" style="width: 4rem; height: 4rem; margin-bottom: 0.5rem;">
+            <h1>PandaDash</h1>
+            <div class="name">Andrés Mendoza</div>
+          </div>
+        `;  
+        
+        // Ocultar pantalla de carga
+        hideLoadingScreen();
+        playSuccessSound();
+      } else {
+        handleDataLoadError(new Error('Formato de datos incorrecto'));
+      }
+    }
+
+    function handleDataLoadError(error) {
+      console.error("Error al cargar datos:", error);
+      
+      // Verificar si hay datos en caché
+      const cachedData = getCachedData();
+      if (cachedData) {
+        database = cachedData.data;
+        dataLoaded = true;
+        
+        statusDiv.innerHTML = '<i class="fas fa-database"></i> SISTEMA LISTO (DATOS CACHEADOS)';
+        dataStats.innerHTML = `${database.length} registros | Última actualización: ${new Date(cachedData.timestamp).toLocaleString()}`;
+        resultsDiv.innerHTML = `
+          <div class="result-item" style="text-align: center; color: var(--gray);">
+            <img src="https://raw.githubusercontent.com/iLogisticsCoordinator/o/main/icons/icon-512.png" alt="PandaDash Logo" class="logo" style="width: 4rem; height: 4rem; margin-bottom: 0.5rem;">
+            <h1>PandaDash</h1>
+            <div class="name">Andrés Mendoza</div>
+          </div>
+        `;
+        
+        offlineBanner.style.display = 'block';
+        
+        // Ocultar pantalla de carga ya que tenemos datos en caché
+        hideLoadingScreen();
+      } else {
+        statusDiv.innerHTML = '<span style="color: var(--danger)">ERROR AL CARGAR DATOS</span>';
+        dataStats.textContent = error.message || 'Error desconocido';
+        resultsDiv.innerHTML = `<div class="error"><i class="fas fa-exclamation-circle"></i> No se pudo cargar la base de datos: ${error.message || 'Error desconocido'}</div>`;
+        
+        // Mostrar mensaje de error en la pantalla de carga pero no ocultarla
+        const loadingName = document.querySelector('#loadingScreen .name');
+        if (loadingName) {
+          loadingName.innerHTML = 'Error al cargar datos. <br>Comprueba tu conexión.';
+          loadingName.style.color = '#f72585';
+        }
+        
+        playErrorSound();
+      }
+    }
+
+    // Función para ocultar la pantalla de carga
+    function hideLoadingScreen() {
+      // Mostrar el contenido principal
+      scanner.style.display = 'flex';
+      
+      // Desvanecer la pantalla de carga
+      loadingScreen.style.opacity = '0';
+      
+      // Eliminar la pantalla de carga después de la transición
+      setTimeout(() => {
+        loadingScreen.style.display = 'none';
+        
+        // Enfocar el campo de entrada
+        if (barcodeInput) {
+          barcodeInput.focus();
+        }
+      }, 500);
+    }
+
+    function getCachedData() {
+      const cache = localStorage.getItem('pdaScannerCache');
+      if (!cache) return null;
+      
+      try {
+        const parsed = JSON.parse(cache);
+        if (Date.now() - parsed.timestamp > CONFIG.CACHE_TTL) return null;
+        return parsed;
+      } catch (e) {
+        console.error("Error al parsear cache:", e);
+        return null;
+      }
+    }
+
+    function cacheData(data) {
+      const cache = {
+        data: data,
+        timestamp: Date.now(),
+        version: CONFIG.VERSION
+      };
+      
+      try {
+        localStorage.setItem('pdaScannerCache', JSON.stringify(cache));
+      } catch (e) {
+        console.error("Error al guardar en cache:", e);
+        if (e.name === 'QuotaExceededError') {
+          clearOldCache();
+          cacheData(data);
+        }
+      }
+    }
+
+    function clearOldCache() {
+      const keys = Object.keys(localStorage);
+      for (const key of keys) {
+        if (key.startsWith('pdaScannerCache')) {
+          localStorage.removeItem(key);
+        }
+      }
+    }
+
+    function setupEventListeners() {
+      // Foco persistente excepto cuando la cámara está abierta
+      function enforceFocus() {
+        // Solo aplicar foco si la cámara no está abierta
+        if (document.activeElement !== barcodeInput && 
+            document.getElementById('cameraModal').style.display !== 'flex' &&
+            document.getElementById('pendingModal').style.display !== 'flex') {
+          barcodeInput.focus();
+        }
+        setTimeout(enforceFocus, 100);
+      }
+      enforceFocus();
+      
+      // Detector para deshabilitar el teclado virtual en dispositivos móviles
+      document.addEventListener('touchstart', function(e) {
+        if (document.getElementById('cameraModal').style.display === 'flex' && 
+            e.target.tagName !== 'BUTTON') {
+          e.preventDefault();
+          if (document.activeElement) {
+            document.activeElement.blur();
+          }
+        }
+      }, { passive: false });
+      
+      // Detectar escaneo
+      barcodeInput.addEventListener('input', function() {
+        const code = this.value.trim();
+        if (code.length < 5) return; // Un código válido debe tener al menos 5 caracteres
+        
+        // Analizar el formato del código: DOCUMENTO-NIT
+        const parts = parseQRCode(code);
+        
+        if (parts) {
+          currentQRParts = parts; // Guardar las partes para uso posterior
+          const startTime = Date.now();
+          processQRCodeParts(parts);
+          const searchTime = Date.now() - startTime;
+          
+          statusDiv.textContent = `REGISTRO PROCESADO (${searchTime}ms)`;
+        } else {
+          showError(code, "Formato de código QR no válido. Use formato: DOCUMENTO-NIT");
+          playErrorSound();
+          statusDiv.textContent = `FORMATO INVÁLIDO`;
+        }
+        
+        setTimeout(() => {
+          this.value = '';
+          this.focus();
+        }, 50);
+      });
+    }
+    
+    // Función para analizar el código QR
+    function parseQRCode(code) {
+      // Buscamos un formato como "REC58101-805027653"
+      const regex = /^([A-Za-z0-9-]+)-([0-9]+)$/;
+      const match = code.match(regex);
+      
+      if (match) {
+        return {
+          documento: match[1],
+          nit: match[2]
+        };
+      }
+      
+      return null;
+    }
+    
+    // Procesa las partes del código QR y muestra los resultados
+    function processQRCodeParts(parts) {
+      const { documento, nit } = parts;
+      
+      // Buscar un registro que coincida con el documento
+      const result = database.find(item => 
+        item.documento && item.documento.toString() === documento
+      );
+      
+      if (result) {
+        // Filtramos los datosSiesa para mostrar solo los que coinciden con el NIT
+        const filteredItem = JSON.parse(JSON.stringify(result));
+        
+        if (filteredItem.datosSiesa && Array.isArray(filteredItem.datosSiesa)) {
+          // Filtramos por NIT en lugar de por cliente
+          filteredItem.datosSiesa = filteredItem.datosSiesa.filter(siesa => {
+            // Extraemos solo dígitos del NIT para comparar (por si acaso viene con formato)
+            const siesaNitDigits = siesa.nit ? siesa.nit.toString().replace(/\D/g, '') : '';
+            const scanNitDigits = nit.replace(/\D/g, '');
+            
+            return siesaNitDigits.includes(scanNitDigits) || scanNitDigits.includes(siesaNitDigits);
+          });
+          
+          displayFullResult(filteredItem, parts);
+          playSuccessSound();
+        } else {
+          displayFullResult(filteredItem, parts);
+          playSuccessSound();
+        }
+      } else {
+        showError(`${documento}-${nit}`, "Documento no encontrado en la base de datos");
+        playErrorSound();
+      }
+    }
+
+    function displayFullResult(item, qrParts) {
+      const totalRegistros = item.datosSiesa ? item.datosSiesa.length : 0;
+      const filtradosRegistros = item.datosSiesa ? item.datosSiesa.length : 0;
+      
+      resultsDiv.innerHTML = `
+        <div class="result-item">
+          ${filtradosRegistros < totalRegistros ? `
+            <div class="filter-info">
+              <i class="fas fa-info-circle"></i> Mostrando ${filtradosRegistros} de ${totalRegistros} registros (filtrado por NIT ${qrParts.nit})
+            </div>
+          ` : ''}
+          
+          ${displayItemData(item, 'Datos del Documento', qrParts)}
+        </div>
+      `;
+    }
+
+    function displayItemData(data, title = 'Datos', qrParts) {
+      let html = `<div class="siesa-header">${title} <span class="timestamp">${new Date().toLocaleString()}</span></div>`;
+      
+      // Asegurar que se muestra el lote en primer lugar, seguido de otras propiedades
+      // Orden de propiedades: documento, lote, referencia, y luego el resto
+      const ordenPropiedades = ['documento', 'lote', 'referencia'];
+      
+      // Mostrar primero las propiedades prioritarias en el orden deseado
+      ordenPropiedades.forEach(propKey => {
+        if (propKey in data && propKey !== 'datosSiesa') {
+          html += `
+            <div class="result-row">
+              <div class="col-header">${formatKey(propKey)}:</div>
+              <div class="json-value">${formatValue(data[propKey], propKey)}</div>
+            </div>
+          `;
+        }
+      });
+      
+      // Mostrar el resto de propiedades que no están en la lista de prioridad
+      for (const key in data) {
+        if (key === 'datosSiesa' || ordenPropiedades.includes(key)) continue;
+        
+        html += `
+          <div class="result-row">
+            <div class="col-header">${formatKey(key)}:</div>
+            <div class="json-value">${formatValue(data[key], key)}</div>
+          </div>
+        `;
+      }
+      
+      // Mostrar datosSiesa si existen
+      if (data.datosSiesa && Array.isArray(data.datosSiesa)) {
+        if (data.datosSiesa.length === 0) {
+          html += `<div class="no-data" style="padding: 15px; text-align: center;"><i class="fas fa-search"></i> No hay registros que coincidan con el NIT escaneado</div>`;
+        } else {
+          html += `<div class="siesa-header">Documentos Relacionados <span class="badge badge-success">${data.datosSiesa.length} registros</span></div>`;
+          
+          data.datosSiesa.forEach((siesa, index) => {
+            const estadoBadge = siesa.estado === 'Aprobadas' ? 'badge-success' : 'badge-warning';
+            
+            html += `<div class="siesa-item">`;
+            html += `<div class="siesa-header">Factura #${index + 1} <span class="badge ${estadoBadge}">${siesa.estado || 'Sin estado'}</span></div>`;
+            
+            // Orden preferido para propiedades de datosSiesa
+            const ordenSiesaPropiedades = ['factura', 'nit', 'lote', 'referencia', 'cantidad', 'estado', 'cliente', 'valorBruto', 'fecha', 'proovedor'];
+            
+            // Mostrar propiedades en el orden preferido
+            ordenSiesaPropiedades.forEach(propKey => {
+              if (propKey in siesa) {
+                html += `
+                  <div class="result-row">
+                    <div class="col-header">${formatKey(propKey)}:</div>
+                    <div class="json-value">${formatValue(siesa[propKey], propKey)}</div>
+                  </div>
+                `;
+              }
+            });
+            
+            // Mostrar cualquier propiedad adicional que no esté en la lista ordenada
+            for (const key in siesa) {
+              if (ordenSiesaPropiedades.includes(key)) continue;
+              
+              html += `
+                <div class="result-row">
+                  <div class="col-header">${formatKey(key)}:</div>
+                  <div class="json-value">${formatValue(siesa[key], key)}</div>
+                </div>
+              `;
+            }
+            
+            // Verificar si ya hay un registro de entrega para esta factura
+            const existingUpload = backgroundUploadQueue.find(item => 
+              item.data && item.data.factura === siesa.factura
+            );
+            
+            let buttonLabel = '<i class="fas fa-truck"></i> Procesar Entrega';
+            let buttonColor = 'var(--success)';
+            
+            if (existingUpload) {
+              if (existingUpload.status === 'completed') {
+                buttonLabel = '<i class="fas fa-check-circle"></i> Entregado con foto';
+                buttonColor = '#28a745';
+              } else if (existingUpload.status === 'pending' || existingUpload.status === 'uploading') {
+                buttonLabel = '<i class="fas fa-cloud-upload-alt"></i> Foto en proceso';
+                buttonColor = '#f8961e';
+              } else if (existingUpload.status === 'failed') {
+                buttonLabel = '<i class="fas fa-exclamation-circle"></i> Error al subir';
+                buttonColor = '#dc3545';
+              }
+            }
+            
+            // Botón de entregas que maneja todo el proceso con el NIT correcto
+            html += `
+              <div class="action-buttons">
+                <button class="delivery-btn" 
+                  data-factura="${siesa.factura}"
+                  style="background-color: ${buttonColor};"
+                  onclick="procesarEntrega(
+                    '${data.documento}', 
+                    '${siesa.lote || data.lote}', 
+                    '${siesa.referencia || data.referencia}', 
+                    '${siesa.cantidad}', 
+                    '${siesa.factura}', 
+                    '${siesa.nit || qrParts.nit}', 
+                    this
+                  )">
+                  ${buttonLabel}
+                </button>
+                <span class="save-success" style="display: none;">
+                  <i class="fas fa-check"></i> Registro guardado
+                </span>
+              </div>
+            `;
+            
+            html += `</div>`;
+          });
+        }
+      }
+      
+      return html;
+    }
+
+    function formatKey(key) {
+      return key
+        .replace(/([A-Z])/g, ' $1')
+        .replace(/^./, str => str.toUpperCase())
+        .replace('columna', '')
+        .trim();
+    }
+
+    function formatValue(value, key = '') {
+      if (value === null || value === undefined) {
+        return '<span class="no-data">N/A</span>';
+      }
+      
+      if (typeof value === 'object') {
+        return '<span class="no-data">[Datos complejos]</span>';
+      }
+      
+      if (typeof value === 'number') {
+        if (key.toLowerCase().includes('valor') || key.toLowerCase().includes('suma')) {
+          return `<span class="numeric-value">${value.toLocaleString('es-CO')}</span>`;
+        }
+        return value.toString();
+      }
+      
+      if (typeof value === 'boolean') {
+        return value ? 'Sí' : 'No';
+      }
+      
+      return value.toString();
+    }
+
+    function showError(barcode, message = "Código no encontrado") {
+      resultsDiv.innerHTML = `
+        <div class="error">
+          <i class="fas fa-times-circle"></i> ${message}: <strong>${barcode}</strong>
+        </div>
+      `;
+    }
+  </script>
+
+</body>
+</html>
