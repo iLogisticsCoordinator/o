@@ -1208,24 +1208,9 @@ function procesarEntrega(documento, lote, referencia, cantidad, factura, nit, bt
             <!-- <p style="margin: 0;">Escanea un código QR para consultar información</p>
             <p style="margin-top: 8px; font-size: 13px; opacity: 0.6;">(Ejemplo: REC58101-805027653)</p> -->
           </div>
+        `;
 
-
-  <style>
-      #installBtn {
-      //display: none;
-      margin-top: 20px;
-      padding: 12px 24px;
-      background: #4CAF50;
-      color: white;
-      font-size: 1rem;
-      border: none;
-      border-radius: 8px;
-    }
-</style>
-
-<script>
-    
-     let deferredPrompt;
+    let deferredPrompt;
     const installBtn = document.getElementById('installBtn');
 
     window.addEventListener('beforeinstallprompt', (e) => {
@@ -1252,10 +1237,7 @@ function procesarEntrega(documento, lote, referencia, cantidad, factura, nit, bt
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('service-worker.js');
       });
-    }
-
-
-        `;
+    };
 
               
 
