@@ -1,6 +1,5 @@
-const CACHE_NAME = 'pandadash-v1';
-const API_CACHE_NAME = 'api-cache-v1';
-const OFFLINE_PHOTOS_QUEUE = 'offline-photos-queue';
+const CACHE_NAME = 'pandadash-v2';
+const PHOTO_QUEUE = 'photo-upload-queue';
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -8,9 +7,7 @@ self.addEventListener('install', (event) => {
       .then(cache => cache.addAll([
         '/',
         '/index.html',
-        '/manifest.json',
-        'https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap',
-        'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'
+        '/manifest.json'
       ]))
       .then(() => self.skipWaiting())
   );
@@ -21,7 +18,7 @@ self.addEventListener('activate', (event) => {
     caches.keys().then(cacheNames => {
       return Promise.all(
         cacheNames.map(cache => {
-          if (cache !== CACHE_NAME && cache !== API_CACHE_NAME) {
+          if (cache !== CACHE_NAME && cache !== PHOTO_QUEUE) {
             return caches.delete(cache);
           }
         })
@@ -30,92 +27,72 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-self.addEventListener('fetch', (event) => {
-  // Cache-first strategy for static assets
-  if (event.request.url.includes('/icons/') || 
-      event.request.url.includes('fonts.googleapis.com') || 
-      event.request.url.includes('cdnjs.cloudflare.com')) {
-    event.respondWith(
-      caches.match(event.request)
-        .then(response => response || fetch(event.request))
-    );
-    return;
-  }
-
-  // Network-first strategy for API calls
-  if (event.request.url.includes(API_URL_GET) || event.request.url.includes(API_URL_POST)) {
-    event.respondWith(
-      fetch(event.request)
-        .then(response => {
-          // Clone the response to cache it
-          const responseToCache = response.clone();
-          caches.open(API_CACHE_NAME)
-            .then(cache => cache.put(event.request, responseToCache));
-          return response;
-        })
-        .catch(() => {
-          return caches.match(event.request)
-            .then(response => response || new Response(JSON.stringify({ 
-              success: false, 
-              message: "No connection and no cached data" 
-            }), {
-              headers: { 'Content-Type': 'application/json' }
-            }));
-        })
-    );
-    return;
-  }
-
-  // Default behavior
-  event.respondWith(fetch(event.request));
-});
-
 self.addEventListener('sync', (event) => {
-  if (event.tag === 'sync-offline-photos') {
-    event.waitUntil(processOfflinePhotosQueue());
+  if (event.tag === 'sync-photos') {
+    event.waitUntil(processPhotoQueue());
   }
 });
 
-async function processOfflinePhotosQueue() {
-  const photosQueue = await getPhotosQueue();
-  if (photosQueue.length === 0) return;
+async function processPhotoQueue() {
+  const photos = await getQueuedPhotos();
+  if (photos.length === 0) return;
 
-  for (const photoData of photosQueue) {
+  for (const photo of photos) {
     try {
+      const formData = new FormData();
+      formData.append('factura', photo.factura);
+      formData.append('fotoBase64', photo.base64Data);
+      formData.append('fotoNombre', photo.nombreArchivo);
+
       const response = await fetch(API_URL_POST, {
         method: 'POST',
-        body: JSON.stringify(photoData),
-        headers: {
-          'Content-Type': 'application/json'
-        }
+        body: formData
       });
 
       if (response.ok) {
-        await removePhotoFromQueue(photoData.id);
+        await removeQueuedPhoto(photo.id);
+        notifyClient('photo_uploaded', { id: photo.id });
       }
     } catch (error) {
       console.error('Error uploading photo:', error);
-      break; // Stop on first error, will retry on next sync
+      break;
     }
   }
 }
 
-async function getPhotosQueue() {
-  const cache = await caches.open(OFFLINE_PHOTOS_QUEUE);
-  const response = await cache.match('photos-queue');
+async function getQueuedPhotos() {
+  const cache = await caches.open(PHOTO_QUEUE);
+  const response = await cache.match('queue');
   return response ? await response.json() : [];
 }
 
-async function addPhotoToQueue(photoData) {
-  const queue = await getPhotosQueue();
-  queue.push(photoData);
-  const cache = await caches.open(OFFLINE_PHOTOS_QUEUE);
-  await cache.put('photos-queue', new Response(JSON.stringify(queue)));
+async function addPhotoToQueue(photo) {
+  const queue = await getQueuedPhotos();
+  queue.push(photo);
+  const cache = await caches.open(PHOTO_QUEUE);
+  await cache.put('queue', new Response(JSON.stringify(queue)));
 }
 
-async function removePhotoFromQueue(photoId) {
-  const queue = await getPhotosQueue();
-  const newQueue = queue.filter(photo => photo.id !== photoId);
-  const cache = await caches.open(OFFLINE_PHOTOS_QUEUE);
-  await cache.put('photos-queue', new Response(JSON.stringify(newQueue)));
+async function removeQueuedPhoto(id) {
+  const queue = await getQueuedPhotos();
+  const newQueue = queue.filter(p => p.id !== id);
+  const cache = await caches.open(PHOTO_QUEUE);
+  await cache.put('queue', new Response(JSON.stringify(newQueue)));
 }
+
+function notifyClient(type, data) {
+  self.clients.matchAll().then(clients => {
+    clients.forEach(client => {
+      client.postMessage({ type, data });
+    });
+  });
+}
+
+self.addEventListener('message', (event) => {
+  if (event.data.type === 'queue_photo') {
+    event.waitUntil(
+      addPhotoToQueue(event.data.photo)
+        .then(() => self.registration.sync.register('sync-photos'))
+    );
+  }
+});
