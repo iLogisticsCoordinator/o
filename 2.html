@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="theme-color" content="#ffffff" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
@@ -51,6 +51,7 @@
       max-width: 100%;
       max-height: 100%;
       overscroll-behavior: none;
+      -webkit-text-size-adjust: 100%;
     }
     
     body {
@@ -96,10 +97,15 @@
       align-items: center;
       z-index: 9999;
       transition: opacity 0.5s ease;
-      width: 100vw;
-      height: 100vh;
+      width: 100%;
+      height: 100%;
+      max-width: 800px;
+      margin: 0 auto;
       overflow: hidden;
       touch-action: none;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
     }
     
     .logo {
@@ -1833,6 +1839,29 @@
 
     // Inicialización al cargar el documento
     document.addEventListener('DOMContentLoaded', () => {
+      // Fix para iOS para asegurar que no haya escalado
+      const setViewportMeta = () => {
+        const viewportMeta = document.querySelector('meta[name="viewport"]');
+        if (viewportMeta) {
+          viewportMeta.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover');
+        }
+      };
+      
+      // Asegurar que el viewport esté configurado correctamente
+      setViewportMeta();
+      
+      // Algunos dispositivos iOS pueden ignorar el atributo user-scalable=no
+      // Este hack crea un elemento div del tamaño de la ventana para bloquear el zoom
+      const preventZoomDiv = document.createElement('div');
+      preventZoomDiv.style.position = 'absolute';
+      preventZoomDiv.style.top = '0';
+      preventZoomDiv.style.left = '0';
+      preventZoomDiv.style.width = '100%';
+      preventZoomDiv.style.height = '100%';
+      preventZoomDiv.style.zIndex = '-1'; // Detrás de todo
+      preventZoomDiv.style.pointerEvents = 'none'; // No interfiere con clics
+      document.body.appendChild(preventZoomDiv);
+      
       // Cargar cualquier dato pendiente que pudiera existir
       loadBackgroundUploadQueue();
       updatePendingCounter();
@@ -1853,11 +1882,14 @@
       
       // Manejar el cambio de orientación en dispositivos móviles
       window.addEventListener('orientationchange', function() {
-        if (document.getElementById('cameraModal').style.display === 'flex') {
-          setTimeout(() => {
+        // Reajustar el viewport en cambio de orientación
+        setTimeout(() => {
+          setViewportMeta();
+          
+          if (document.getElementById('cameraModal').style.display === 'flex') {
             document.activeElement.blur();
-          }, 300);
-        }
+          }
+        }, 300);
       });
       
       // Verificar si estamos en modo offline
@@ -1905,7 +1937,7 @@
         e.preventDefault();
       }, { passive: false });
       
-      // Evitar el escalado con pinza
+      // Específico para iOS - Evitar el escalado con pinza
       document.addEventListener('gesturestart', function(e) {
         e.preventDefault();
       }, { passive: false });
@@ -2352,6 +2384,32 @@
         e.preventDefault();
       }
     });
+    
+    // Específico para iOS para prevenir zoom
+    document.addEventListener('touchmove', function(e) {
+      if (e.scale !== 1) {
+        e.preventDefault();
+      }
+    }, { passive: false });
+    
+    document.addEventListener('touchend', function(e) {
+      if (e.scale !== 1) {
+        e.preventDefault();
+      }
+    }, { passive: false });
+    
+    // Intentar atrapar y prevenir los gestos de iOS
+    document.addEventListener('gesturestart', function(e) {
+      e.preventDefault();
+    }, { passive: false });
+    
+    document.addEventListener('gesturechange', function(e) {
+      e.preventDefault();
+    }, { passive: false });
+    
+    document.addEventListener('gestureend', function(e) {
+      e.preventDefault();
+    }, { passive: false });
   </script>
 
 </body>
