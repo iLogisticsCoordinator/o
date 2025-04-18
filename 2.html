@@ -12,57 +12,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <title>PandaDash</title>
   
-      <button id="installBtn">Instalar App</button>
-
   <style>
-      #installBtn {
-      display: none;
-      margin-top: 20px;
-      padding: 12px 24px;
-      background: #4CAF50;
-      color: white;
-      font-size: 1rem;
-      border: none;
-      border-radius: 8px;
-    }
-      </style>
-
-  </tyle>
-
-<script>
-    
-     let deferredPrompt;
-    const installBtn = document.getElementById('installBtn');
-
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      installBtn.style.display = 'block';
-    });
-
-    installBtn.addEventListener('click', async () => {
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        const choiceResult = await deferredPrompt.userChoice;
-        if (choiceResult.outcome === 'accepted') {
-          console.log('App instalada');
-        } else {
-          console.log('Instalación cancelada');
-        }
-        deferredPrompt = null;
-        installBtn.style.display = 'none';
-      }
-    });
-
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('service-worker.js');
-      });
-    }
-</script>
-
-  <style>
-    
     :root {
       --primary: #4361ee;
       --primary-dark: #3a56d4;
@@ -106,6 +56,99 @@
       font-size: 15px;
     }
     
+    /* Pantalla de carga */
+    #loadingScreen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #fff;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      transition: opacity 0.5s ease;
+    }
+    
+    .logo {
+      width: 100px;
+      height: auto;
+      margin-bottom: 5px;
+    }
+    
+    h1 {
+      font-size: 1.7rem;
+      margin: 3px 0;
+      color: #333;
+    }
+    
+    .name {
+      color: #599191;
+      font-size: 0.8rem;
+      margin: 3px 0 10px;
+    }
+    
+    /* Spinner de 3 bolitas con efecto pulse */
+    .triple-pulse {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 10px;
+      margin: 10px 0;
+    }
+    
+    .triple-pulse span {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      background-color: #348a87;
+      border-radius: 50%;
+      margin: 0 3px;
+      animation: triplePulse 1.4s infinite ease-in-out;
+    }
+    
+    .triple-pulse span:nth-child(1) {
+      animation-delay: 0s;
+    }
+    
+    .triple-pulse span:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+    
+    .triple-pulse span:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+    
+    @keyframes triplePulse {
+      0%, 100% {
+        transform: scale(0.5);
+        opacity: 0;
+      }
+      50% {
+        transform: scale(1.1);
+        opacity: 0.4;
+      }
+    }
+    
+    /* Botón de instalación */
+    #installBtn {
+      display: none;
+      margin-top: 10px;
+      padding: 7px 14px;
+      background: #4CAF50;
+      color: white;
+      font-size: 0.8rem;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+    
+    #installBtn:hover {
+      background: #3e8e41;
+    }
+    
     #scanner {
       display: flex;
       flex-direction: column;
@@ -117,110 +160,87 @@
       position: relative;
     }
     
-/* Estilos optimizados para campo de código de barras */
-.barcode-input-container {
-  position: relative;
-  max-width: 400px;
-  margin: 20px auto;
-}
-
-#barcode {
-  width: 100%;
-  padding: 16px 16px 16px 48px;
-  font-size: 16px;
-  font-weight: 500;
-  color: #333;
-  background-color: #fff;
-  border: 2px solid #e0e0e0;
-  border-radius: 12px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  transition: all 0.3s ease;
-  appearance: none;
-}
-
-#barcode::placeholder {
-  color: #888;
-  opacity: 0.7;
-}
-
-#barcode:focus {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
-}
-
-.barcode-input-container i {
-  position: absolute;
-  left: 16px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #a6acad;
-  font-size: 20px;
-  pointer-events: none;
-  transition: color 0.3s ease;
-}
-
-.barcode-input-container:focus-within i {
-  color: #a6acad;
-}
-
-@media (max-width: 768px) {
-  #barcode {
-    padding: 14px 14px 14px 44px;
-    font-size: 15px;
-  }
-}
+    /* Estilos de la barra de código QR */
+    .barcode-input-container {
+      position: relative;
+      max-width: 400px;
+      margin: 20px auto;
+    }
     
-    /*#status {
-      padding: 12px 10px;
-      text-align: center;
-      background: var(--primary);
-      color: white;
-      font-size: 12px;
+    #barcode {
+      width: 100%;
+      padding: 16px 16px 16px 48px;
+      font-size: 16px;
       font-weight: 500;
-      letter-spacing: 0.5px;
-    }*/
-
-        h1 {
-      font-size: 1.7rem;
-      margin: 3px 0;
       color: #333;
+      background-color: #fff;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      transition: all 0.3s ease;
+      appearance: none;
     }
-    .name {
-      color: #599191;
-      font-size: 0.8rem;
-      margin: 3px 0 10px;
+    
+    #barcode::placeholder {
+      color: #888;
+      opacity: 0.7;
     }
-
-#status {
-    padding: 0.5rem 1rem;
-    text-align: center;
-    background: linear-gradient(270deg, #007cf0, #00dfd8, #007cf0);
-    background-size: 600% 600%;
-    color: #ffffff;
-    font-size: 14px;
-    font-weight: 600;
-    letter-spacing: 0.75px;
-    border-radius: 12px;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-    animation: gradientMove 8s ease infinite;
-    transition: transform 0.3s ease;
-    margin-left: 15px;
-    margin-right: 15px;
-}
-
-@keyframes gradientMove {
-    0% {
+    
+    #barcode:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+    }
+    
+    .barcode-input-container i {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #a6acad;
+      font-size: 20px;
+      pointer-events: none;
+      transition: color 0.3s ease;
+    }
+    
+    .barcode-input-container:focus-within i {
+      color: #a6acad;
+    }
+    
+    @media (max-width: 768px) {
+      #barcode {
+        padding: 14px 14px 14px 44px;
+        font-size: 15px;
+      }
+    }
+    
+    #status {
+      padding: 0.5rem 1rem;
+      text-align: center;
+      background: linear-gradient(270deg, #007cf0, #00dfd8, #007cf0);
+      background-size: 600% 600%;
+      color: #ffffff;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.75px;
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+      animation: gradientMove 8s ease infinite;
+      transition: transform 0.3s ease;
+      margin-left: 15px;
+      margin-right: 15px;
+    }
+    
+    @keyframes gradientMove {
+      0% {
         background-position: 0% 50%;
-    }
-    50% {
+      }
+      50% {
         background-position: 100% 50%;
-    }
-    100% {
+      }
+      100% {
         background-position: 0% 50%;
+      }
     }
-}
-
-
     
     #results {
       flex: 1;
@@ -475,8 +495,6 @@
         min-width: auto;
       }
       
-
-      
       .siesa-header {
         flex-direction: column;
         align-items: flex-start;
@@ -487,9 +505,7 @@
         margin-left: 0;
       }
     }
-
-
-
+    
     /* Modal de cámara */
     .camera-modal {
       display: none;
@@ -590,11 +606,224 @@
       font-size: 14px;
       color: var(--primary-dark);
     }
+
+    /* NUEVO: Contador de elementos pendientes */
+    .pending-counter {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background-color: var(--danger);
+      color: white;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 14px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      z-index: 1000;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% {
+        transform: scale(1);
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      }
+      50% {
+        transform: scale(1.05);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      }
+      100% {
+        transform: scale(1);
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      }
+    }
+
+    /* NUEVO: Toast de notificación para procesos en segundo plano */
+    .toast-notification {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: rgba(51, 51, 51, 0.9);
+      color: white;
+      padding: 10px 15px;
+      border-radius: 4px;
+      font-size: 14px;
+      max-width: 80%;
+      z-index: 1001;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+      transition: opacity 0.3s, transform 0.3s;
+      opacity: 0;
+      transform: translateX(-50%) translateY(20px);
+    }
+
+    .toast-notification.visible {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .toast-notification.success {
+      background-color: rgba(40, 167, 69, 0.9);
+    }
+
+    .toast-notification.error {
+      background-color: rgba(220, 53, 69, 0.9);
+    }
+
+    /* NUEVO: Modal de pendientes */
+    .pending-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.7);
+      z-index: 10001;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .pending-modal-content {
+      background-color: white;
+      width: 90%;
+      max-width: 500px;
+      border-radius: 8px;
+      padding: 20px;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    .pending-modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .pending-modal-title {
+      font-size: 18px;
+      font-weight: bold;
+      color: var(--dark);
+    }
+
+    .pending-modal-close {
+      font-size: 22px;
+      color: var(--gray);
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+
+    .pending-modal-footer {
+      margin-top: 15px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .pending-item {
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 4px;
+      background-color: var(--light);
+      border-left: 3px solid var(--warning);
+    }
+
+    .pending-item-header {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 500;
+      margin-bottom: 5px;
+    }
+
+    .pending-item-time {
+      font-size: 12px;
+      color: var(--gray);
+    }
+
+    .sync-btn {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 8px 12px;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .sync-btn:hover {
+      background-color: var(--primary-dark);
+    }
+
+    /* NUEVO: Indicador de progreso mini */
+    .mini-progress {
+      width: 100%;
+      height: 4px;
+      background-color: var(--gray-light);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-top: 5px;
+    }
+
+    .mini-progress-bar {
+      height: 100%;
+      background-color: var(--success);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
   </style>
-  
 </head>
 <body>
-  <div id="scanner">
+  <!-- Pantalla de carga -->
+  <div id="loadingScreen">
+    <img src="https://raw.githubusercontent.com/iLogisticsCoordinator/o/main/icons/icon-512.png" alt="PandaDash Logo" class="logo">
+    <div class="triple-pulse">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+    <h1>PandaDash</h1>
+    <div class="name">Andrés Mendoza</div>
+    <button id="installBtn">Instalar App</button>
+  </div>
+
+  <!-- NUEVO: Contador de pendientes -->
+  <div id="pendingCounter" class="pending-counter" style="display: none;">0</div>
+
+  <!-- NUEVO: Toast de notificación -->
+  <div id="toastNotification" class="toast-notification">
+    <span id="toastMessage"></span>
+  </div>
+
+  <!-- NUEVO: Modal para ver elementos pendientes -->
+  <div id="pendingModal" class="pending-modal">
+    <div class="pending-modal-content">
+      <div class="pending-modal-header">
+        <div class="pending-modal-title">Elementos pendientes de sincronizar</div>
+        <button class="pending-modal-close" id="pendingModalClose">&times;</button>
+      </div>
+      <div id="pendingItems"></div>
+      <div class="pending-modal-footer">
+        <button id="syncAllBtn" class="sync-btn">
+          <i class="fas fa-sync-alt"></i> Sincronizar todos
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenido principal -->
+  <div id="scanner" style="display: none;">
     <div id="offline-banner" class="offline-banner" style="display: none;">
       <i class="fas fa-wifi-slash"></i> Modo Offline - Datos Cacheados
     </div>
@@ -628,17 +857,17 @@
   </div>
 
   <script>
-
-    
     // Configuración y constantes
     const CONFIG = {
-      VERSION: "4.0.0",
+      VERSION: "4.1.0", // Incrementado por nuevas funcionalidades
       CACHE_TTL: 24 * 60 * 60 * 1000, // 24 horas en milisegundos
       MAX_IMAGE_SIZE: 800, // Tamaño máximo para redimensionar imágenes
       MAX_CHUNK_SIZE: 50000, // ~50KB por solicitud
+      SYNC_INTERVAL: 60 * 1000, // Intentar sincronización cada 60 segundos
+      TOAST_DURATION: 3000, // Duración de las notificaciones toast en ms
     };
     
-    // API URLs - Variables globales que faltaban en el código original
+    // API URLs
     const API_URL_GET = "https://script.google.com/macros/s/AKfycbwz6LT-e4m3R74wRvC5h4isRE4wmSnzpa-MJtYnAg56PCWbrwI3rdwbekWxauVPGrsmLw/exec";
     const API_URL_POST = "https://script.google.com/macros/s/AKfycbwgnkjVCMWlWuXnVaxSBD18CGN3rXGZtQZIvX9QlBXSgbQndWC4uqQ2sc00DuNH6yrb/exec";
 
@@ -649,13 +878,119 @@
     let photoBlob = null;
     let preventKeyboardTimer = null;
     let currentQRParts = null; // Para almacenar las partes del QR actual
+    let dataLoaded = false;
+    let syncInProgress = false; // NUEVO: Para controlar sincronización en segundo plano
+    let backgroundUploadQueue = []; // NUEVO: Cola para subir fotos en segundo plano
+    let pendingItemsCount = 0; // NUEVO: Contador de elementos pendientes
+    let syncInterval = null; // NUEVO: Intervalo para sincronización periódica
     
     // Elementos del DOM
+    const loadingScreen = document.getElementById('loadingScreen');
+    const scanner = document.getElementById('scanner');
     const barcodeInput = document.getElementById('barcode');
     const statusDiv = document.getElementById('status');
     const resultsDiv = document.getElementById('results');
     const dataStats = document.getElementById('data-stats');
     const offlineBanner = document.getElementById('offline-banner');
+    const installBtn = document.getElementById('installBtn');
+    const pendingCounter = document.getElementById('pendingCounter'); // NUEVO
+    const toastNotification = document.getElementById('toastNotification'); // NUEVO
+    const toastMessage = document.getElementById('toastMessage'); // NUEVO
+    const pendingModal = document.getElementById('pendingModal'); // NUEVO
+    const pendingItems = document.getElementById('pendingItems'); // NUEVO
+    const pendingModalClose = document.getElementById('pendingModalClose'); // NUEVO
+    const syncAllBtn = document.getElementById('syncAllBtn'); // NUEVO
+    
+    // NUEVO: Detector de click en el contador de pendientes
+    if (pendingCounter) {
+      pendingCounter.addEventListener('click', showPendingModal);
+    }
+
+    // NUEVO: Funciones para mostrar y ocultar el modal de pendientes
+    function showPendingModal() {
+      updatePendingItems();
+      pendingModal.style.display = 'flex';
+    }
+    
+    function hidePendingModal() {
+      pendingModal.style.display = 'none';
+    }
+    
+    // NUEVO: Botón para cerrar el modal
+    if (pendingModalClose) {
+      pendingModalClose.addEventListener('click', hidePendingModal);
+    }
+    
+    // NUEVO: Botón para sincronizar todos los elementos pendientes
+    if (syncAllBtn) {
+      syncAllBtn.addEventListener('click', syncAllPendingItems);
+    }
+    
+    // NUEVO: Funciones para mostrar notificaciones toast
+    function showToast(message, type = '') {
+      toastMessage.textContent = message;
+      toastNotification.className = 'toast-notification';
+      if (type) {
+        toastNotification.classList.add(type);
+      }
+      toastNotification.classList.add('visible');
+      
+      // Ocultar después de un tiempo
+      setTimeout(() => {
+        toastNotification.classList.remove('visible');
+      }, CONFIG.TOAST_DURATION);
+    }
+    
+    // Detector de eventos para PWA Install
+    let deferredPrompt;
+    
+    window.addEventListener('beforeinstallprompt', (e) => {
+      // Prevenir que Chrome muestre automáticamente el prompt
+      e.preventDefault();
+      // Guardar el evento para usarlo después
+      deferredPrompt = e;
+      // Mostrar el botón de instalación
+      installBtn.style.display = 'block';
+    });
+    
+    installBtn.addEventListener('click', async () => {
+      if (deferredPrompt) {
+        // Mostrar el prompt de instalación
+        deferredPrompt.prompt();
+        // Esperar a que el usuario responda al prompt
+        const choiceResult = await deferredPrompt.userChoice;
+        if (choiceResult.outcome === 'accepted') {
+          console.log('App instalada');
+        } else {
+          console.log('Instalación cancelada');
+        }
+        // Limpiar el prompt guardado
+        deferredPrompt = null;
+        // Ocultar botón
+        installBtn.style.display = 'none';
+      }
+    });
+    
+    // Registrar Service Worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('service-worker.js')
+          .then(registration => {
+            console.log('ServiceWorker registrado con éxito:', registration.scope);
+            
+            // NUEVO: Escuchar mensaje del service worker
+            navigator.serviceWorker.addEventListener('message', function(event) {
+              if (event.data && event.data.type === 'sync-complete') {
+                updatePendingCounter();
+                showToast('Sincronización completada', 'success');
+              }
+            });
+          })
+          .catch(error => {
+            console.error('Error al registrar ServiceWorker:', error);
+          });
+      });
+    }
 
     // Función para abrir la cámara
     function abrirCamara(factura) {
@@ -763,168 +1098,504 @@
       }, 'image/jpeg', 0.85);
     }
 
+    // MODIFICADO: Función para subir foto usando el sistema de cola
+    function subirFoto() {
+      if (!currentDocumentData || !photoBlob) {
+        console.error("No hay datos disponibles para subir");
+        return;
+      }
+      
+      const { factura, btnElement } = currentDocumentData;
+      const takePhotoBtn = document.getElementById('takePhotoBtn');
+      const uploadStatus = document.getElementById('uploadStatus');
+      
+      // Deshabilitar botón y mostrar estado de carga
+      takePhotoBtn.disabled = true;
+      takePhotoBtn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Procesando...';
+      uploadStatus.style.display = 'flex';
+      uploadStatus.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Preparando...';
+      
+      // Convertir blob a base64
+      const reader = new FileReader();
+      reader.onloadend = function() {
+        // Extraer solo la parte base64 de la cadena (eliminar el prefijo data:image/jpeg;base64,)
+        const base64Data = reader.result.split(',')[1];
+        const nombreArchivo = factura.replace(/[^a-zA-Z0-9\-]/g, '') + '_' + Date.now() + '.jpg';
+        
+        // Obtener NIT de las partes actuales del QR
+        const nit = currentQRParts ? currentQRParts.nit : '';
+        const documento = currentQRParts ? currentQRParts.documento : '';
+        
+        // Obtener valores de lote, referencia y cantidad de manera segura
+        let lote = '';
+        let referencia = '';
+        let cantidad = 0;
+        
+        try {
+          // Extraer datos de la UI
+          const loteElements = document.querySelectorAll('.result-row');
+          for (let i = 0; i < loteElements.length; i++) {
+            if (loteElements[i].textContent.includes('Lote')) {
+              const valueElement = loteElements[i].querySelector('.json-value');
+              if (valueElement) {
+                lote = valueElement.textContent.trim();
+              }
+              break;
+            }
+          }
+          
+          // Buscar elemento de referencia
+          const refElements = document.querySelectorAll('.result-row');
+          for (let i = 0; i < refElements.length; i++) {
+            if (refElements[i].textContent.includes('Referencia')) {
+              const valueElement = refElements[i].querySelector('.json-value');
+              if (valueElement) {
+                referencia = valueElement.textContent.trim();
+              }
+              break;
+            }
+          }
+          
+          // Buscar elemento de cantidad
+          const cantElements = document.querySelectorAll('.result-row');
+          for (let i = 0; i < cantElements.length; i++) {
+            if (cantElements[i].textContent.includes('Cantidad')) {
+              const valueElement = cantElements[i].querySelector('.json-value');
+              if (valueElement) {
+                cantidad = parseFloat(valueElement.textContent.trim()) || 0;
+              }
+              break;
+            }
+          }
+        } catch (e) {
+          console.warn("Error al extraer datos de la UI:", e);
+        }
 
-function subirFoto() {
-  if (!currentDocumentData || !photoBlob) {
-    console.error("No hay datos disponibles para subir");
-    return;
-  }
-  
-  const { factura, btnElement } = currentDocumentData;
-  const takePhotoBtn = document.getElementById('takePhotoBtn');
-  const uploadStatus = document.getElementById('uploadStatus');
-  
-  // Deshabilitar botón y mostrar estado de carga
-  takePhotoBtn.disabled = true;
-  takePhotoBtn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Subiendo...';
-  uploadStatus.style.display = 'flex';
-  uploadStatus.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Subiendo foto...';
-  
-  // Convertir blob a base64
-  const reader = new FileReader();
-  reader.onloadend = function() {
-    // Extraer solo la parte base64 de la cadena (eliminar el prefijo data:image/jpeg;base64,)
-    const base64Data = reader.result.split(',')[1];
-    const nombreArchivo = factura.replace(/[^a-zA-Z0-9\-]/g, '') + '.jpg';
-    
-    // Obtener NIT de las partes actuales del QR
-    const nit = currentQRParts ? currentQRParts.nit : '';
-    const documento = currentQRParts ? currentQRParts.documento : '';
-    
-    // Obtener valores de lote, referencia y cantidad de manera segura
-    let lote = '';
-    let referencia = '';
-    let cantidad = 0;
-    
-    try {
-      // Buscar elemento de lote
-      const loteElements = document.querySelectorAll('.result-row');
-      for (let i = 0; i < loteElements.length; i++) {
-        if (loteElements[i].textContent.includes('Lote')) {
-          const valueElement = loteElements[i].querySelector('.json-value');
-          if (valueElement) {
-            lote = valueElement.textContent.trim();
-          }
-          break;
+        // NUEVO: Preparar datos para la cola de subida
+        const uploadData = {
+          id: Date.now().toString(),
+          type: 'photo',
+          data: {
+            documento: documento,
+            lote: lote,
+            referencia: referencia,
+            cantidad: cantidad,
+            factura: factura,
+            nit: nit,
+            nombreArchivo: nombreArchivo,
+            base64Data: base64Data,
+            timestamp: new Date().toISOString()
+          },
+          status: 'pending',
+          attempts: 0,
+          btnElement: btnElement
+        };
+        
+        // NUEVO: Agregar a la cola y guardar en localStorage
+        addToUploadQueue(uploadData);
+        
+        // Mostrar mensaje de éxito y cerrar cámara rápidamente
+        uploadStatus.innerHTML = '<i class="fas fa-check-circle"></i> Procesado correctamente';
+        takePhotoBtn.innerHTML = '<i class="fas fa-check"></i> Listo';
+        
+        // Marcar botón como procesado pero pendiente
+        if (btnElement) {
+          btnElement.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Foto en proceso';
+          btnElement.style.backgroundColor = '#f8961e'; // Color warning
+          btnElement.setAttribute('data-upload-id', uploadData.id);
         }
-      }
+        
+        // Mostrar notificación
+        showToast('Foto procesada. Subiendo en segundo plano...', 'success');
+        
+        // Cerrar cámara rápidamente para que el usuario pueda seguir trabajando
+        setTimeout(cerrarCamara, 800);
+        
+        // Iniciar sincronización en segundo plano si no está en progreso
+        if (!syncInProgress) {
+          processUploadQueue();
+        }
+      };
       
-      // Buscar elemento de referencia
-      const refElements = document.querySelectorAll('.result-row');
-      for (let i = 0; i < refElements.length; i++) {
-        if (refElements[i].textContent.includes('Referencia')) {
-          const valueElement = refElements[i].querySelector('.json-value');
-          if (valueElement) {
-            referencia = valueElement.textContent.trim();
-          }
-          break;
-        }
-      }
+      reader.onerror = function() {
+        console.error("Error al leer la imagen");
+        uploadStatus.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error al leer la imagen';
+        takePhotoBtn.disabled = false;
+        takePhotoBtn.innerHTML = '<i class="fas fa-redo"></i> Reintentar';
+        showToast('Error al procesar la imagen', 'error');
+      };
       
-      // Buscar elemento de cantidad
-      const cantElements = document.querySelectorAll('.result-row');
-      for (let i = 0; i < cantElements.length; i++) {
-        if (cantElements[i].textContent.includes('Cantidad')) {
-          const valueElement = cantElements[i].querySelector('.json-value');
-          if (valueElement) {
-            cantidad = parseFloat(valueElement.textContent.trim()) || 0;
-          }
-          break;
-        }
-      }
-    } catch (e) {
-      console.warn("Error al extraer datos de la UI:", e);
+      // Iniciar la lectura del blob de la imagen
+      reader.readAsDataURL(photoBlob);
+    }
+
+    // NUEVO: Función para agregar elemento a la cola de subida
+    function addToUploadQueue(uploadData) {
+      // Cargar cola actual
+      loadBackgroundUploadQueue();
+      
+      // Agregar nuevo elemento
+      backgroundUploadQueue.push(uploadData);
+      
+      // Guardar cola actualizada
+      saveBackgroundUploadQueue();
+      
+      // Actualizar contador de pendientes
+      updatePendingCounter();
     }
     
-    console.log("Datos extraídos:", {
-      lote: lote,
-      referencia: referencia,
-      cantidad: cantidad
-    });
-    
-    // Crear FormData para la solicitud
-    const formData = new FormData();
-    formData.append('documento', documento);
-    formData.append('lote', lote);
-    formData.append('referencia', referencia);
-    formData.append('cantidad', cantidad);
-    formData.append('factura', factura);
-    formData.append('nit', nit);
-    formData.append('fotoBase64', base64Data);
-    formData.append('fotoNombre', nombreArchivo);
-    formData.append('fotoTipo', 'image/jpeg');
-    
-    console.log("Enviando datos de foto:", {
-      documento,
-      lote,
-      referencia,
-      cantidad,
-      factura, 
-      nit,
-      fotoNombre: nombreArchivo,
-      fotoTipo: 'image/jpeg',
-      fotoBase64Length: base64Data ? base64Data.length : 0 // Solo el tamaño para debug
-    });
-    
-    // Realizar la solicitud fetch
-    fetch(API_URL_POST, {
-      method: 'POST',
-      body: formData
-    })
-    .then(response => {
-      // Verificar respuesta HTTP
-      if (!response.ok) {
-        throw new Error(`Error HTTP: ${response.status}`);
-      }
-      return response.json();
-    })
-    .then(result => {
-      console.log("Respuesta del servidor:", result);
-      
-      if (result.success) {
-        // Éxito
-        uploadStatus.innerHTML = '<i class="fas fa-check-circle"></i> Foto subida correctamente';
-        takePhotoBtn.innerHTML = '<i class="fas fa-check"></i> Foto subida';
-        
-        // Marcar como completado en el botón de entregas
-        if (btnElement) {
-          btnElement.innerHTML = '<i class="fas fa-check-circle"></i> Entregado con foto';
-          btnElement.style.backgroundColor = '#28a745';
+    // NUEVO: Cargar cola desde localStorage
+    function loadBackgroundUploadQueue() {
+      try {
+        const savedQueue = localStorage.getItem('pdaUploadQueue');
+        if (savedQueue) {
+          backgroundUploadQueue = JSON.parse(savedQueue);
+          
+          // Restaurar referencias de botones si es necesario
+          backgroundUploadQueue.forEach(item => {
+            if (item.data && item.data.factura) {
+              const btnSelector = `.delivery-btn[data-factura="${item.data.factura}"]`;
+              const btn = document.querySelector(btnSelector);
+              if (btn) {
+                item.btnElement = btn;
+                
+                // Actualizar apariencia de botón
+                if (item.status === 'pending') {
+                  btn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Foto en proceso';
+                  btn.style.backgroundColor = '#f8961e';
+                  btn.setAttribute('data-upload-id', item.id);
+                } else if (item.status === 'completed') {
+                  btn.innerHTML = '<i class="fas fa-check-circle"></i> Entregado con foto';
+                  btn.style.backgroundColor = '#28a745';
+                }
+              }
+            }
+          });
+        } else {
+          backgroundUploadQueue = [];
         }
+      } catch (error) {
+        console.error("Error al cargar la cola de subida:", error);
+        backgroundUploadQueue = [];
+      }
+    }
+    
+    // NUEVO: Guardar cola en localStorage
+    function saveBackgroundUploadQueue() {
+      try {
+        // Clonar la cola para evitar guardar referencias del DOM
+        const queueToSave = backgroundUploadQueue.map(item => {
+          const itemClone = {...item};
+          delete itemClone.btnElement; // No guardar referencias del DOM
+          return itemClone;
+        });
         
-        setTimeout(cerrarCamara, 1500);
-      } else {
-        throw new Error(result.message || "Error al guardar la foto");
+        localStorage.setItem('pdaUploadQueue', JSON.stringify(queueToSave));
+      } catch (error) {
+        console.error("Error al guardar la cola de subida:", error);
+        // Si hay error por cuota excedida, limpiar elementos completados
+        if (error.name === 'QuotaExceededError') {
+          backgroundUploadQueue = backgroundUploadQueue.filter(item => item.status === 'pending');
+          saveBackgroundUploadQueue();
+        }
       }
-    })
-    .catch(error => {
-      console.error("Error al subir foto:", error);
-      uploadStatus.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error al subir foto';
-      takePhotoBtn.disabled = false;
-      takePhotoBtn.innerHTML = '<i class="fas fa-redo"></i> Reintentar';
+    }
+    
+    // NUEVO: Procesar cola de subida en segundo plano
+    function processUploadQueue() {
+      if (syncInProgress || backgroundUploadQueue.length === 0) {
+        return;
+      }
       
-      // Si estamos offline, guardamos localmente para sincronizar después
-      if (!navigator.onLine) {
-        saveOfflinePhoto(base64Data, nombreArchivo, factura);
-        uploadStatus.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Guardada offline';
-        setTimeout(cerrarCamara, 2000);
+      syncInProgress = true;
+      
+      // Encontrar el primer elemento pendiente
+      const pendingItem = backgroundUploadQueue.find(item => item.status === 'pending');
+      
+      if (!pendingItem) {
+        syncInProgress = false;
+        updatePendingCounter();
+        return;
       }
-    });
-  };
-  
-  reader.onerror = function() {
-    console.error("Error al leer la imagen");
-    uploadStatus.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error al leer la imagen';
-    takePhotoBtn.disabled = false;
-    takePhotoBtn.innerHTML = '<i class="fas fa-redo"></i> Reintentar';
-  };
-  
-  // Iniciar la lectura del blob de la imagen
-  reader.readAsDataURL(photoBlob);
-}
-
-
-
+      
+      console.log(`Procesando elemento pendiente ${pendingItem.id}...`);
+      
+      // Marcar como en proceso
+      pendingItem.status = 'uploading';
+      pendingItem.attempts += 1;
+      saveBackgroundUploadQueue();
+      
+      // Preparar datos para el envío
+      const formData = new FormData();
+      
+      if (pendingItem.type === 'photo') {
+        const { documento, lote, referencia, cantidad, factura, nit, base64Data, nombreArchivo } = pendingItem.data;
+        
+        formData.append('documento', documento || '');
+        formData.append('lote', lote || '');
+        formData.append('referencia', referencia || '');
+        formData.append('cantidad', cantidad || 0);
+        formData.append('factura', factura || '');
+        formData.append('nit', nit || '');
+        formData.append('fotoBase64', base64Data || '');
+        formData.append('fotoNombre', nombreArchivo || '');
+        formData.append('fotoTipo', 'image/jpeg');
+      }
+      
+      // Actualizar UI de elementos pendientes
+      updatePendingItems();
+      
+      // Realizar solicitud
+      fetch(API_URL_POST, {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`Error HTTP: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(result => {
+        if (result.success) {
+          // Marcar como completado
+          pendingItem.status = 'completed';
+          pendingItem.completedAt = new Date().toISOString();
+          
+          // Actualizar botón en la UI si existe
+          if (pendingItem.btnElement) {
+            pendingItem.btnElement.innerHTML = '<i class="fas fa-check-circle"></i> Entregado con foto';
+            pendingItem.btnElement.style.backgroundColor = '#28a745';
+          }
+          
+          // Mostrar notificación si la sincronización fue iniciada manualmente
+          if (pendingItem.manualSync) {
+            showToast('Sincronización completada correctamente', 'success');
+          }
+        } else {
+          throw new Error(result.message || "Error al sincronizar");
+        }
+      })
+      .catch(error => {
+        console.error("Error al sincronizar:", error);
+        
+        // Si hay demasiados intentos fallidos o no hay conexión
+        if (pendingItem.attempts >= 3 || !navigator.onLine) {
+          pendingItem.status = 'failed';
+          pendingItem.error = error.message || "Error al sincronizar";
+          
+          // Mostrar notificación si la sincronización fue iniciada manualmente
+          if (pendingItem.manualSync) {
+            showToast('Error al sincronizar: ' + error.message, 'error');
+          }
+        } else {
+          // Devolver a pendiente para reintentar más tarde
+          pendingItem.status = 'pending';
+        }
+      })
+      .finally(() => {
+        // Guardar estado actualizado de la cola
+        saveBackgroundUploadQueue();
+        
+        // Actualizar UI
+        updatePendingCounter();
+        updatePendingItems();
+        
+        // Permitir procesar el siguiente elemento
+        syncInProgress = false;
+        
+        // Continuar procesando la cola si hay más elementos
+        if (backgroundUploadQueue.some(item => item.status === 'pending')) {
+          setTimeout(processUploadQueue, 1000); // Pequeña pausa entre solicitudes
+        }
+      });
+    }
+    
+    // NUEVO: Actualizar contador de elementos pendientes
+    function updatePendingCounter() {
+      // Cargar cola actual
+      loadBackgroundUploadQueue();
+      
+      // Contar elementos pendientes
+      const pendingCount = backgroundUploadQueue.filter(item => 
+        item.status === 'pending' || item.status === 'uploading'
+      ).length;
+      
+      // Actualizar contador en la UI
+      if (pendingCounter) {
+        if (pendingCount > 0) {
+          pendingCounter.textContent = pendingCount;
+          pendingCounter.style.display = 'flex';
+        } else {
+          pendingCounter.style.display = 'none';
+        }
+      }
+      
+      pendingItemsCount = pendingCount;
+      return pendingCount;
+    }
+    
+    // NUEVO: Actualizar lista de elementos pendientes en el modal
+    function updatePendingItems() {
+      if (!pendingItems) return;
+      
+      // Cargar cola actual
+      loadBackgroundUploadQueue();
+      
+      let html = '';
+      
+      if (backgroundUploadQueue.length === 0) {
+        html = '<div class="no-data" style="text-align: center; padding: 20px;">No hay elementos pendientes</div>';
+      } else {
+        // Ordenar por estado y tiempo
+        const sortedItems = [...backgroundUploadQueue].sort((a, b) => {
+          // Primero los que están en proceso
+          if (a.status === 'uploading' && b.status !== 'uploading') return -1;
+          if (b.status === 'uploading' && a.status !== 'uploading') return 1;
+          
+          // Luego los pendientes
+          if (a.status === 'pending' && b.status !== 'pending') return -1;
+          if (b.status === 'pending' && a.status !== 'pending') return 1;
+          
+          // Por último los completados y fallidos, ordenados por tiempo
+          return new Date(b.data.timestamp) - new Date(a.data.timestamp);
+        });
+        
+        sortedItems.forEach(item => {
+          let statusClass = '';
+          let statusText = '';
+          let statusIcon = '';
+          
+          switch (item.status) {
+            case 'pending':
+              statusClass = 'var(--warning)';
+              statusText = 'Pendiente';
+              statusIcon = '<i class="fas fa-clock"></i>';
+              break;
+            case 'uploading':
+              statusClass = 'var(--primary)';
+              statusText = 'Subiendo';
+              statusIcon = '<i class="fas fa-sync fa-spin"></i>';
+              break;
+            case 'completed':
+              statusClass = 'var(--success)';
+              statusText = 'Completado';
+              statusIcon = '<i class="fas fa-check-circle"></i>';
+              break;
+            case 'failed':
+              statusClass = 'var(--danger)';
+              statusText = 'Error';
+              statusIcon = '<i class="fas fa-exclamation-circle"></i>';
+              break;
+          }
+          
+          let itemDetails = '';
+          
+          if (item.type === 'photo') {
+            itemDetails = `
+              <div>Factura: ${item.data.factura || 'N/A'}</div>
+              <div>Lote: ${item.data.lote || 'N/A'}</div>
+              <div>Documento: ${item.data.documento || 'N/A'}</div>
+            `;
+          }
+          
+          // Crear barra de progreso para elementos en carga
+          let progressBar = '';
+          if (item.status === 'uploading') {
+            progressBar = `
+              <div class="mini-progress">
+                <div class="mini-progress-bar" style="width: ${Math.min((item.attempts/3) * 100, 100)}%"></div>
+              </div>
+            `;
+          }
+          
+          // Botón de reintento para elementos fallidos
+          let retryButton = '';
+          if (item.status === 'failed') {
+            retryButton = `
+              <button class="btn btn-sm btn-primary retry-btn" data-id="${item.id}">
+                <i class="fas fa-redo"></i> Reintentar
+              </button>
+            `;
+          }
+          
+          html += `
+            <div class="pending-item" style="border-left-color: ${statusClass}">
+              <div class="pending-item-header">
+                <div>${statusIcon} ${statusText}</div>
+                <div class="pending-item-time">${formatRelativeTime(new Date(item.data.timestamp))}</div>
+              </div>
+              ${itemDetails}
+              ${progressBar}
+              ${retryButton}
+            </div>
+          `;
+        });
+      }
+      
+      pendingItems.innerHTML = html;
+      
+      // Agregar listeners para botones de reintento
+      document.querySelectorAll('.retry-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const itemId = this.getAttribute('data-id');
+          retryUpload(itemId);
+        });
+      });
+    }
+    
+    // NUEVO: Función para reintentar subida de un elemento
+    function retryUpload(itemId) {
+      const itemIndex = backgroundUploadQueue.findIndex(item => item.id === itemId);
+      
+      if (itemIndex !== -1) {
+        backgroundUploadQueue[itemIndex].status = 'pending';
+        backgroundUploadQueue[itemIndex].manualSync = true; // Marcar como sincronización manual
+        backgroundUploadQueue[itemIndex].attempts = 0; // Reiniciar intentos
+        
+        saveBackgroundUploadQueue();
+        updatePendingItems();
+        
+        // Iniciar sincronización inmediatamente
+        if (!syncInProgress) {
+          processUploadQueue();
+        }
+      }
+    }
+    
+    // NUEVO: Sincronizar todos los elementos pendientes
+    function syncAllPendingItems() {
+      // Marcar todos los elementos fallidos como pendientes
+      backgroundUploadQueue.forEach(item => {
+        if (item.status === 'failed') {
+          item.status = 'pending';
+          item.attempts = 0;
+          item.manualSync = true; // Marcar como sincronización manual
+        }
+      });
+      
+      saveBackgroundUploadQueue();
+      updatePendingItems();
+      
+      showToast('Iniciando sincronización de todos los pendientes...', 'success');
+      
+      // Iniciar sincronización
+      if (!syncInProgress) {
+        processUploadQueue();
+      }
+    }
+    
+    // NUEVO: Formatear tiempo relativo
+    function formatRelativeTime(date) {
+      const now = new Date();
+      const diff = Math.floor((now - date) / 1000); // Diferencia en segundos
+      
+      if (diff < 60) return 'hace unos segundos';
+      if (diff < 3600) return `hace ${Math.floor(diff / 60)} minutos`;
+      if (diff < 86400) return `hace ${Math.floor(diff / 3600)} horas`;
+      return `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+    }
+    
     // Función auxiliar para reducir el tamaño de la imagen
     async function reduceImageSize(base64Data) {
       return new Promise((resolve, reject) => {
@@ -968,55 +1639,27 @@ function subirFoto() {
       });
     }
 
-// Función actualizada para subir imágenes sin restricción de tamaño
-async function uploadImageToServer(base64Data, nombreArchivo, factura, btnElement, takePhotoBtn, uploadStatus) {
-  try {
-    // Enviar la imagen completa sin dividirla
-    const url = `${API_URL_POST}?action=guardarFoto&base64Data=${encodeURIComponent(base64Data)}&nombreArchivo=${encodeURIComponent(nombreArchivo)}&factura=${encodeURIComponent(factura)}&nocache=${new Date().getTime()}`;
-    
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`Error HTTP: ${response.status}`);
-    }
-    
-    const result = await response.json();
-    if (!result.success) {
-      throw new Error(result.error || "Error al guardar la foto");
-    }
-    
-    uploadStatus.innerHTML = '<i class="fas fa-check-circle"></i> Foto subida correctamente';
-    takePhotoBtn.innerHTML = '<i class="fas fa-check"></i> Foto subida';
-    
-    // Marcar como completado en el botón de entregas
-    if (btnElement) {
-      btnElement.innerHTML = '<i class="fas fa-check-circle"></i> Entregado con foto';
-      btnElement.style.backgroundColor = '#28a745';
-    }
-    
-    setTimeout(cerrarCamara, 1500);
-  } catch (error) {
-    console.error("Error al subir foto:", error);
-    uploadStatus.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error al subir foto';
-    takePhotoBtn.disabled = false;
-    takePhotoBtn.innerHTML = '<i class="fas fa-redo"></i> Reintentar';
-    
-    // Si estamos offline, guardamos localmente para sincronizar después
-    if (!navigator.onLine) {
-      saveOfflinePhoto(base64Data, nombreArchivo, factura);
-      uploadStatus.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Guardada offline';
-      setTimeout(cerrarCamara, 2000);
-    }
-  }
-}
-
-    // Funciones para manejo offline
-    // Guardar datos para sincronizar después
+    // Guardar datos offline (ahora solo registra, la sincronización se hace por la cola)
     function saveOfflineData(action, data) {
       try {
-        // Obtenemos los datos actuales o inicializamos un array vacío
+        // Si es una foto, usar el nuevo sistema de cola
+        if (action === 'guardarFoto') {
+          addToUploadQueue({
+            id: Date.now().toString(),
+            type: 'photo',
+            data: {
+              ...data,
+              timestamp: new Date().toISOString()
+            },
+            status: 'pending',
+            attempts: 0
+          });
+          return;
+        }
+        
+        // Para otros tipos de datos, usar el sistema anterior
         const savedData = JSON.parse(localStorage.getItem('pdaOfflineData') || '[]');
         
-        // Agregamos el nuevo item
         savedData.push({
           id: Date.now(),
           action: action,
@@ -1024,7 +1667,6 @@ async function uploadImageToServer(base64Data, nombreArchivo, factura, btnElemen
           timestamp: new Date().toISOString()
         });
         
-        // Guardamos de vuelta en localStorage
         localStorage.setItem('pdaOfflineData', JSON.stringify(savedData));
         
         // Registramos para sync cuando haya conexión
@@ -1038,16 +1680,23 @@ async function uploadImageToServer(base64Data, nombreArchivo, factura, btnElemen
       }
     }
 
-    // Guardar foto offline (versión simplificada)
+    // NUEVO: Versión optimizada para guardar foto offline
     function saveOfflinePhoto(base64Data, nombreArchivo, factura) {
-      saveOfflineData('guardarFoto', {
-        base64Data: base64Data.substring(0, 100) + '...', // Solo guardamos una referencia
-        nombreArchivo: nombreArchivo,
-        factura: factura,
-        timestamp: new Date().toISOString()
+      // Usar el nuevo sistema de cola
+      addToUploadQueue({
+        id: Date.now().toString(),
+        type: 'photo',
+        data: {
+          base64Data: base64Data,
+          nombreArchivo: nombreArchivo,
+          factura: factura,
+          timestamp: new Date().toISOString()
+        },
+        status: 'pending',
+        attempts: 0
       });
       
-      alert("Las fotos no se pueden guardar completamente en modo offline. Se registrará la entrega, pero deberás subir la foto cuando tengas conexión.");
+      showToast('Foto guardada. Se subirá automáticamente cuando haya conexión.', 'success');
     }
 
     // Función para cerrar la cámara
@@ -1082,23 +1731,23 @@ async function uploadImageToServer(base64Data, nombreArchivo, factura, btnElemen
     // Configurar botón cancelar
     document.getElementById('cancelCaptureBtn').addEventListener('click', cerrarCamara);
 
-// Función actualizada para procesar entregas
-function procesarEntrega(documento, lote, referencia, cantidad, factura, nit, btnElement) {
-  // Crear objeto con los datos completos
-  const datos = {
-    documento: documento,
-    lote: lote || '',
-    referencia: referencia || '',
-    cantidad: parseFloat(cantidad) || 0,
-    factura: factura,
-    nit: nit || ''
-  };
-  
-  // Luego abrimos la cámara automáticamente
-  setTimeout(() => {
-    abrirCamara(factura);
-  }, 500);
-}
+    // Función actualizada para procesar entregas
+    function procesarEntrega(documento, lote, referencia, cantidad, factura, nit, btnElement) {
+      // Crear objeto con los datos completos
+      const datos = {
+        documento: documento,
+        lote: lote || '',
+        referencia: referencia || '',
+        cantidad: parseFloat(cantidad) || 0,
+        factura: factura,
+        nit: nit || ''
+      };
+      
+      // Luego abrimos la cámara automáticamente
+      setTimeout(() => {
+        abrirCamara(factura);
+      }, 500);
+    }
 
     // Funciones para sonidos de feedback
     function playSuccessSound() {
@@ -1139,6 +1788,10 @@ function procesarEntrega(documento, lote, referencia, cantidad, factura, nit, bt
 
     // Inicialización al cargar el documento
     document.addEventListener('DOMContentLoaded', () => {
+      // Cargar cualquier dato pendiente que pudiera existir
+      loadBackgroundUploadQueue();
+      updatePendingCounter();
+      
       // Cargar datos desde el servidor
       loadDataFromServer();
       
@@ -1166,13 +1819,41 @@ function procesarEntrega(documento, lote, referencia, cantidad, factura, nit, bt
       window.addEventListener('online', function() {
         offlineBanner.style.display = 'none';
         statusDiv.innerHTML = '<i class="fas fa-wifi"></i> Conexión restablecida';
-        setTimeout(() => loadDataFromServer(), 1000);
+        
+        // Mostrar notificación
+        showToast('Conexión restablecida', 'success');
+        
+        // Intentar cargar datos si aún no lo hemos hecho
+        if (!dataLoaded) {
+          setTimeout(() => loadDataFromServer(), 1000);
+        }
+        
+        // Iniciar procesamiento de la cola de subida
+        if (!syncInProgress && backgroundUploadQueue.some(item => item.status === 'pending')) {
+          processUploadQueue();
+        }
       });
       
       window.addEventListener('offline', function() {
         offlineBanner.style.display = 'block';
         statusDiv.innerHTML = '<i class="fas fa-wifi-slash"></i> Sin conexión - Modo offline';
+        showToast('Sin conexión. Trabajando en modo offline', 'warning');
       });
+      
+      // NUEVO: Iniciar intervalo de sincronización
+      syncInterval = setInterval(() => {
+        if (navigator.onLine && !syncInProgress && 
+            backgroundUploadQueue.some(item => item.status === 'pending')) {
+          processUploadQueue();
+        }
+      }, CONFIG.SYNC_INTERVAL);
+    });
+
+    // Limpiar al cerrar ventana/pestaña
+    window.addEventListener('beforeunload', () => {
+      if (syncInterval) {
+        clearInterval(syncInterval);
+      }
     });
 
     function loadDataFromServer() {
@@ -1194,22 +1875,21 @@ function procesarEntrega(documento, lote, referencia, cantidad, factura, nit, bt
     function handleDataLoadSuccess(serverData) {
       if (serverData && serverData.success && serverData.data) {
         database = serverData.data;
+        dataLoaded = true;
         cacheData(database);
         
         statusDiv.innerHTML = '<i class="fas fa-check"></i> SISTEMA LISTO';
         dataStats.innerHTML = `<i class="fas fa-database"></i> ${database.length} registros | ${new Date().toLocaleTimeString()}`;
         resultsDiv.innerHTML = `
           <div class="result-item" style="text-align: center; color: var(--gray);">
-            <!-- <i class="fas fa-qrcode" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>-->
             <img src="https://raw.githubusercontent.com/iLogisticsCoordinator/o/main/icons/icon-512.png" alt="PandaDash Logo" class="logo" style="width: 4rem; height: 4rem; margin-bottom: 0.5rem;">
             <h1>PandaDash</h1>
-  <div class="name">Andrés Mendoza</div>
-            <!-- <p style="margin: 0;">Escanea un código QR para consultar información</p>
-            <p style="margin-top: 8px; font-size: 13px; opacity: 0.6;">(Ejemplo: REC58101-805027653)</p> -->
+            <div class="name">Andrés Mendoza</div>
           </div>
         `;  
-
         
+        // Ocultar pantalla de carga
+        hideLoadingScreen();
         playSuccessSound();
       } else {
         handleDataLoadError(new Error('Formato de datos incorrecto'));
@@ -1223,25 +1903,55 @@ function procesarEntrega(documento, lote, referencia, cantidad, factura, nit, bt
       const cachedData = getCachedData();
       if (cachedData) {
         database = cachedData.data;
+        dataLoaded = true;
+        
         statusDiv.innerHTML = '<i class="fas fa-database"></i> SISTEMA LISTO (DATOS CACHEADOS)';
         dataStats.innerHTML = `${database.length} registros | Última actualización: ${new Date(cachedData.timestamp).toLocaleString()}`;
         resultsDiv.innerHTML = `
           <div class="result-item" style="text-align: center; color: var(--gray);">
-            <!-- <i class="fas fa-qrcode" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>-->
             <img src="https://raw.githubusercontent.com/iLogisticsCoordinator/o/main/icons/icon-512.png" alt="PandaDash Logo" class="logo" style="width: 4rem; height: 4rem; margin-bottom: 0.5rem;">
             <h1>PandaDash</h1>
-  <div class="name">Andrés Mendoza</div>
-            <!-- <p style="margin: 0;">Escanea un código QR para consultar información</p>
-            <p style="margin-top: 8px; font-size: 13px; opacity: 0.6;">(Ejemplo: REC58101-805027653)</p> -->
+            <div class="name">Andrés Mendoza</div>
           </div>
         `;
+        
         offlineBanner.style.display = 'block';
+        
+        // Ocultar pantalla de carga ya que tenemos datos en caché
+        hideLoadingScreen();
       } else {
         statusDiv.innerHTML = '<span style="color: var(--danger)">ERROR AL CARGAR DATOS</span>';
         dataStats.textContent = error.message || 'Error desconocido';
         resultsDiv.innerHTML = `<div class="error"><i class="fas fa-exclamation-circle"></i> No se pudo cargar la base de datos: ${error.message || 'Error desconocido'}</div>`;
+        
+        // Mostrar mensaje de error en la pantalla de carga pero no ocultarla
+        const loadingName = document.querySelector('#loadingScreen .name');
+        if (loadingName) {
+          loadingName.innerHTML = 'Error al cargar datos. <br>Comprueba tu conexión.';
+          loadingName.style.color = '#f72585';
+        }
+        
         playErrorSound();
       }
+    }
+
+    // Función para ocultar la pantalla de carga
+    function hideLoadingScreen() {
+      // Mostrar el contenido principal
+      scanner.style.display = 'flex';
+      
+      // Desvanecer la pantalla de carga
+      loadingScreen.style.opacity = '0';
+      
+      // Eliminar la pantalla de carga después de la transición
+      setTimeout(() => {
+        loadingScreen.style.display = 'none';
+        
+        // Enfocar el campo de entrada
+        if (barcodeInput) {
+          barcodeInput.focus();
+        }
+      }, 500);
     }
 
     function getCachedData() {
@@ -1290,7 +2000,8 @@ function procesarEntrega(documento, lote, referencia, cantidad, factura, nit, bt
       function enforceFocus() {
         // Solo aplicar foco si la cámara no está abierta
         if (document.activeElement !== barcodeInput && 
-            document.getElementById('cameraModal').style.display !== 'flex') {
+            document.getElementById('cameraModal').style.display !== 'flex' &&
+            document.getElementById('pendingModal').style.display !== 'flex') {
           barcodeInput.focus();
         }
         setTimeout(enforceFocus, 100);
@@ -1475,11 +2186,33 @@ function procesarEntrega(documento, lote, referencia, cantidad, factura, nit, bt
               `;
             }
             
+            // Verificar si ya hay un registro de entrega para esta factura
+            const existingUpload = backgroundUploadQueue.find(item => 
+              item.data && item.data.factura === siesa.factura
+            );
+            
+            let buttonLabel = '<i class="fas fa-truck"></i> Procesar Entrega';
+            let buttonColor = 'var(--success)';
+            
+            if (existingUpload) {
+              if (existingUpload.status === 'completed') {
+                buttonLabel = '<i class="fas fa-check-circle"></i> Entregado con foto';
+                buttonColor = '#28a745';
+              } else if (existingUpload.status === 'pending' || existingUpload.status === 'uploading') {
+                buttonLabel = '<i class="fas fa-cloud-upload-alt"></i> Foto en proceso';
+                buttonColor = '#f8961e';
+              } else if (existingUpload.status === 'failed') {
+                buttonLabel = '<i class="fas fa-exclamation-circle"></i> Error al subir';
+                buttonColor = '#dc3545';
+              }
+            }
+            
             // Botón de entregas que maneja todo el proceso con el NIT correcto
             html += `
               <div class="action-buttons">
                 <button class="delivery-btn" 
                   data-factura="${siesa.factura}"
+                  style="background-color: ${buttonColor};"
                   onclick="procesarEntrega(
                     '${data.documento}', 
                     '${siesa.lote || data.lote}', 
@@ -1489,7 +2222,7 @@ function procesarEntrega(documento, lote, referencia, cantidad, factura, nit, bt
                     '${siesa.nit || qrParts.nit}', 
                     this
                   )">
-                  <i class="fas fa-truck"></i> Procesar Entrega
+                  ${buttonLabel}
                 </button>
                 <span class="save-success" style="display: none;">
                   <i class="fas fa-check"></i> Registro guardado
@@ -1543,7 +2276,6 @@ function procesarEntrega(documento, lote, referencia, cantidad, factura, nit, bt
         </div>
       `;
     }
-    
   </script>
 
 </body>
