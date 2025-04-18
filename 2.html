@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="theme-color" content="#ffffff" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
@@ -40,6 +40,18 @@
       box-sizing: border-box;
       margin: 0;
       padding: 0;
+      touch-action: manipulation;
+    }
+    
+    html, body {
+      overflow: hidden;
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      max-width: 100%;
+      max-height: 100%;
+      overscroll-behavior: none;
+      -webkit-text-size-adjust: 100%;
     }
     
     body {
@@ -48,13 +60,16 @@
       padding: 0;
       background: var(--bg-color);
       color: var(--dark);
-      touch-action: manipulation;
+      touch-action: none;
       -webkit-touch-callout: none;
       -webkit-user-select: none;
       user-select: none;
       line-height: 1.5;
       font-size: 15px;
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
     }
+  
     
     /* Pantalla de carga */
     #loadingScreen {
@@ -158,6 +173,7 @@
       box-shadow: 0 0 20px rgba(0,0,0,0.1);
       background: var(--card-bg);
       position: relative;
+      overflow: hidden;
     }
     
     /* Estilos de la barra de código QR */
@@ -179,6 +195,7 @@
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
       transition: all 0.3s ease;
       appearance: none;
+      touch-action: manipulation;
     }
     
     #barcode::placeholder {
@@ -247,6 +264,7 @@
       overflow-y: auto;
       padding: 15px;
       background: #ffffff;
+      -webkit-overflow-scrolling: touch;
     }
     
     .result-item {
@@ -389,6 +407,8 @@
       transition: var(--transition);
       border: none;
       gap: 8px;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
     }
     
     .btn-primary {
@@ -452,6 +472,8 @@
       justify-content: center;
       gap: 8px;
       margin-top: 10px;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
     }
     
     .delivery-btn:hover {
@@ -521,7 +543,8 @@
       justify-content: center;
       -webkit-user-select: none;
       user-select: none;
-      touch-action: manipulation;
+      touch-action: none;
+      overflow: hidden;
     }
     
     .camera-view {
@@ -686,6 +709,8 @@
       z-index: 10001;
       align-items: center;
       justify-content: center;
+      touch-action: none;
+      overflow: hidden;
     }
 
     .pending-modal-content {
@@ -696,6 +721,7 @@
       padding: 20px;
       max-height: 80vh;
       overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
 
     .pending-modal-header {
@@ -719,6 +745,8 @@
       background: none;
       border: none;
       cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
     }
 
     .pending-modal-footer {
@@ -760,6 +788,8 @@
       display: flex;
       align-items: center;
       gap: 5px;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
     }
 
     .sync-btn:hover {
@@ -1788,6 +1818,29 @@
 
     // Inicialización al cargar el documento
     document.addEventListener('DOMContentLoaded', () => {
+      // Fix para iOS para asegurar que no haya escalado
+      const setViewportMeta = () => {
+        const viewportMeta = document.querySelector('meta[name="viewport"]');
+        if (viewportMeta) {
+          viewportMeta.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover');
+        }
+      };
+      
+      // Asegurar que el viewport esté configurado correctamente
+      setViewportMeta();
+      
+      // Algunos dispositivos iOS pueden ignorar el atributo user-scalable=no
+      // Este hack crea un elemento div del tamaño de la ventana para bloquear el zoom
+      const preventZoomDiv = document.createElement('div');
+      preventZoomDiv.style.position = 'absolute';
+      preventZoomDiv.style.top = '0';
+      preventZoomDiv.style.left = '0';
+      preventZoomDiv.style.width = '100%';
+      preventZoomDiv.style.height = '100%';
+      preventZoomDiv.style.zIndex = '-1'; // Detrás de todo
+      preventZoomDiv.style.pointerEvents = 'none'; // No interfiere con clics
+      document.body.appendChild(preventZoomDiv);
+      
       // Cargar cualquier dato pendiente que pudiera existir
       loadBackgroundUploadQueue();
       updatePendingCounter();
@@ -1808,11 +1861,14 @@
       
       // Manejar el cambio de orientación en dispositivos móviles
       window.addEventListener('orientationchange', function() {
-        if (document.getElementById('cameraModal').style.display === 'flex') {
-          setTimeout(() => {
+        // Reajustar el viewport en cambio de orientación
+        setTimeout(() => {
+          setViewportMeta();
+          
+          if (document.getElementById('cameraModal').style.display === 'flex') {
             document.activeElement.blur();
-          }, 300);
-        }
+          }
+        }, 300);
       });
       
       // Verificar si estamos en modo offline
@@ -1847,6 +1903,23 @@
           processUploadQueue();
         }
       }, CONFIG.SYNC_INTERVAL);
+      
+      // Prevenir el zoom con gestos táctiles
+      document.addEventListener('touchstart', function(e) {
+        if (e.touches.length > 1) {
+          e.preventDefault();
+        }
+      }, { passive: false });
+      
+      // Evitar que funcione el doble toque para zoom
+      document.addEventListener('dblclick', function(e) {
+        e.preventDefault();
+      }, { passive: false });
+      
+      // Específico para iOS - Evitar el escalado con pinza
+      document.addEventListener('gesturestart', function(e) {
+        e.preventDefault();
+      }, { passive: false });
     });
 
     // Limpiar al cerrar ventana/pestaña
@@ -2276,6 +2349,46 @@
         </div>
       `;
     }
+    
+    // Adicional: Evitar el zoom y escalado por completo
+    document.addEventListener('wheel', function(e) {
+      if(e.ctrlKey) {
+        e.preventDefault();
+      }
+    }, { passive: false });
+    
+    // Desactivar zoom con teclas de atajo
+    window.addEventListener('keydown', function(e) {
+      if ((e.ctrlKey || e.metaKey) && (e.key === '+' || e.key === '-' || e.key === '0')) {
+        e.preventDefault();
+      }
+    });
+    
+    // Específico para iOS para prevenir zoom
+    document.addEventListener('touchmove', function(e) {
+      if (e.scale !== 1) {
+        e.preventDefault();
+      }
+    }, { passive: false });
+    
+    document.addEventListener('touchend', function(e) {
+      if (e.scale !== 1) {
+        e.preventDefault();
+      }
+    }, { passive: false });
+    
+    // Intentar atrapar y prevenir los gestos de iOS
+    document.addEventListener('gesturestart', function(e) {
+      e.preventDefault();
+    }, { passive: false });
+    
+    document.addEventListener('gesturechange', function(e) {
+      e.preventDefault();
+    }, { passive: false });
+    
+    document.addEventListener('gestureend', function(e) {
+      e.preventDefault();
+    }, { passive: false });
   </script>
 
 </body>
