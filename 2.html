@@ -937,10 +937,23 @@
     }
 
     // NUEVO: Funciones para mostrar y ocultar el modal de pendientes
-    function showPendingModal() {
-      updatePendingItems();
-      pendingModal.style.display = 'flex';
-    }
+// NUEVO: Agregar evento para actualizar la interfaz al abrir el modal de pendientes
+function showPendingModal() {
+  // Limpiar elementos completados antes de mostrar el modal
+  cleanupCompletedItems();
+  updatePendingItems();
+  pendingModal.style.display = 'flex';
+}
+
+// NUEVO: Función para limpiar elementos completados
+function cleanupCompletedItems() {
+  // Eliminar inmediatamente todos los elementos completados
+  backgroundUploadQueue = backgroundUploadQueue.filter(item => 
+    item.status !== 'completed'
+  );
+  
+  saveBackgroundUploadQueue();
+}
     
     function hidePendingModal() {
       pendingModal.style.display = 'none';
@@ -1129,135 +1142,148 @@
     }
 
     // MODIFICADO: Función para subir foto usando el sistema de cola
-    function subirFoto() {
-      if (!currentDocumentData || !photoBlob) {
-        console.error("No hay datos disponibles para subir");
-        return;
+function subirFoto() {
+  if (!currentDocumentData || !photoBlob) {
+    console.error("No hay datos disponibles para subir");
+    return;
+  }
+  
+  const { factura, btnElement } = currentDocumentData;
+  const takePhotoBtn = document.getElementById('takePhotoBtn');
+  const uploadStatus = document.getElementById('uploadStatus');
+  
+  // Deshabilitar botón y mostrar estado de carga
+  takePhotoBtn.disabled = true;
+  takePhotoBtn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Procesando...';
+  uploadStatus.style.display = 'flex';
+  
+  // NUEVO: Verificar conexión y mostrar indicador apropiado
+  if (!navigator.onLine) {
+    uploadStatus.innerHTML = '<i class="fas fa-wifi-slash"></i> Modo offline - Guardando localmente...';
+  } else {
+    uploadStatus.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Preparando...';
+  }
+  
+  // Convertir blob a base64
+  const reader = new FileReader();
+  reader.onloadend = function() {
+    // Extraer solo la parte base64 de la cadena (eliminar el prefijo data:image/jpeg;base64,)
+    const base64Data = reader.result.split(',')[1];
+    const nombreArchivo = factura.replace(/[^a-zA-Z0-9\-]/g, '') + '_' + Date.now() + '.jpg';
+    
+    // Obtener NIT de las partes actuales del QR
+    const nit = currentQRParts ? currentQRParts.nit : '';
+    const documento = currentQRParts ? currentQRParts.documento : '';
+    
+    // Obtener valores de lote, referencia y cantidad de manera segura
+    let lote = '';
+    let referencia = '';
+    let cantidad = 0;
+    
+    try {
+      // Extraer datos de la UI
+      const loteElements = document.querySelectorAll('.result-row');
+      for (let i = 0; i < loteElements.length; i++) {
+        if (loteElements[i].textContent.includes('Lote')) {
+          const valueElement = loteElements[i].querySelector('.json-value');
+          if (valueElement) {
+            lote = valueElement.textContent.trim();
+          }
+          break;
+        }
       }
       
-      const { factura, btnElement } = currentDocumentData;
-      const takePhotoBtn = document.getElementById('takePhotoBtn');
-      const uploadStatus = document.getElementById('uploadStatus');
-      
-      // Deshabilitar botón y mostrar estado de carga
-      takePhotoBtn.disabled = true;
-      takePhotoBtn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Procesando...';
-      uploadStatus.style.display = 'flex';
-      uploadStatus.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Preparando...';
-      
-      // Convertir blob a base64
-      const reader = new FileReader();
-      reader.onloadend = function() {
-        // Extraer solo la parte base64 de la cadena (eliminar el prefijo data:image/jpeg;base64,)
-        const base64Data = reader.result.split(',')[1];
-        const nombreArchivo = factura.replace(/[^a-zA-Z0-9\-]/g, '') + '_' + Date.now() + '.jpg';
-        
-        // Obtener NIT de las partes actuales del QR
-        const nit = currentQRParts ? currentQRParts.nit : '';
-        const documento = currentQRParts ? currentQRParts.documento : '';
-        
-        // Obtener valores de lote, referencia y cantidad de manera segura
-        let lote = '';
-        let referencia = '';
-        let cantidad = 0;
-        
-        try {
-          // Extraer datos de la UI
-          const loteElements = document.querySelectorAll('.result-row');
-          for (let i = 0; i < loteElements.length; i++) {
-            if (loteElements[i].textContent.includes('Lote')) {
-              const valueElement = loteElements[i].querySelector('.json-value');
-              if (valueElement) {
-                lote = valueElement.textContent.trim();
-              }
-              break;
-            }
+      // Buscar elemento de referencia
+      const refElements = document.querySelectorAll('.result-row');
+      for (let i = 0; i < refElements.length; i++) {
+        if (refElements[i].textContent.includes('Referencia')) {
+          const valueElement = refElements[i].querySelector('.json-value');
+          if (valueElement) {
+            referencia = valueElement.textContent.trim();
           }
-          
-          // Buscar elemento de referencia
-          const refElements = document.querySelectorAll('.result-row');
-          for (let i = 0; i < refElements.length; i++) {
-            if (refElements[i].textContent.includes('Referencia')) {
-              const valueElement = refElements[i].querySelector('.json-value');
-              if (valueElement) {
-                referencia = valueElement.textContent.trim();
-              }
-              break;
-            }
-          }
-          
-          // Buscar elemento de cantidad
-          const cantElements = document.querySelectorAll('.result-row');
-          for (let i = 0; i < cantElements.length; i++) {
-            if (cantElements[i].textContent.includes('Cantidad')) {
-              const valueElement = cantElements[i].querySelector('.json-value');
-              if (valueElement) {
-                cantidad = parseFloat(valueElement.textContent.trim()) || 0;
-              }
-              break;
-            }
-          }
-        } catch (e) {
-          console.warn("Error al extraer datos de la UI:", e);
+          break;
         }
-
-        // NUEVO: Preparar datos para la cola de subida
-        const uploadData = {
-          id: Date.now().toString(),
-          type: 'photo',
-          data: {
-            documento: documento,
-            lote: lote,
-            referencia: referencia,
-            cantidad: cantidad,
-            factura: factura,
-            nit: nit,
-            nombreArchivo: nombreArchivo,
-            base64Data: base64Data,
-            timestamp: new Date().toISOString()
-          },
-          status: 'pending',
-          attempts: 0,
-          btnElement: btnElement
-        };
-        
-        // NUEVO: Agregar a la cola y guardar en localStorage
-        addToUploadQueue(uploadData);
-        
-        // Mostrar mensaje de éxito y cerrar cámara rápidamente
-        uploadStatus.innerHTML = '<i class="fas fa-check-circle"></i> Procesado correctamente';
-        takePhotoBtn.innerHTML = '<i class="fas fa-check"></i> Listo';
-        
-        // Marcar botón como procesado pero pendiente
-        if (btnElement) {
-          btnElement.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Foto en proceso';
-          btnElement.style.backgroundColor = '#f8961e'; // Color warning
-          btnElement.setAttribute('data-upload-id', uploadData.id);
-        }
-        
-        // Mostrar notificación
-        showToast('Foto procesada. Subiendo en segundo plano...', 'success');
-        
-        // Cerrar cámara rápidamente para que el usuario pueda seguir trabajando
-        setTimeout(cerrarCamara, 800);
-        
-        // Iniciar sincronización en segundo plano si no está en progreso
-        if (!syncInProgress) {
-          processUploadQueue();
-        }
-      };
+      }
       
-      reader.onerror = function() {
-        console.error("Error al leer la imagen");
-        uploadStatus.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error al leer la imagen';
-        takePhotoBtn.disabled = false;
-        takePhotoBtn.innerHTML = '<i class="fas fa-redo"></i> Reintentar';
-        showToast('Error al procesar la imagen', 'error');
-      };
-      
-      // Iniciar la lectura del blob de la imagen
-      reader.readAsDataURL(photoBlob);
+      // Buscar elemento de cantidad
+      const cantElements = document.querySelectorAll('.result-row');
+      for (let i = 0; i < cantElements.length; i++) {
+        if (cantElements[i].textContent.includes('Cantidad')) {
+          const valueElement = cantElements[i].querySelector('.json-value');
+          if (valueElement) {
+            cantidad = parseFloat(valueElement.textContent.trim()) || 0;
+          }
+          break;
+        }
+      }
+    } catch (e) {
+      console.warn("Error al extraer datos de la UI:", e);
     }
+
+    // Preparar datos para la cola de subida
+    const uploadData = {
+      id: Date.now().toString(),
+      type: 'photo',
+      data: {
+        documento: documento,
+        lote: lote,
+        referencia: referencia,
+        cantidad: cantidad,
+        factura: factura,
+        nit: nit,
+        nombreArchivo: nombreArchivo,
+        base64Data: base64Data,
+        timestamp: new Date().toISOString()
+      },
+      status: 'pending',
+      attempts: 0,
+      btnElement: btnElement
+    };
+    
+    // Agregar a la cola y guardar en localStorage
+    addToUploadQueue(uploadData);
+    
+    // NUEVO: Mostrar mensaje específico basado en estado de conexión
+    if (!navigator.onLine) {
+      uploadStatus.innerHTML = '<i class="fas fa-check-circle"></i> Guardado localmente';
+      takePhotoBtn.innerHTML = '<i class="fas fa-check"></i> Guardado';
+      
+      showToast('Foto guardada localmente. Se subirá automáticamente cuando haya conexión.', 'warning');
+    } else {
+      uploadStatus.innerHTML = '<i class="fas fa-check-circle"></i> Procesado correctamente';
+      takePhotoBtn.innerHTML = '<i class="fas fa-check"></i> Listo';
+      
+      showToast('Foto procesada. Subiendo en segundo plano...', 'success');
+    }
+    
+    // Marcar botón como procesado pero pendiente
+    if (btnElement) {
+      btnElement.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Foto en proceso';
+      btnElement.style.backgroundColor = '#f8961e'; // Color warning
+      btnElement.setAttribute('data-upload-id', uploadData.id);
+    }
+    
+    // Cerrar cámara rápidamente para que el usuario pueda seguir trabajando
+    setTimeout(cerrarCamara, 800);
+    
+    // Solo iniciar sincronización si hay conexión
+    if (navigator.onLine && !syncInProgress) {
+      processUploadQueue();
+    }
+  };
+  
+  reader.onerror = function() {
+    console.error("Error al leer la imagen");
+    uploadStatus.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error al leer la imagen';
+    takePhotoBtn.disabled = false;
+    takePhotoBtn.innerHTML = '<i class="fas fa-redo"></i> Reintentar';
+    showToast('Error al procesar la imagen', 'error');
+  };
+  
+  // Iniciar la lectura del blob de la imagen
+  reader.readAsDataURL(photoBlob);
+}
+
 
     // NUEVO: Función para agregar elemento a la cola de subida
     function addToUploadQueue(uploadData) {
@@ -1332,247 +1358,300 @@
     }
     
     // NUEVO: Procesar cola de subida en segundo plano
-    function processUploadQueue() {
-      if (syncInProgress || backgroundUploadQueue.length === 0) {
-        return;
-      }
-      
-      syncInProgress = true;
-      
-      // Encontrar el primer elemento pendiente
-      const pendingItem = backgroundUploadQueue.find(item => item.status === 'pending');
-      
-      if (!pendingItem) {
-        syncInProgress = false;
-        updatePendingCounter();
-        return;
-      }
-      
-      console.log(`Procesando elemento pendiente ${pendingItem.id}...`);
-      
-      // Marcar como en proceso
-      pendingItem.status = 'uploading';
-      pendingItem.attempts += 1;
-      saveBackgroundUploadQueue();
-      
-      // Preparar datos para el envío
-      const formData = new FormData();
-      
-      if (pendingItem.type === 'photo') {
-        const { documento, lote, referencia, cantidad, factura, nit, base64Data, nombreArchivo } = pendingItem.data;
-        
-        formData.append('documento', documento || '');
-        formData.append('lote', lote || '');
-        formData.append('referencia', referencia || '');
-        formData.append('cantidad', cantidad || 0);
-        formData.append('factura', factura || '');
-        formData.append('nit', nit || '');
-        formData.append('fotoBase64', base64Data || '');
-        formData.append('fotoNombre', nombreArchivo || '');
-        formData.append('fotoTipo', 'image/jpeg');
-      }
-      
-      // Actualizar UI de elementos pendientes
-      updatePendingItems();
-      
-      // Realizar solicitud
-      fetch(API_URL_POST, {
-        method: 'POST',
-        body: formData
-      })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`Error HTTP: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then(result => {
-        if (result.success) {
-          // Marcar como completado
-          pendingItem.status = 'completed';
-          pendingItem.completedAt = new Date().toISOString();
-          
-          // Actualizar botón en la UI si existe
-          if (pendingItem.btnElement) {
-            pendingItem.btnElement.innerHTML = '<i class="fas fa-check-circle"></i> Entregado con foto';
-            pendingItem.btnElement.style.backgroundColor = '#28a745';
-          }
-          
-          // Mostrar notificación si la sincronización fue iniciada manualmente
-          if (pendingItem.manualSync) {
-            showToast('Sincronización completada correctamente', 'success');
-          }
-        } else {
-          throw new Error(result.message || "Error al sincronizar");
-        }
-      })
-      .catch(error => {
-        console.error("Error al sincronizar:", error);
-        
-        // Si hay demasiados intentos fallidos o no hay conexión
-        if (pendingItem.attempts >= 3 || !navigator.onLine) {
-          pendingItem.status = 'failed';
-          pendingItem.error = error.message || "Error al sincronizar";
-          
-          // Mostrar notificación si la sincronización fue iniciada manualmente
-          if (pendingItem.manualSync) {
-            showToast('Error al sincronizar: ' + error.message, 'error');
-          }
-        } else {
-          // Devolver a pendiente para reintentar más tarde
-          pendingItem.status = 'pending';
-        }
-      })
-      .finally(() => {
-        // Guardar estado actualizado de la cola
-        saveBackgroundUploadQueue();
-        
-        // Actualizar UI
-        updatePendingCounter();
-        updatePendingItems();
-        
-        // Permitir procesar el siguiente elemento
-        syncInProgress = false;
-        
-        // Continuar procesando la cola si hay más elementos
-        if (backgroundUploadQueue.some(item => item.status === 'pending')) {
-          setTimeout(processUploadQueue, 1000); // Pequeña pausa entre solicitudes
-        }
+function processUploadQueue() {
+  // Si no hay conexión, no intentar procesar la cola
+  if (!navigator.onLine) {
+    syncInProgress = false;
+    // Mostrar mensaje si fue un intento manual
+    if (backgroundUploadQueue.some(item => item.manualSync)) {
+      showToast('No hay conexión a internet. Se sincronizará automáticamente cuando haya conexión.', 'warning');
+      // Quitar flag de sincronización manual para no mostrar el mensaje repetidamente
+      backgroundUploadQueue.forEach(item => {
+        if (item.manualSync) item.manualSync = false;
       });
+      saveBackgroundUploadQueue();
     }
+    return;
+  }
+  
+  if (syncInProgress || backgroundUploadQueue.length === 0) {
+    return;
+  }
+  
+  syncInProgress = true;
+  
+  // Encontrar el primer elemento pendiente
+  const pendingItem = backgroundUploadQueue.find(item => item.status === 'pending');
+  
+  if (!pendingItem) {
+    syncInProgress = false;
+    updatePendingCounter();
+    return;
+  }
+  
+  console.log(`Procesando elemento pendiente ${pendingItem.id}...`);
+  
+  // Marcar como en proceso
+  pendingItem.status = 'uploading';
+  pendingItem.attempts += 1;
+  saveBackgroundUploadQueue();
+  
+  // Preparar datos para el envío
+  const formData = new FormData();
+  
+  if (pendingItem.type === 'photo') {
+    const { documento, lote, referencia, cantidad, factura, nit, base64Data, nombreArchivo } = pendingItem.data;
+    
+    formData.append('documento', documento || '');
+    formData.append('lote', lote || '');
+    formData.append('referencia', referencia || '');
+    formData.append('cantidad', cantidad || 0);
+    formData.append('factura', factura || '');
+    formData.append('nit', nit || '');
+    formData.append('fotoBase64', base64Data || '');
+    formData.append('fotoNombre', nombreArchivo || '');
+    formData.append('fotoTipo', 'image/jpeg');
+  }
+  
+  // Actualizar UI de elementos pendientes
+  updatePendingItems();
+  
+  // Realizar solicitud
+  fetch(API_URL_POST, {
+    method: 'POST',
+    body: formData
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error(`Error HTTP: ${response.status}`);
+    }
+    return response.json();
+  })
+  .then(result => {
+    if (result.success) {
+      // Actualizar botón en la UI si existe
+      if (pendingItem.btnElement) {
+        pendingItem.btnElement.innerHTML = '<i class="fas fa-check-circle"></i> Entregado con foto';
+        pendingItem.btnElement.style.backgroundColor = '#28a745';
+      }
+      
+      // Eliminar el elemento completado de la cola
+      removeCompletedItem(pendingItem.id);
+      
+      // Mostrar notificación si la sincronización fue iniciada manualmente
+      if (pendingItem.manualSync) {
+        showToast('Sincronización completada correctamente', 'success');
+      }
+    } else {
+      throw new Error(result.message || "Error al sincronizar");
+    }
+  })
+  .catch(error => {
+    console.error("Error al sincronizar:", error);
+    
+    // MEJORADO: Verificar también la conexión actual, no solo los intentos
+    if (pendingItem.attempts >= 3 || !navigator.onLine) {
+      pendingItem.status = 'failed';
+      pendingItem.error = error.message || "Error al sincronizar";
+      
+      // Si se perdió la conexión, mostrar notificación específica
+      if (!navigator.onLine) {
+        showToast('Se perdió la conexión. El elemento quedará pendiente hasta recuperar conexión.', 'warning');
+      } else if (pendingItem.manualSync) {
+        showToast('Error al sincronizar: ' + error.message, 'error');
+      }
+    } else {
+      // Devolver a pendiente para reintentar más tarde
+      pendingItem.status = 'pending';
+    }
+  })
+  .finally(() => {
+    // Guardar estado actualizado de la cola
+    saveBackgroundUploadQueue();
+    
+    // Actualizar UI
+    updatePendingCounter();
+    updatePendingItems();
+    
+    // Permitir procesar el siguiente elemento
+    syncInProgress = false;
+    
+    // Continuar procesando la cola solo si hay conexión y hay elementos pendientes
+    if (navigator.onLine && backgroundUploadQueue.some(item => item.status === 'pending')) {
+      setTimeout(processUploadQueue, 1000); // Pequeña pausa entre solicitudes
+    }
+  });
+}
+
+// NUEVO: Función para eliminar elementos completados de la cola
+function removeCompletedItem(itemId) {
+  // Eliminar el elemento completado de la cola
+  backgroundUploadQueue = backgroundUploadQueue.filter(item => item.id !== itemId);
+  
+  // Guardar la cola actualizada
+  saveBackgroundUploadQueue();
+  
+  // Actualizar la UI
+  updatePendingCounter();
+  updatePendingItems();
+}
+
+
     
     // NUEVO: Actualizar contador de elementos pendientes
-    function updatePendingCounter() {
-      // Cargar cola actual
-      loadBackgroundUploadQueue();
-      
-      // Contar elementos pendientes
-      const pendingCount = backgroundUploadQueue.filter(item => 
-        item.status === 'pending' || item.status === 'uploading'
-      ).length;
-      
-      // Actualizar contador en la UI
-      if (pendingCounter) {
-        if (pendingCount > 0) {
-          pendingCounter.textContent = pendingCount;
-          pendingCounter.style.display = 'flex';
-        } else {
-          pendingCounter.style.display = 'none';
-        }
-      }
-      
-      pendingItemsCount = pendingCount;
-      return pendingCount;
+function updatePendingCounter() {
+  // Cargar cola actual
+  loadBackgroundUploadQueue();
+  
+  // Contar elementos pendientes y en proceso (no contar los completados)
+  const pendingCount = backgroundUploadQueue.filter(item => 
+    item.status === 'pending' || item.status === 'uploading'
+  ).length;
+  
+  // Actualizar contador en la UI
+  if (pendingCounter) {
+    if (pendingCount > 0) {
+      pendingCounter.textContent = pendingCount;
+      pendingCounter.style.display = 'flex';
+    } else {
+      pendingCounter.style.display = 'none';
     }
+  }
+  
+  pendingItemsCount = pendingCount;
+  return pendingCount;
+}
+
     
     // NUEVO: Actualizar lista de elementos pendientes en el modal
-    function updatePendingItems() {
-      if (!pendingItems) return;
+function updatePendingItems() {
+  if (!pendingItems) return;
+  
+  // Cargar cola actual
+  loadBackgroundUploadQueue();
+  
+  let html = '';
+  
+  if (backgroundUploadQueue.length === 0) {
+    html = '<div class="no-data" style="text-align: center; padding: 20px;">No hay elementos pendientes</div>';
+  } else {
+    // Ordenar por estado y tiempo
+    const sortedItems = [...backgroundUploadQueue].sort((a, b) => {
+      // Primero los que están en proceso
+      if (a.status === 'uploading' && b.status !== 'uploading') return -1;
+      if (b.status === 'uploading' && a.status !== 'uploading') return 1;
       
-      // Cargar cola actual
-      loadBackgroundUploadQueue();
+      // Luego los pendientes
+      if (a.status === 'pending' && b.status !== 'pending') return -1;
+      if (b.status === 'pending' && a.status !== 'pending') return 1;
       
-      let html = '';
+      // Por último los completados y fallidos, ordenados por tiempo
+      return new Date(b.data.timestamp) - new Date(a.data.timestamp);
+    });
+    
+    sortedItems.forEach(item => {
+      let statusClass = '';
+      let statusText = '';
+      let statusIcon = '';
       
-      if (backgroundUploadQueue.length === 0) {
-        html = '<div class="no-data" style="text-align: center; padding: 20px;">No hay elementos pendientes</div>';
-      } else {
-        // Ordenar por estado y tiempo
-        const sortedItems = [...backgroundUploadQueue].sort((a, b) => {
-          // Primero los que están en proceso
-          if (a.status === 'uploading' && b.status !== 'uploading') return -1;
-          if (b.status === 'uploading' && a.status !== 'uploading') return 1;
-          
-          // Luego los pendientes
-          if (a.status === 'pending' && b.status !== 'pending') return -1;
-          if (b.status === 'pending' && a.status !== 'pending') return 1;
-          
-          // Por último los completados y fallidos, ordenados por tiempo
-          return new Date(b.data.timestamp) - new Date(a.data.timestamp);
-        });
-        
-        sortedItems.forEach(item => {
-          let statusClass = '';
-          let statusText = '';
-          let statusIcon = '';
-          
-          switch (item.status) {
-            case 'pending':
-              statusClass = 'var(--warning)';
-              statusText = 'Pendiente';
-              statusIcon = '<i class="fas fa-clock"></i>';
-              break;
-            case 'uploading':
-              statusClass = 'var(--primary)';
-              statusText = 'Subiendo';
-              statusIcon = '<i class="fas fa-sync fa-spin"></i>';
-              break;
-            case 'completed':
-              statusClass = 'var(--success)';
-              statusText = 'Completado';
-              statusIcon = '<i class="fas fa-check-circle"></i>';
-              break;
-            case 'failed':
-              statusClass = 'var(--danger)';
-              statusText = 'Error';
-              statusIcon = '<i class="fas fa-exclamation-circle"></i>';
-              break;
-          }
-          
-          let itemDetails = '';
-          
-          if (item.type === 'photo') {
-            itemDetails = `
-              <div>Factura: ${item.data.factura || 'N/A'}</div>
-              <div>Lote: ${item.data.lote || 'N/A'}</div>
-              <div>Documento: ${item.data.documento || 'N/A'}</div>
-            `;
-          }
-          
-          // Crear barra de progreso para elementos en carga
-          let progressBar = '';
-          if (item.status === 'uploading') {
-            progressBar = `
-              <div class="mini-progress">
-                <div class="mini-progress-bar" style="width: ${Math.min((item.attempts/3) * 100, 100)}%"></div>
-              </div>
-            `;
-          }
-          
-          // Botón de reintento para elementos fallidos
-          let retryButton = '';
-          if (item.status === 'failed') {
-            retryButton = `
-              <button class="btn btn-sm btn-primary retry-btn" data-id="${item.id}">
-                <i class="fas fa-redo"></i> Reintentar
-              </button>
-            `;
-          }
-          
-          html += `
-            <div class="pending-item" style="border-left-color: ${statusClass}">
-              <div class="pending-item-header">
-                <div>${statusIcon} ${statusText}</div>
-                <div class="pending-item-time">${formatRelativeTime(new Date(item.data.timestamp))}</div>
-              </div>
-              ${itemDetails}
-              ${progressBar}
-              ${retryButton}
-            </div>
-          `;
-        });
+      switch (item.status) {
+        case 'pending':
+          statusClass = 'var(--warning)';
+          statusText = 'Pendiente';
+          statusIcon = '<i class="fas fa-clock"></i>';
+          break;
+        case 'uploading':
+          statusClass = 'var(--primary)';
+          statusText = 'Subiendo';
+          statusIcon = '<i class="fas fa-sync fa-spin"></i>';
+          break;
+        case 'completed':
+          statusClass = 'var(--success)';
+          statusText = 'Completado';
+          statusIcon = '<i class="fas fa-check-circle"></i>';
+          break;
+        case 'failed':
+          statusClass = 'var(--danger)';
+          statusText = 'Error';
+          statusIcon = '<i class="fas fa-exclamation-circle"></i>';
+          break;
       }
       
-      pendingItems.innerHTML = html;
+      let itemDetails = '';
       
-      // Agregar listeners para botones de reintento
-      document.querySelectorAll('.retry-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-          const itemId = this.getAttribute('data-id');
-          retryUpload(itemId);
-        });
-      });
-    }
+      if (item.type === 'photo') {
+        itemDetails = `
+          <div>Factura: ${item.data.factura || 'N/A'}</div>
+          <div>Lote: ${item.data.lote || 'N/A'}</div>
+          <div>Documento: ${item.data.documento || 'N/A'}</div>
+        `;
+      }
+      
+      // Crear barra de progreso para elementos en carga
+      let progressBar = '';
+      if (item.status === 'uploading') {
+        progressBar = `
+          <div class="mini-progress">
+            <div class="mini-progress-bar" style="width: ${Math.min((item.attempts/3) * 100, 100)}%"></div>
+          </div>
+        `;
+      }
+      
+      // Botón de reintento para elementos fallidos
+      let retryButton = '';
+      if (item.status === 'failed') {
+        retryButton = `
+          <button class="btn btn-sm btn-primary retry-btn" data-id="${item.id}">
+            <i class="fas fa-redo"></i> Reintentar
+          </button>
+        `;
+      }
+      
+      // Botón para eliminar elementos completados
+      let removeButton = '';
+      if (item.status === 'completed') {
+        removeButton = `
+          <button class="btn btn-sm btn-success remove-btn" data-id="${item.id}">
+            <i class="fas fa-check"></i> Quitar
+          </button>
+        `;
+      }
+      
+      html += `
+        <div class="pending-item" style="border-left-color: ${statusClass}">
+          <div class="pending-item-header">
+            <div>${statusIcon} ${statusText}</div>
+            <div class="pending-item-time">${formatRelativeTime(new Date(item.data.timestamp))}</div>
+          </div>
+          ${itemDetails}
+          ${progressBar}
+          <div style="display: flex; justify-content: flex-end; gap: 5px; margin-top: 5px;">
+            ${retryButton}
+            ${removeButton}
+          </div>
+        </div>
+      `;
+    });
+  }
+  
+  pendingItems.innerHTML = html;
+  
+  // Agregar listeners para botones de reintento
+  document.querySelectorAll('.retry-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const itemId = this.getAttribute('data-id');
+      retryUpload(itemId);
+    });
+  });
+  
+  // Agregar listeners para botones de eliminar
+  document.querySelectorAll('.remove-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const itemId = this.getAttribute('data-id');
+      removeCompletedItem(itemId);
+    });
+  });
+}
     
     // NUEVO: Función para reintentar subida de un elemento
     function retryUpload(itemId) {
@@ -1594,26 +1673,41 @@
     }
     
     // NUEVO: Sincronizar todos los elementos pendientes
-    function syncAllPendingItems() {
-      // Marcar todos los elementos fallidos como pendientes
-      backgroundUploadQueue.forEach(item => {
-        if (item.status === 'failed') {
-          item.status = 'pending';
-          item.attempts = 0;
-          item.manualSync = true; // Marcar como sincronización manual
-        }
-      });
-      
-      saveBackgroundUploadQueue();
-      updatePendingItems();
-      
-      showToast('Iniciando sincronización de todos los pendientes...', 'success');
-      
-      // Iniciar sincronización
-      if (!syncInProgress) {
-        processUploadQueue();
-      }
+function syncAllPendingItems() {
+  // Marcar todos los elementos fallidos como pendientes
+  backgroundUploadQueue.forEach(item => {
+    if (item.status === 'failed') {
+      item.status = 'pending';
+      item.attempts = 0;
+      item.manualSync = true; // Marcar como sincronización manual
     }
+  });
+  
+  // Filtrar y mantener solo elementos pendientes o en proceso
+  backgroundUploadQueue = backgroundUploadQueue.filter(item => 
+    item.status === 'pending' || item.status === 'uploading'
+  );
+  
+  saveBackgroundUploadQueue();
+  updatePendingItems();
+  
+  // Si no hay elementos para sincronizar, mostrar mensaje
+  if (backgroundUploadQueue.length === 0) {
+    showToast('No hay elementos pendientes para sincronizar', 'warning');
+    hidePendingModal();
+    return;
+  }
+  
+  showToast('Iniciando sincronización de todos los pendientes...', 'success');
+  
+  // Iniciar sincronización
+  if (!syncInProgress) {
+    processUploadQueue();
+  }
+  
+  // Cerrar el modal después de iniciar la sincronización
+  hidePendingModal();
+}
     
     // NUEVO: Formatear tiempo relativo
     function formatRelativeTime(date) {
@@ -1817,110 +1911,90 @@
     }
 
     // Inicialización al cargar el documento
-    document.addEventListener('DOMContentLoaded', () => {
-      // Fix para iOS para asegurar que no haya escalado
-      const setViewportMeta = () => {
-        const viewportMeta = document.querySelector('meta[name="viewport"]');
-        if (viewportMeta) {
-          viewportMeta.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover');
-        }
-      };
-      
-      // Asegurar que el viewport esté configurado correctamente
+document.addEventListener('DOMContentLoaded', () => {
+  // Fix para iOS para asegurar que no haya escalado
+  const setViewportMeta = () => {
+    const viewportMeta = document.querySelector('meta[name="viewport"]');
+    if (viewportMeta) {
+      viewportMeta.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover');
+    }
+  };
+  
+  // Asegurar que el viewport esté configurado correctamente
+  setViewportMeta();
+  
+  // Algunos dispositivos iOS pueden ignorar el atributo user-scalable=no
+  // Este hack crea un elemento div del tamaño de la ventana para bloquear el zoom
+  const preventZoomDiv = document.createElement('div');
+  preventZoomDiv.style.position = 'absolute';
+  preventZoomDiv.style.top = '0';
+  preventZoomDiv.style.left = '0';
+  preventZoomDiv.style.width = '100%';
+  preventZoomDiv.style.height = '100%';
+  preventZoomDiv.style.zIndex = '-1'; // Detrás de todo
+  preventZoomDiv.style.pointerEvents = 'none'; // No interfiere con clics
+  document.body.appendChild(preventZoomDiv);
+  
+  // NUEVO: Verificar estado inicial de conexión y mostrar banner si es necesario
+  if (!navigator.onLine) {
+    offlineBanner.style.display = 'block';
+    statusDiv.innerHTML = '<i class="fas fa-wifi-slash"></i> Sin conexión - Modo offline';
+    showToast('Iniciando en modo offline. Los datos se sincronizarán cuando haya conexión.', 'warning');
+  }
+  
+  // Cargar cualquier dato pendiente que pudiera existir
+  loadBackgroundUploadQueue();
+  updatePendingCounter();
+  
+  // Cargar datos desde el servidor (si hay conexión) o desde caché (si no hay)
+  loadDataFromServer();
+  
+  setupEventListeners();
+  
+  // NUEVO: Mejorar detección de cambios de conectividad
+  setupConnectivityListeners();
+  
+  // Agregar eventos para prevenir el teclado virtual en la cámara
+  document.addEventListener('focusin', function(e) {
+    if (document.getElementById('cameraModal').style.display === 'flex' && 
+        e.target.id !== 'dummyInput') {
+      e.preventDefault();
+      e.target.blur();
+    }
+  });
+  
+  // Manejar el cambio de orientación en dispositivos móviles
+  window.addEventListener('orientationchange', function() {
+    // Reajustar el viewport en cambio de orientación
+    setTimeout(() => {
       setViewportMeta();
       
-      // Algunos dispositivos iOS pueden ignorar el atributo user-scalable=no
-      // Este hack crea un elemento div del tamaño de la ventana para bloquear el zoom
-      const preventZoomDiv = document.createElement('div');
-      preventZoomDiv.style.position = 'absolute';
-      preventZoomDiv.style.top = '0';
-      preventZoomDiv.style.left = '0';
-      preventZoomDiv.style.width = '100%';
-      preventZoomDiv.style.height = '100%';
-      preventZoomDiv.style.zIndex = '-1'; // Detrás de todo
-      preventZoomDiv.style.pointerEvents = 'none'; // No interfiere con clics
-      document.body.appendChild(preventZoomDiv);
-      
-      // Cargar cualquier dato pendiente que pudiera existir
-      loadBackgroundUploadQueue();
-      updatePendingCounter();
-      
-      // Cargar datos desde el servidor
-      loadDataFromServer();
-      
-      setupEventListeners();
-      
-      // Agregar eventos para prevenir el teclado virtual en la cámara
-      document.addEventListener('focusin', function(e) {
-        if (document.getElementById('cameraModal').style.display === 'flex' && 
-            e.target.id !== 'dummyInput') {
-          e.preventDefault();
-          e.target.blur();
-        }
-      });
-      
-      // Manejar el cambio de orientación en dispositivos móviles
-      window.addEventListener('orientationchange', function() {
-        // Reajustar el viewport en cambio de orientación
-        setTimeout(() => {
-          setViewportMeta();
-          
-          if (document.getElementById('cameraModal').style.display === 'flex') {
-            document.activeElement.blur();
-          }
-        }, 300);
-      });
-      
-      // Verificar si estamos en modo offline
-      window.addEventListener('online', function() {
-        offlineBanner.style.display = 'none';
-        statusDiv.innerHTML = '<i class="fas fa-wifi"></i> Conexión restablecida';
-        
-        // Mostrar notificación
-        showToast('Conexión restablecida', 'success');
-        
-        // Intentar cargar datos si aún no lo hemos hecho
-        if (!dataLoaded) {
-          setTimeout(() => loadDataFromServer(), 1000);
-        }
-        
-        // Iniciar procesamiento de la cola de subida
-        if (!syncInProgress && backgroundUploadQueue.some(item => item.status === 'pending')) {
-          processUploadQueue();
-        }
-      });
-      
-      window.addEventListener('offline', function() {
-        offlineBanner.style.display = 'block';
-        statusDiv.innerHTML = '<i class="fas fa-wifi-slash"></i> Sin conexión - Modo offline';
-        showToast('Sin conexión. Trabajando en modo offline', 'warning');
-      });
-      
-      // NUEVO: Iniciar intervalo de sincronización
-      syncInterval = setInterval(() => {
-        if (navigator.onLine && !syncInProgress && 
-            backgroundUploadQueue.some(item => item.status === 'pending')) {
-          processUploadQueue();
-        }
-      }, CONFIG.SYNC_INTERVAL);
-      
-      // Prevenir el zoom con gestos táctiles
-      document.addEventListener('touchstart', function(e) {
-        if (e.touches.length > 1) {
-          e.preventDefault();
-        }
-      }, { passive: false });
-      
-      // Evitar que funcione el doble toque para zoom
-      document.addEventListener('dblclick', function(e) {
-        e.preventDefault();
-      }, { passive: false });
-      
-      // Específico para iOS - Evitar el escalado con pinza
-      document.addEventListener('gesturestart', function(e) {
-        e.preventDefault();
-      }, { passive: false });
-    });
+      if (document.getElementById('cameraModal').style.display === 'flex') {
+        document.activeElement.blur();
+      }
+    }, 300);
+  });
+  
+  // NUEVO: Iniciar intervalo de sincronización con mejor manejo de offline
+  startSyncInterval();
+  
+  // Prevenir el zoom con gestos táctiles
+  document.addEventListener('touchstart', function(e) {
+    if (e.touches.length > 1) {
+      e.preventDefault();
+    }
+  }, { passive: false });
+  
+  // Evitar que funcione el doble toque para zoom
+  document.addEventListener('dblclick', function(e) {
+    e.preventDefault();
+  }, { passive: false });
+  
+  // Específico para iOS - Evitar el escalado con pinza
+  document.addEventListener('gesturestart', function(e) {
+    e.preventDefault();
+  }, { passive: false });
+});
 
     // Limpiar al cerrar ventana/pestaña
     window.addEventListener('beforeunload', () => {
