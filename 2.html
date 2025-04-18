@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#ffffff" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
@@ -40,7 +40,6 @@
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      touch-action: manipulation;
     }
     
     body {
@@ -49,15 +48,13 @@
       padding: 0;
       background: var(--bg-color);
       color: var(--dark);
+      touch-action: manipulation;
       -webkit-touch-callout: none;
       -webkit-user-select: none;
       user-select: none;
       line-height: 1.5;
       font-size: 15px;
-      overflow: auto;
-      -webkit-overflow-scrolling: touch;
     }
-  
     
     /* Pantalla de carga */
     #loadingScreen {
@@ -161,7 +158,6 @@
       box-shadow: 0 0 20px rgba(0,0,0,0.1);
       background: var(--card-bg);
       position: relative;
-      overflow: hidden;
     }
     
     /* Estilos de la barra de código QR */
@@ -183,7 +179,6 @@
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
       transition: all 0.3s ease;
       appearance: none;
-      touch-action: manipulation;
     }
     
     #barcode::placeholder {
@@ -252,7 +247,6 @@
       overflow-y: auto;
       padding: 15px;
       background: #ffffff;
-      -webkit-overflow-scrolling: touch;
     }
     
     .result-item {
@@ -395,8 +389,6 @@
       transition: var(--transition);
       border: none;
       gap: 8px;
-      touch-action: manipulation;
-      -webkit-tap-highlight-color: transparent;
     }
     
     .btn-primary {
@@ -460,8 +452,6 @@
       justify-content: center;
       gap: 8px;
       margin-top: 10px;
-      touch-action: manipulation;
-      -webkit-tap-highlight-color: transparent;
     }
     
     .delivery-btn:hover {
@@ -531,8 +521,7 @@
       justify-content: center;
       -webkit-user-select: none;
       user-select: none;
-      touch-action: none;
-      overflow: hidden;
+      touch-action: manipulation;
     }
     
     .camera-view {
@@ -697,8 +686,6 @@
       z-index: 10001;
       align-items: center;
       justify-content: center;
-      touch-action: none;
-      overflow: hidden;
     }
 
     .pending-modal-content {
@@ -709,7 +696,6 @@
       padding: 20px;
       max-height: 80vh;
       overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
     }
 
     .pending-modal-header {
@@ -733,8 +719,6 @@
       background: none;
       border: none;
       cursor: pointer;
-      touch-action: manipulation;
-      -webkit-tap-highlight-color: transparent;
     }
 
     .pending-modal-footer {
@@ -776,8 +760,6 @@
       display: flex;
       align-items: center;
       gap: 5px;
-      touch-action: manipulation;
-      -webkit-tap-highlight-color: transparent;
     }
 
     .sync-btn:hover {
@@ -925,23 +907,10 @@
     }
 
     // NUEVO: Funciones para mostrar y ocultar el modal de pendientes
-// NUEVO: Agregar evento para actualizar la interfaz al abrir el modal de pendientes
-function showPendingModal() {
-  // Limpiar elementos completados antes de mostrar el modal
-  cleanupCompletedItems();
-  updatePendingItems();
-  pendingModal.style.display = 'flex';
-}
-
-// NUEVO: Función para limpiar elementos completados
-function cleanupCompletedItems() {
-  // Eliminar inmediatamente todos los elementos completados
-  backgroundUploadQueue = backgroundUploadQueue.filter(item => 
-    item.status !== 'completed'
-  );
-  
-  saveBackgroundUploadQueue();
-}
+    function showPendingModal() {
+      updatePendingItems();
+      pendingModal.style.display = 'flex';
+    }
     
     function hidePendingModal() {
       pendingModal.style.display = 'none';
@@ -1333,283 +1302,247 @@ function cleanupCompletedItems() {
     }
     
     // NUEVO: Procesar cola de subida en segundo plano
-function processUploadQueue() {
-  if (syncInProgress || backgroundUploadQueue.length === 0) {
-    return;
-  }
-  
-  syncInProgress = true;
-  
-  // Encontrar el primer elemento pendiente
-  const pendingItem = backgroundUploadQueue.find(item => item.status === 'pending');
-  
-  if (!pendingItem) {
-    syncInProgress = false;
-    updatePendingCounter();
-    return;
-  }
-  
-  console.log(`Procesando elemento pendiente ${pendingItem.id}...`);
-  
-  // Marcar como en proceso
-  pendingItem.status = 'uploading';
-  pendingItem.attempts += 1;
-  saveBackgroundUploadQueue();
-  
-  // Preparar datos para el envío
-  const formData = new FormData();
-  
-  if (pendingItem.type === 'photo') {
-    const { documento, lote, referencia, cantidad, factura, nit, base64Data, nombreArchivo } = pendingItem.data;
-    
-    formData.append('documento', documento || '');
-    formData.append('lote', lote || '');
-    formData.append('referencia', referencia || '');
-    formData.append('cantidad', cantidad || 0);
-    formData.append('factura', factura || '');
-    formData.append('nit', nit || '');
-    formData.append('fotoBase64', base64Data || '');
-    formData.append('fotoNombre', nombreArchivo || '');
-    formData.append('fotoTipo', 'image/jpeg');
-  }
-  
-  // Actualizar UI de elementos pendientes
-  updatePendingItems();
-  
-  // Realizar solicitud
-  fetch(API_URL_POST, {
-    method: 'POST',
-    body: formData
-  })
-  .then(response => {
-    if (!response.ok) {
-      throw new Error(`Error HTTP: ${response.status}`);
-    }
-    return response.json();
-  })
-  .then(result => {
-    if (result.success) {
-      // Actualizar botón en la UI si existe
-      if (pendingItem.btnElement) {
-        pendingItem.btnElement.innerHTML = '<i class="fas fa-check-circle"></i> Entregado con foto';
-        pendingItem.btnElement.style.backgroundColor = '#28a745';
+    function processUploadQueue() {
+      if (syncInProgress || backgroundUploadQueue.length === 0) {
+        return;
       }
       
-      // NUEVO: Eliminar el elemento completado de la cola inmediatamente
-      removeCompletedItem(pendingItem.id);
+      syncInProgress = true;
       
-      // Mostrar notificación si la sincronización fue iniciada manualmente
-      if (pendingItem.manualSync) {
-        showToast('Sincronización completada correctamente', 'success');
-      }
-    } else {
-      throw new Error(result.message || "Error al sincronizar");
-    }
-  })
-  .catch(error => {
-    console.error("Error al sincronizar:", error);
-    
-    // Si hay demasiados intentos fallidos o no hay conexión
-    if (pendingItem.attempts >= 3 || !navigator.onLine) {
-      pendingItem.status = 'failed';
-      pendingItem.error = error.message || "Error al sincronizar";
+      // Encontrar el primer elemento pendiente
+      const pendingItem = backgroundUploadQueue.find(item => item.status === 'pending');
       
-      // Mostrar notificación si la sincronización fue iniciada manualmente
-      if (pendingItem.manualSync) {
-        showToast('Error al sincronizar: ' + error.message, 'error');
+      if (!pendingItem) {
+        syncInProgress = false;
+        updatePendingCounter();
+        return;
       }
-    } else {
-      // Devolver a pendiente para reintentar más tarde
-      pendingItem.status = 'pending';
+      
+      console.log(`Procesando elemento pendiente ${pendingItem.id}...`);
+      
+      // Marcar como en proceso
+      pendingItem.status = 'uploading';
+      pendingItem.attempts += 1;
+      saveBackgroundUploadQueue();
+      
+      // Preparar datos para el envío
+      const formData = new FormData();
+      
+      if (pendingItem.type === 'photo') {
+        const { documento, lote, referencia, cantidad, factura, nit, base64Data, nombreArchivo } = pendingItem.data;
+        
+        formData.append('documento', documento || '');
+        formData.append('lote', lote || '');
+        formData.append('referencia', referencia || '');
+        formData.append('cantidad', cantidad || 0);
+        formData.append('factura', factura || '');
+        formData.append('nit', nit || '');
+        formData.append('fotoBase64', base64Data || '');
+        formData.append('fotoNombre', nombreArchivo || '');
+        formData.append('fotoTipo', 'image/jpeg');
+      }
+      
+      // Actualizar UI de elementos pendientes
+      updatePendingItems();
+      
+      // Realizar solicitud
+      fetch(API_URL_POST, {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`Error HTTP: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(result => {
+        if (result.success) {
+          // Marcar como completado
+          pendingItem.status = 'completed';
+          pendingItem.completedAt = new Date().toISOString();
+          
+          // Actualizar botón en la UI si existe
+          if (pendingItem.btnElement) {
+            pendingItem.btnElement.innerHTML = '<i class="fas fa-check-circle"></i> Entregado con foto';
+            pendingItem.btnElement.style.backgroundColor = '#28a745';
+          }
+          
+          // Mostrar notificación si la sincronización fue iniciada manualmente
+          if (pendingItem.manualSync) {
+            showToast('Sincronización completada correctamente', 'success');
+          }
+        } else {
+          throw new Error(result.message || "Error al sincronizar");
+        }
+      })
+      .catch(error => {
+        console.error("Error al sincronizar:", error);
+        
+        // Si hay demasiados intentos fallidos o no hay conexión
+        if (pendingItem.attempts >= 3 || !navigator.onLine) {
+          pendingItem.status = 'failed';
+          pendingItem.error = error.message || "Error al sincronizar";
+          
+          // Mostrar notificación si la sincronización fue iniciada manualmente
+          if (pendingItem.manualSync) {
+            showToast('Error al sincronizar: ' + error.message, 'error');
+          }
+        } else {
+          // Devolver a pendiente para reintentar más tarde
+          pendingItem.status = 'pending';
+        }
+      })
+      .finally(() => {
+        // Guardar estado actualizado de la cola
+        saveBackgroundUploadQueue();
+        
+        // Actualizar UI
+        updatePendingCounter();
+        updatePendingItems();
+        
+        // Permitir procesar el siguiente elemento
+        syncInProgress = false;
+        
+        // Continuar procesando la cola si hay más elementos
+        if (backgroundUploadQueue.some(item => item.status === 'pending')) {
+          setTimeout(processUploadQueue, 1000); // Pequeña pausa entre solicitudes
+        }
+      });
     }
-  })
-  .finally(() => {
-    // Guardar estado actualizado de la cola
-    saveBackgroundUploadQueue();
-    
-    // Actualizar UI
-    updatePendingCounter();
-    updatePendingItems();
-    
-    // Permitir procesar el siguiente elemento
-    syncInProgress = false;
-    
-    // Continuar procesando la cola si hay más elementos
-    if (backgroundUploadQueue.some(item => item.status === 'pending')) {
-      setTimeout(processUploadQueue, 1000); // Pequeña pausa entre solicitudes
-    }
-  });
-}
-
-// NUEVO: Función para eliminar elementos completados de la cola
-function removeCompletedItem(itemId) {
-  // Eliminar el elemento completado de la cola
-  backgroundUploadQueue = backgroundUploadQueue.filter(item => item.id !== itemId);
-  
-  // Guardar la cola actualizada
-  saveBackgroundUploadQueue();
-  
-  // Actualizar la UI
-  updatePendingCounter();
-  updatePendingItems();
-}
-
-
     
     // NUEVO: Actualizar contador de elementos pendientes
-function updatePendingCounter() {
-  // Cargar cola actual
-  loadBackgroundUploadQueue();
-  
-  // Contar elementos pendientes y en proceso (no contar los completados)
-  const pendingCount = backgroundUploadQueue.filter(item => 
-    item.status === 'pending' || item.status === 'uploading'
-  ).length;
-  
-  // Actualizar contador en la UI
-  if (pendingCounter) {
-    if (pendingCount > 0) {
-      pendingCounter.textContent = pendingCount;
-      pendingCounter.style.display = 'flex';
-    } else {
-      pendingCounter.style.display = 'none';
+    function updatePendingCounter() {
+      // Cargar cola actual
+      loadBackgroundUploadQueue();
+      
+      // Contar elementos pendientes
+      const pendingCount = backgroundUploadQueue.filter(item => 
+        item.status === 'pending' || item.status === 'uploading'
+      ).length;
+      
+      // Actualizar contador en la UI
+      if (pendingCounter) {
+        if (pendingCount > 0) {
+          pendingCounter.textContent = pendingCount;
+          pendingCounter.style.display = 'flex';
+        } else {
+          pendingCounter.style.display = 'none';
+        }
+      }
+      
+      pendingItemsCount = pendingCount;
+      return pendingCount;
     }
-  }
-  
-  pendingItemsCount = pendingCount;
-  return pendingCount;
-}
-
     
     // NUEVO: Actualizar lista de elementos pendientes en el modal
-function updatePendingItems() {
-  if (!pendingItems) return;
-  
-  // Cargar cola actual
-  loadBackgroundUploadQueue();
-  
-  let html = '';
-  
-  if (backgroundUploadQueue.length === 0) {
-    html = '<div class="no-data" style="text-align: center; padding: 20px;">No hay elementos pendientes</div>';
-  } else {
-    // Ordenar por estado y tiempo
-    const sortedItems = [...backgroundUploadQueue].sort((a, b) => {
-      // Primero los que están en proceso
-      if (a.status === 'uploading' && b.status !== 'uploading') return -1;
-      if (b.status === 'uploading' && a.status !== 'uploading') return 1;
+    function updatePendingItems() {
+      if (!pendingItems) return;
       
-      // Luego los pendientes
-      if (a.status === 'pending' && b.status !== 'pending') return -1;
-      if (b.status === 'pending' && a.status !== 'pending') return 1;
+      // Cargar cola actual
+      loadBackgroundUploadQueue();
       
-      // Por último los completados y fallidos, ordenados por tiempo
-      return new Date(b.data.timestamp) - new Date(a.data.timestamp);
-    });
-    
-    sortedItems.forEach(item => {
-      let statusClass = '';
-      let statusText = '';
-      let statusIcon = '';
+      let html = '';
       
-      switch (item.status) {
-        case 'pending':
-          statusClass = 'var(--warning)';
-          statusText = 'Pendiente';
-          statusIcon = '<i class="fas fa-clock"></i>';
-          break;
-        case 'uploading':
-          statusClass = 'var(--primary)';
-          statusText = 'Subiendo';
-          statusIcon = '<i class="fas fa-sync fa-spin"></i>';
-          break;
-        case 'completed':
-          statusClass = 'var(--success)';
-          statusText = 'Completado';
-          statusIcon = '<i class="fas fa-check-circle"></i>';
-          break;
-        case 'failed':
-          statusClass = 'var(--danger)';
-          statusText = 'Error';
-          statusIcon = '<i class="fas fa-exclamation-circle"></i>';
-          break;
+      if (backgroundUploadQueue.length === 0) {
+        html = '<div class="no-data" style="text-align: center; padding: 20px;">No hay elementos pendientes</div>';
+      } else {
+        // Ordenar por estado y tiempo
+        const sortedItems = [...backgroundUploadQueue].sort((a, b) => {
+          // Primero los que están en proceso
+          if (a.status === 'uploading' && b.status !== 'uploading') return -1;
+          if (b.status === 'uploading' && a.status !== 'uploading') return 1;
+          
+          // Luego los pendientes
+          if (a.status === 'pending' && b.status !== 'pending') return -1;
+          if (b.status === 'pending' && a.status !== 'pending') return 1;
+          
+          // Por último los completados y fallidos, ordenados por tiempo
+          return new Date(b.data.timestamp) - new Date(a.data.timestamp);
+        });
+        
+        sortedItems.forEach(item => {
+          let statusClass = '';
+          let statusText = '';
+          let statusIcon = '';
+          
+          switch (item.status) {
+            case 'pending':
+              statusClass = 'var(--warning)';
+              statusText = 'Pendiente';
+              statusIcon = '<i class="fas fa-clock"></i>';
+              break;
+            case 'uploading':
+              statusClass = 'var(--primary)';
+              statusText = 'Subiendo';
+              statusIcon = '<i class="fas fa-sync fa-spin"></i>';
+              break;
+            case 'completed':
+              statusClass = 'var(--success)';
+              statusText = 'Completado';
+              statusIcon = '<i class="fas fa-check-circle"></i>';
+              break;
+            case 'failed':
+              statusClass = 'var(--danger)';
+              statusText = 'Error';
+              statusIcon = '<i class="fas fa-exclamation-circle"></i>';
+              break;
+          }
+          
+          let itemDetails = '';
+          
+          if (item.type === 'photo') {
+            itemDetails = `
+              <div>Factura: ${item.data.factura || 'N/A'}</div>
+              <div>Lote: ${item.data.lote || 'N/A'}</div>
+              <div>Documento: ${item.data.documento || 'N/A'}</div>
+            `;
+          }
+          
+          // Crear barra de progreso para elementos en carga
+          let progressBar = '';
+          if (item.status === 'uploading') {
+            progressBar = `
+              <div class="mini-progress">
+                <div class="mini-progress-bar" style="width: ${Math.min((item.attempts/3) * 100, 100)}%"></div>
+              </div>
+            `;
+          }
+          
+          // Botón de reintento para elementos fallidos
+          let retryButton = '';
+          if (item.status === 'failed') {
+            retryButton = `
+              <button class="btn btn-sm btn-primary retry-btn" data-id="${item.id}">
+                <i class="fas fa-redo"></i> Reintentar
+              </button>
+            `;
+          }
+          
+          html += `
+            <div class="pending-item" style="border-left-color: ${statusClass}">
+              <div class="pending-item-header">
+                <div>${statusIcon} ${statusText}</div>
+                <div class="pending-item-time">${formatRelativeTime(new Date(item.data.timestamp))}</div>
+              </div>
+              ${itemDetails}
+              ${progressBar}
+              ${retryButton}
+            </div>
+          `;
+        });
       }
       
-      let itemDetails = '';
+      pendingItems.innerHTML = html;
       
-      if (item.type === 'photo') {
-        itemDetails = `
-          <div>Factura: ${item.data.factura || 'N/A'}</div>
-          <div>Lote: ${item.data.lote || 'N/A'}</div>
-          <div>Documento: ${item.data.documento || 'N/A'}</div>
-        `;
-      }
-      
-      // Crear barra de progreso para elementos en carga
-      let progressBar = '';
-      if (item.status === 'uploading') {
-        progressBar = `
-          <div class="mini-progress">
-            <div class="mini-progress-bar" style="width: ${Math.min((item.attempts/3) * 100, 100)}%"></div>
-          </div>
-        `;
-      }
-      
-      // Botón de reintento para elementos fallidos
-      let retryButton = '';
-      if (item.status === 'failed') {
-        retryButton = `
-          <button class="btn btn-sm btn-primary retry-btn" data-id="${item.id}">
-            <i class="fas fa-redo"></i> Reintentar
-          </button>
-        `;
-      }
-      
-      // Botón para eliminar elementos completados
-      let removeButton = '';
-      if (item.status === 'completed') {
-        removeButton = `
-          <button class="btn btn-sm btn-success remove-btn" data-id="${item.id}">
-            <i class="fas fa-check"></i> Quitar
-          </button>
-        `;
-      }
-      
-      html += `
-        <div class="pending-item" style="border-left-color: ${statusClass}">
-          <div class="pending-item-header">
-            <div>${statusIcon} ${statusText}</div>
-            <div class="pending-item-time">${formatRelativeTime(new Date(item.data.timestamp))}</div>
-          </div>
-          ${itemDetails}
-          ${progressBar}
-          <div style="display: flex; justify-content: flex-end; gap: 5px; margin-top: 5px;">
-            ${retryButton}
-            ${removeButton}
-          </div>
-        </div>
-      `;
-    });
-  }
-  
-  pendingItems.innerHTML = html;
-  
-  // Agregar listeners para botones de reintento
-  document.querySelectorAll('.retry-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-      const itemId = this.getAttribute('data-id');
-      retryUpload(itemId);
-    });
-  });
-  
-  // Agregar listeners para botones de eliminar
-  document.querySelectorAll('.remove-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-      const itemId = this.getAttribute('data-id');
-      removeCompletedItem(itemId);
-    });
-  });
-}
+      // Agregar listeners para botones de reintento
+      document.querySelectorAll('.retry-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const itemId = this.getAttribute('data-id');
+          retryUpload(itemId);
+        });
+      });
+    }
     
     // NUEVO: Función para reintentar subida de un elemento
     function retryUpload(itemId) {
@@ -1631,41 +1564,26 @@ function updatePendingItems() {
     }
     
     // NUEVO: Sincronizar todos los elementos pendientes
-function syncAllPendingItems() {
-  // Marcar todos los elementos fallidos como pendientes
-  backgroundUploadQueue.forEach(item => {
-    if (item.status === 'failed') {
-      item.status = 'pending';
-      item.attempts = 0;
-      item.manualSync = true; // Marcar como sincronización manual
+    function syncAllPendingItems() {
+      // Marcar todos los elementos fallidos como pendientes
+      backgroundUploadQueue.forEach(item => {
+        if (item.status === 'failed') {
+          item.status = 'pending';
+          item.attempts = 0;
+          item.manualSync = true; // Marcar como sincronización manual
+        }
+      });
+      
+      saveBackgroundUploadQueue();
+      updatePendingItems();
+      
+      showToast('Iniciando sincronización de todos los pendientes...', 'success');
+      
+      // Iniciar sincronización
+      if (!syncInProgress) {
+        processUploadQueue();
+      }
     }
-  });
-  
-  // Filtrar y mantener solo elementos pendientes o en proceso
-  backgroundUploadQueue = backgroundUploadQueue.filter(item => 
-    item.status === 'pending' || item.status === 'uploading'
-  );
-  
-  saveBackgroundUploadQueue();
-  updatePendingItems();
-  
-  // Si no hay elementos para sincronizar, mostrar mensaje
-  if (backgroundUploadQueue.length === 0) {
-    showToast('No hay elementos pendientes para sincronizar', 'warning');
-    hidePendingModal();
-    return;
-  }
-  
-  showToast('Iniciando sincronización de todos los pendientes...', 'success');
-  
-  // Iniciar sincronización
-  if (!syncInProgress) {
-    processUploadQueue();
-  }
-  
-  // Cerrar el modal después de iniciar la sincronización
-  hidePendingModal();
-}
     
     // NUEVO: Formatear tiempo relativo
     function formatRelativeTime(date) {
@@ -1870,29 +1788,6 @@ function syncAllPendingItems() {
 
     // Inicialización al cargar el documento
     document.addEventListener('DOMContentLoaded', () => {
-      // Fix para iOS para asegurar que no haya escalado
-      const setViewportMeta = () => {
-        const viewportMeta = document.querySelector('meta[name="viewport"]');
-        if (viewportMeta) {
-          viewportMeta.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover');
-        }
-      };
-      
-      // Asegurar que el viewport esté configurado correctamente
-      setViewportMeta();
-      
-      // Algunos dispositivos iOS pueden ignorar el atributo user-scalable=no
-      // Este hack crea un elemento div del tamaño de la ventana para bloquear el zoom
-      const preventZoomDiv = document.createElement('div');
-      preventZoomDiv.style.position = 'absolute';
-      preventZoomDiv.style.top = '0';
-      preventZoomDiv.style.left = '0';
-      preventZoomDiv.style.width = '100%';
-      preventZoomDiv.style.height = '100%';
-      preventZoomDiv.style.zIndex = '-1'; // Detrás de todo
-      preventZoomDiv.style.pointerEvents = 'none'; // No interfiere con clics
-      document.body.appendChild(preventZoomDiv);
-      
       // Cargar cualquier dato pendiente que pudiera existir
       loadBackgroundUploadQueue();
       updatePendingCounter();
@@ -1913,14 +1808,11 @@ function syncAllPendingItems() {
       
       // Manejar el cambio de orientación en dispositivos móviles
       window.addEventListener('orientationchange', function() {
-        // Reajustar el viewport en cambio de orientación
-        setTimeout(() => {
-          setViewportMeta();
-          
-          if (document.getElementById('cameraModal').style.display === 'flex') {
+        if (document.getElementById('cameraModal').style.display === 'flex') {
+          setTimeout(() => {
             document.activeElement.blur();
-          }
-        }, 300);
+          }, 300);
+        }
       });
       
       // Verificar si estamos en modo offline
@@ -1955,23 +1847,6 @@ function syncAllPendingItems() {
           processUploadQueue();
         }
       }, CONFIG.SYNC_INTERVAL);
-      
-      // Prevenir el zoom con gestos táctiles
-      document.addEventListener('touchstart', function(e) {
-        if (e.touches.length > 1) {
-          e.preventDefault();
-        }
-      }, { passive: false });
-      
-      // Evitar que funcione el doble toque para zoom
-      document.addEventListener('dblclick', function(e) {
-        e.preventDefault();
-      }, { passive: false });
-      
-      // Específico para iOS - Evitar el escalado con pinza
-      document.addEventListener('gesturestart', function(e) {
-        e.preventDefault();
-      }, { passive: false });
     });
 
     // Limpiar al cerrar ventana/pestaña
@@ -2401,48 +2276,7 @@ function syncAllPendingItems() {
         </div>
       `;
     }
-    
-    // Adicional: Evitar el zoom y escalado por completo
-    document.addEventListener('wheel', function(e) {
-      if(e.ctrlKey) {
-        e.preventDefault();
-      }
-    }, { passive: false });
-    
-    // Desactivar zoom con teclas de atajo
-    window.addEventListener('keydown', function(e) {
-      if ((e.ctrlKey || e.metaKey) && (e.key === '+' || e.key === '-' || e.key === '0')) {
-        e.preventDefault();
-      }
-    });
-    
-    // Específico para iOS para prevenir zoom
-    document.addEventListener('touchmove', function(e) {
-      if (e.scale !== 1) {
-        e.preventDefault();
-      }
-    }, { passive: false });
-    
-    document.addEventListener('touchend', function(e) {
-      if (e.scale !== 1) {
-        e.preventDefault();
-      }
-    }, { passive: false });
-    
-    // Intentar atrapar y prevenir los gestos de iOS
-    document.addEventListener('gesturestart', function(e) {
-      e.preventDefault();
-    }, { passive: false });
-    
-    document.addEventListener('gesturechange', function(e) {
-      e.preventDefault();
-    }, { passive: false });
-    
-    document.addEventListener('gestureend', function(e) {
-      e.preventDefault();
-    }, { passive: false });
   </script>
 
 </body>
 </html>
-
