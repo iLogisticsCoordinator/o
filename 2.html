@@ -994,33 +994,43 @@
     
     // Detector de eventos para PWA Install
     let deferredPrompt;
+
+    // Mostrar el botón de instalación por defecto
+installBtn.style.display = 'block';
+
     
     window.addEventListener('beforeinstallprompt', (e) => {
-      // Prevenir que Chrome muestre automáticamente el prompt
-      e.preventDefault();
-      // Guardar el evento para usarlo después
-      deferredPrompt = e;
-      // Mostrar el botón de instalación
-      installBtn.style.display = 'block';
-    });
+  // Prevenir que Chrome muestre automáticamente el prompt
+  e.preventDefault();
+  // Guardar el evento para usarlo después
+  deferredPrompt = e;
+  // Mostrar el botón de instalación
+  installBtn.style.display = 'block';
+});
     
     installBtn.addEventListener('click', async () => {
-      if (deferredPrompt) {
-        // Mostrar el prompt de instalación
-        deferredPrompt.prompt();
-        // Esperar a que el usuario responda al prompt
-        const choiceResult = await deferredPrompt.userChoice;
-        if (choiceResult.outcome === 'accepted') {
-          console.log('App instalada');
-        } else {
-          console.log('Instalación cancelada');
-        }
-        // Limpiar el prompt guardado
-        deferredPrompt = null;
-        // Ocultar botón
-        installBtn.style.display = 'none';
-      }
-    });
+  if (deferredPrompt) {
+    // Mostrar el prompt de instalación
+    deferredPrompt.prompt();
+    // Esperar a que el usuario responda al prompt
+    const choiceResult = await deferredPrompt.userChoice;
+    if (choiceResult.outcome === 'accepted') {
+      console.log('App instalada');
+    } else {
+      console.log('Instalación cancelada');
+    }
+    // Limpiar el prompt guardado
+    deferredPrompt = null;
+  } else {
+    // Si no hay prompt disponible, intentar técnica alternativa
+    alert("Para instalar la aplicación: Presiona el botón de menú en tu navegador y selecciona 'Añadir a pantalla de inicio' o 'Instalar aplicación'");
+  }
+});
+
+
+
+
+
     
     // Registrar Service Worker
     if ('serviceWorker' in navigator) {
@@ -1839,37 +1849,49 @@
 
     // Inicialización al cargar el documento
     document.addEventListener('DOMContentLoaded', () => {
-      // Fix para iOS para asegurar que no haya escalado
-      const setViewportMeta = () => {
-        const viewportMeta = document.querySelector('meta[name="viewport"]');
-        if (viewportMeta) {
-          viewportMeta.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover');
-        }
-      };
-      
-      // Asegurar que el viewport esté configurado correctamente
-      setViewportMeta();
-      
-      // Algunos dispositivos iOS pueden ignorar el atributo user-scalable=no
-      // Este hack crea un elemento div del tamaño de la ventana para bloquear el zoom
-      const preventZoomDiv = document.createElement('div');
-      preventZoomDiv.style.position = 'absolute';
-      preventZoomDiv.style.top = '0';
-      preventZoomDiv.style.left = '0';
-      preventZoomDiv.style.width = '100%';
-      preventZoomDiv.style.height = '100%';
-      preventZoomDiv.style.zIndex = '-1'; // Detrás de todo
-      preventZoomDiv.style.pointerEvents = 'none'; // No interfiere con clics
-      document.body.appendChild(preventZoomDiv);
-      
-      // Cargar cualquier dato pendiente que pudiera existir
-      loadBackgroundUploadQueue();
-      updatePendingCounter();
-      
-      // Cargar datos desde el servidor
-      loadDataFromServer();
-      
-      setupEventListeners();
+  // Fix para iOS para asegurar que no haya escalado
+  const setViewportMeta = () => {
+    const viewportMeta = document.querySelector('meta[name="viewport"]');
+    if (viewportMeta) {
+      viewportMeta.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover');
+    }
+  };
+  
+  // Asegurar que el viewport esté configurado correctamente
+  setViewportMeta();
+  
+  // AÑADIR ESTO: Agregar un timeout de seguridad para mostrar la aplicación
+  setTimeout(() => {
+    if (document.getElementById('loadingScreen').style.display !== 'none') {
+      console.log("Timeout de seguridad activado - mostrando aplicación");
+      hideLoadingScreen();
+    }
+  }, 10000); // 10 segundos máximo de pantalla de carga
+  
+  // Configurar botón de instalación manualmente para asegurar que funcione
+  const installBtn = document.getElementById('installBtn');
+  installBtn.style.display = 'block'; // Mostrar el botón por defecto
+  
+  // Algunos dispositivos iOS pueden ignorar el atributo user-scalable=no
+  // Este hack crea un elemento div del tamaño de la ventana para bloquear el zoom
+  const preventZoomDiv = document.createElement('div');
+  preventZoomDiv.style.position = 'absolute';
+  preventZoomDiv.style.top = '0';
+  preventZoomDiv.style.left = '0';
+  preventZoomDiv.style.width = '100%';
+  preventZoomDiv.style.height = '100%';
+  preventZoomDiv.style.zIndex = '-1'; // Detrás de todo
+  preventZoomDiv.style.pointerEvents = 'none'; // No interfiere con clics
+  document.body.appendChild(preventZoomDiv);
+  
+  // Cargar cualquier dato pendiente que pudiera existir
+  loadBackgroundUploadQueue();
+  updatePendingCounter();
+  
+  // Cargar datos desde el servidor
+  loadDataFromServer();
+  
+  setupEventListeners();
       
       // Agregar eventos para prevenir el teclado virtual en la cámara
       document.addEventListener('focusin', function(e) {
@@ -1991,76 +2013,83 @@
     }
 
     function handleDataLoadError(error) {
-      console.error("Error al cargar datos:", error);
-      
-      // Verificar si hay datos en caché
-      const cachedData = getCachedData();
-      if (cachedData) {
-        database = cachedData.data;
-        dataLoaded = true;
-        
-        statusDiv.innerHTML = '<i class="fas fa-database"></i> SISTEMA LISTO (DATOS CACHEADOS)';
-        dataStats.innerHTML = `${database.length} registros | Última actualización: ${new Date(cachedData.timestamp).toLocaleString()}`;
-        resultsDiv.innerHTML = `
-          <div class="result-item" style="text-align: center; color: var(--gray);">
-            <img src="https://raw.githubusercontent.com/iLogisticsCoordinator/o/main/icons/icon-512.png" alt="PandaDash Logo" class="logo" style="width: 4rem; height: 4rem; margin-bottom: 0.5rem;">
-            <h1>PandaDash</h1>
-            <div class="name">Andrés Mendoza</div>
-          </div>
-        `;
-        
-        offlineBanner.style.display = 'block';
-        
-        // Ocultar pantalla de carga ya que tenemos datos en caché
-        hideLoadingScreen();
-      } else {
-        statusDiv.innerHTML = '<span style="color: var(--danger)">ERROR AL CARGAR DATOS</span>';
-        dataStats.textContent = error.message || 'Error desconocido';
-        resultsDiv.innerHTML = `<div class="error"><i class="fas fa-exclamation-circle"></i> No se pudo cargar la base de datos: ${error.message || 'Error desconocido'}</div>`;
-        
-        // Mostrar mensaje de error en la pantalla de carga pero no ocultarla
-        const loadingName = document.querySelector('#loadingScreen .name');
-        if (loadingName) {
-          loadingName.innerHTML = 'Error al cargar datos. <br>Comprueba tu conexión.';
-          loadingName.style.color = '#f72585';
-        }
-        
-        playErrorSound();
-      }
+  console.error("Error al cargar datos:", error);
+  
+  // Verificar si hay datos en caché
+  const cachedData = getCachedData();
+  if (cachedData) {
+    database = cachedData.data;
+    dataLoaded = true;
+    
+    statusDiv.innerHTML = '<i class="fas fa-database"></i> SISTEMA LISTO (DATOS CACHEADOS)';
+    dataStats.innerHTML = `${database.length} registros | Última actualización: ${new Date(cachedData.timestamp).toLocaleString()}`;
+    resultsDiv.innerHTML = `
+      <div class="result-item" style="text-align: center; color: var(--gray);">
+        <img src="https://raw.githubusercontent.com/iLogisticsCoordinator/o/main/icons/icon-512.png" alt="PandaDash Logo" class="logo" style="width: 4rem; height: 4rem; margin-bottom: 0.5rem;">
+        <h1>PandaDash</h1>
+        <div class="name">Andrés Mendoza</div>
+      </div>
+    `;
+    
+    offlineBanner.style.display = 'block';
+    
+    // Ocultar pantalla de carga ya que tenemos datos en caché
+    hideLoadingScreen();
+  } else {
+    statusDiv.innerHTML = '<span style="color: var(--danger)">ERROR AL CARGAR DATOS</span>';
+    dataStats.textContent = error.message || 'Error desconocido';
+    resultsDiv.innerHTML = `<div class="error"><i class="fas fa-exclamation-circle"></i> No se pudo cargar la base de datos: ${error.message || 'Error desconocido'}</div>`;
+    
+    // Mostrar mensaje de error en la pantalla de carga pero no ocultarla
+    const loadingName = document.querySelector('#loadingScreen .name');
+    if (loadingName) {
+      loadingName.innerHTML = 'Error al cargar datos. <br>Comprueba tu conexión.';
+      loadingName.style.color = '#f72585';
     }
+    
+    // AÑADIR ESTA LÍNEA: Añadir un botón para continuar en modo offline incluso sin datos
+    const loadingScreen = document.getElementById('loadingScreen');
+    const continueBtn = document.createElement('button');
+    continueBtn.innerHTML = 'Continuar sin datos';
+    continueBtn.style.marginTop = '15px';
+    continueBtn.style.padding = '7px 14px';
+    continueBtn.style.background = '#6c757d';
+    continueBtn.style.color = 'white';
+    continueBtn.style.border = 'none';
+    continueBtn.style.borderRadius = '3px';
+    continueBtn.onclick = hideLoadingScreen;
+    loadingScreen.appendChild(continueBtn);
+    
+    playErrorSound();
+  }
+}
 
     // Función para ocultar la pantalla de carga
-    function hideLoadingScreen() {
-      // Mostrar el contenido principal
-      scanner.style.display = 'flex';
+    // Función para ocultar la pantalla de carga
+function hideLoadingScreen() {
+  try {
+    // Mostrar el contenido principal
+    scanner.style.display = 'flex';
+    
+    // Desvanecer la pantalla de carga
+    loadingScreen.style.opacity = '0';
+    
+    // Eliminar la pantalla de carga después de la transición
+    setTimeout(() => {
+      loadingScreen.style.display = 'none';
       
-      // Desvanecer la pantalla de carga
-      loadingScreen.style.opacity = '0';
-      
-      // Eliminar la pantalla de carga después de la transición
-      setTimeout(() => {
-        loadingScreen.style.display = 'none';
-        
-        // Enfocar el campo de entrada
-        if (barcodeInput) {
-          barcodeInput.focus();
-        }
-      }, 500);
-    }
-
-    function getCachedData() {
-      const cache = localStorage.getItem('pdaScannerCache');
-      if (!cache) return null;
-      
-      try {
-        const parsed = JSON.parse(cache);
-        if (Date.now() - parsed.timestamp > CONFIG.CACHE_TTL) return null;
-        return parsed;
-      } catch (e) {
-        console.error("Error al parsear cache:", e);
-        return null;
+      // Enfocar el campo de entrada
+      if (barcodeInput) {
+        barcodeInput.focus();
       }
-    }
+    }, 500);
+  } catch (error) {
+    console.error("Error al ocultar pantalla de carga:", error);
+    // Forzar ocultamiento en caso de error
+    document.getElementById('loadingScreen').style.display = 'none';
+    document.getElementById('scanner').style.display = 'flex';
+  }
+}
 
     function cacheData(data) {
       const cache = {
