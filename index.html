@@ -12,10 +12,8 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <title>PandaDash</title>
   
-  <!-- Aquí van los estilos existentes de la aplicación -->
   <style>
-    /* Tus estilos originales... */
-        :root {
+    :root {
       --primary: #4361ee;
       --primary-dark: #3a56d4;
       --primary-light: #eef2ff;
@@ -608,101 +606,57 @@
       font-size: 14px;
       color: var(--primary-dark);
     }
-    
-    /* Estilos adicionales para el sistema offline */
-    .offline-badge-counter {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      background: var(--warning);
-      color: var(--dark);
-      border-radius: 12px;
-      font-size: 12px;
-      font-weight: 700;
-      padding: 2px 6px;
-      margin-left: 6px;
-    }
-    
-    /* Añadir los estilos del panel offline aquí o cargarlos desde un archivo externo */
   </style>
 </head>
 <body>
-  <!-- Contenido actual de la aplicación... -->
-  
   <!-- Pantalla de carga -->
   <div id="loadingScreen">
-    <!-- Contenido del loadingScreen... -->
+    <img src="https://raw.githubusercontent.com/iLogisticsCoordinator/o/main/icons/icon-512.png" alt="PandaDash Logo" class="logo">
+    <div class="triple-pulse">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+    <h1>PandaDash</h1>
+    <div class="name">Andrés Mendoza</div>
+    <button id="installBtn">Instalar App</button>
   </div>
 
   <!-- Contenido principal -->
   <div id="scanner" style="display: none;">
-    <!-- Contenido del scanner... -->
+    <div id="offline-banner" class="offline-banner" style="display: none;">
+      <i class="fas fa-wifi-slash"></i> Modo Offline - Datos Cacheados
+    </div>
+
+    <div class="barcode-input-container">
+      <i class="fa-solid fa-qrcode"></i>
+      <input type="text" id="barcode" autofocus placeholder="Escanea un código QR">
+    </div>
+
+    <div id="status">Iniciando Sistema...</div>
+    <div class="data-stats" id="data-stats">Cargando datos...</div>
+    <div id="results"></div>
   </div>
 
   <div id="cameraModal" class="camera-modal">
-    <!-- Contenido del cameraModal... -->
-  </div>
-  
-  <!-- Panel de gestión offline -->
-  <div id="offlinePanel" class="offline-panel">
-    <div class="offline-panel-header">
-      <h2><i class="fas fa-sync-alt"></i> Sincronización</h2>
-      <button id="closeOfflinePanel" class="btn-close" aria-label="Cerrar">
-        <i class="fas fa-times"></i>
+    <video id="cameraFeed" class="camera-view" autoplay playsinline></video>
+    <img id="photoPreview" alt="Vista previa de la foto">
+    <div class="camera-actions">
+      <button id="takePhotoBtn" class="btn btn-primary">
+        <i class="fas fa-camera"></i> Tomar Foto
+      </button>
+      <button id="cancelCaptureBtn" class="btn btn-danger">
+        <i class="fas fa-times"></i> Cancelar
       </button>
     </div>
-    
-    <div class="offline-stats">
-      <div class="stat-item" id="operationsCounter">
-        <div class="stat-icon"><i class="fas fa-list-check"></i></div>
-        <div class="stat-content">
-          <div class="stat-value">0</div>
-          <div class="stat-label">Operaciones pendientes</div>
-        </div>
-      </div>
-      <div class="stat-item" id="photosCounter">
-        <div class="stat-icon"><i class="fas fa-camera"></i></div>
-        <div class="stat-content">
-          <div class="stat-value">0</div>
-          <div class="stat-label">Fotos pendientes</div>
-        </div>
-      </div>
+    <div id="uploadStatus" class="uploading-status">
+      <i class="fas fa-spinner fa-pulse"></i> Subiendo foto...
     </div>
-
-    <div id="syncActions" class="sync-actions">
-      <button id="syncAllBtn" class="btn btn-primary btn-block">
-        <i class="fas fa-cloud-upload-alt"></i> Sincronizar todo
-      </button>
-    </div>
-
-    <div class="offline-panel-tabs">
-      <button class="tab-btn active" data-tab="operations">Operaciones</button>
-      <button class="tab-btn" data-tab="photos">Fotos</button>
-    </div>
-
-    <div class="tab-content">
-      <div id="operationsTab" class="tab-pane active">
-        <div id="pendingOperationsList" class="pending-list">
-          <div class="empty-state">
-            <i class="fas fa-check-circle"></i>
-            <p>No hay operaciones pendientes</p>
-          </div>
-        </div>
-      </div>
-      <div id="photosTab" class="tab-pane">
-        <div id="pendingPhotosList" class="pending-list photo-grid">
-          <div class="empty-state">
-            <i class="fas fa-check-circle"></i>
-            <p>No hay fotos pendientes</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div id="syncStatus" class="sync-status"></div>
+    <!-- Input oculto para evitar que el teclado aparezca en dispositivos móviles -->
+    <input type="text" id="dummyInput" style="position: absolute; opacity: 0; height: 0; width: 0;" readonly />
   </div>
 
-<script>
+  <script>
     // Configuración y constantes
     const CONFIG = {
       VERSION: "4.0.0",
@@ -1691,319 +1645,5 @@
     }
   </script>
 
-  <!-- Scripts para la aplicación -->
-  <script>
-    // Código JavaScript existente...
-    
-    // Modificaciones necesarias para integrar el sistema offline:
-    
-    // 1. Función modificada para procesar entregas con soporte offline
-    function procesarEntrega(documento, lote, referencia, cantidad, factura, nit, btnElement) {
-      // Verificar si el sistema offline está disponible
-      if (window.offlineIntegration && typeof window.offlineIntegration.procesarEntregaOffline === 'function') {
-        // Usar la versión con soporte offline
-        window.offlineIntegration.procesarEntregaOffline(documento, lote, referencia, cantidad, factura, nit, btnElement);
-      } else {
-        // Código original como respaldo
-        const datos = {
-          documento: documento,
-          lote: lote || '',
-          referencia: referencia || '',
-          cantidad: parseFloat(cantidad) || 0,
-          factura: factura,
-          nit: nit || ''
-        };
-        
-        // Luego abrimos la cámara automáticamente
-        setTimeout(() => {
-          abrirCamara(factura);
-        }, 500);
-      }
-    }
-    
-    // 2. Función modificada para subir fotos con soporte offline
-    function subirFoto() {
-      if (!currentDocumentData || !photoBlob) {
-        console.error("No hay datos disponibles para subir");
-        return;
-      }
-      
-      const { factura, btnElement } = currentDocumentData;
-      const takePhotoBtn = document.getElementById('takePhotoBtn');
-      const uploadStatus = document.getElementById('uploadStatus');
-      
-      // Deshabilitar botón y mostrar estado de carga
-      takePhotoBtn.disabled = true;
-      takePhotoBtn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Subiendo...';
-      uploadStatus.style.display = 'flex';
-      uploadStatus.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Subiendo foto...';
-      
-      // Verificar si estamos offline y tenemos soporte para gestión offline
-      if (!navigator.onLine && window.offlineIntegration && typeof window.offlineIntegration.saveOfflinePhoto === 'function') {
-        // Crear objeto con metadatos de la foto
-        const metadata = {
-          documento: currentQRParts ? currentQRParts.documento : '',
-          nit: currentQRParts ? currentQRParts.nit : '',
-          lote: obtenerLoteDesdeUI(),
-          referencia: obtenerReferenciaDesdeUI(),
-          cantidad: obtenerCantidadDesdeUI()
-        };
-        
-        // Guardar en sistema offline
-        window.offlineIntegration.saveOfflinePhoto(photoBlob, factura, metadata)
-          .then(() => {
-            uploadStatus.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Guardada offline';
-            takePhotoBtn.innerHTML = '<i class="fas fa-check"></i> Guardada offline';
-            
-            // Actualizar el botón de entregas
-            if (btnElement) {
-              btnElement.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Entrega pendiente';
-              btnElement.style.backgroundColor = '#F8961E';
-            }
-            
-            setTimeout(cerrarCamara, 2000);
-          })
-          .catch(error => {
-            console.error("Error al guardar foto offline:", error);
-            uploadStatus.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error al guardar';
-            takePhotoBtn.disabled = false;
-            takePhotoBtn.innerHTML = '<i class="fas fa-redo"></i> Reintentar';
-          });
-        
-        return;
-      }
-      
-      // Si estamos online, procedemos con el código original
-      // Convertir blob a base64
-      const reader = new FileReader();
-      reader.onloadend = function() {
-        // Extraer solo la parte base64 de la cadena
-        const base64Data = reader.result.split(',')[1];
-        const nombreArchivo = factura.replace(/[^a-zA-Z0-9\-]/g, '') + '.jpg';
-        
-        // Obtener NIT de las partes actuales del QR
-        const nit = currentQRParts ? currentQRParts.nit : '';
-        const documento = currentQRParts ? currentQRParts.documento : '';
-        
-        // Obtener valores de lote, referencia y cantidad
-        let lote = obtenerLoteDesdeUI();
-        let referencia = obtenerReferenciaDesdeUI();
-        let cantidad = obtenerCantidadDesdeUI();
-        
-        // Crear FormData para la solicitud
-        const formData = new FormData();
-        formData.append('documento', documento);
-        formData.append('lote', lote);
-        formData.append('referencia', referencia);
-        formData.append('cantidad', cantidad);
-        formData.append('factura', factura);
-        formData.append('nit', nit);
-        formData.append('fotoBase64', base64Data);
-        formData.append('fotoNombre', nombreArchivo);
-        formData.append('fotoTipo', 'image/jpeg');
-        
-        // Realizar la solicitud fetch
-        fetch(API_URL_POST, {
-          method: 'POST',
-          body: formData
-        })
-        .then(response => {
-          if (!response.ok) {
-            throw new Error(`Error HTTP: ${response.status}`);
-          }
-          return response.json();
-        })
-        .then(result => {
-          if (result.success) {
-            // Éxito
-            uploadStatus.innerHTML = '<i class="fas fa-check-circle"></i> Foto subida correctamente';
-            takePhotoBtn.innerHTML = '<i class="fas fa-check"></i> Foto subida';
-            
-            // Marcar como completado en el botón de entregas
-            if (btnElement) {
-              btnElement.innerHTML = '<i class="fas fa-check-circle"></i> Entregado con foto';
-              btnElement.style.backgroundColor = '#28a745';
-            }
-            
-            setTimeout(cerrarCamara, 1500);
-          } else {
-            throw new Error(result.message || "Error al guardar la foto");
-          }
-        })
-        .catch(error => {
-          console.error("Error al subir foto:", error);
-          uploadStatus.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error al subir foto';
-          takePhotoBtn.disabled = false;
-          takePhotoBtn.innerHTML = '<i class="fas fa-redo"></i> Reintentar';
-          
-          // Si estamos offline, guardamos localmente para sincronizar después
-          if (!navigator.onLine && window.offlineIntegration) {
-            const metadata = {
-              documento: documento,
-              nit: nit,
-              lote: lote,
-              referencia: referencia,
-              cantidad: cantidad
-            };
-            
-            window.offlineIntegration.saveOfflinePhoto(photoBlob, factura, metadata)
-              .then(() => {
-                uploadStatus.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Guardada offline';
-                setTimeout(cerrarCamara, 2000);
-              });
-          }
-        });
-      };
-      
-      reader.onerror = function() {
-        console.error("Error al leer la imagen");
-        uploadStatus.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error al leer la imagen';
-        takePhotoBtn.disabled = false;
-        takePhotoBtn.innerHTML = '<i class="fas fa-redo"></i> Reintentar';
-      };
-      
-      // Iniciar la lectura del blob de la imagen
-      reader.readAsDataURL(photoBlob);
-    }
-    
-    // Funciones auxiliares para obtener datos desde la UI
-    function obtenerLoteDesdeUI() {
-      let lote = '';
-      try {
-        const loteElements = document.querySelectorAll('.result-row');
-        for (let i = 0; i < loteElements.length; i++) {
-          if (loteElements[i].textContent.includes('Lote')) {
-            const valueElement = loteElements[i].querySelector('.json-value');
-            if (valueElement) {
-              lote = valueElement.textContent.trim();
-            }
-            break;
-          }
-        }
-      } catch (e) {
-        console.warn("Error al extraer lote de la UI:", e);
-      }
-      return lote;
-    }
-    
-    function obtenerReferenciaDesdeUI() {
-      let referencia = '';
-      try {
-        const refElements = document.querySelectorAll('.result-row');
-        for (let i = 0; i < refElements.length; i++) {
-          if (refElements[i].textContent.includes('Referencia')) {
-            const valueElement = refElements[i].querySelector('.json-value');
-            if (valueElement) {
-              referencia = valueElement.textContent.trim();
-            }
-            break;
-          }
-        }
-      } catch (e) {
-        console.warn("Error al extraer referencia de la UI:", e);
-      }
-      return referencia;
-    }
-    
-    function obtenerCantidadDesdeUI() {
-      let cantidad = 0;
-      try {
-        const cantElements = document.querySelectorAll('.result-row');
-        for (let i = 0; i < cantElements.length; i++) {
-          if (cantElements[i].textContent.includes('Cantidad')) {
-            const valueElement = cantElements[i].querySelector('.json-value');
-            if (valueElement) {
-              cantidad = parseFloat(valueElement.textContent.trim()) || 0;
-            }
-            break;
-          }
-        }
-      } catch (e) {
-        console.warn("Error al extraer cantidad de la UI:", e);
-      }
-      return cantidad;
-    }
-    
-    // 3. Actualización de la función para mostrar el estado
-    function actualizarInfoEstado() {
-      const dataStats = document.getElementById('data-stats');
-      const statusDiv = document.getElementById('status');
-      
-      // Verificar si el sistema offline está disponible
-      if (window.offlineManager) {
-        Promise.all([
-          window.offlineManager.getPendingOperationsCount(),
-          window.offlineManager.getPendingPhotosCount()
-        ])
-        .then(([operationsCount, photosCount]) => {
-          const totalPending = operationsCount + photosCount;
-          
-          if (totalPending > 0) {
-            // Actualizar el indicador de estado
-            if (statusDiv) {
-              statusDiv.innerHTML += ` <span class="offline-badge-counter">
-                <i class="fas fa-clock"></i> ${totalPending} pendiente${totalPending !== 1 ? 's' : ''}
-              </span>`;
-              
-              // Si estamos online, añadir opción para sincronizar
-              if (navigator.onLine && window.offlineIntegration) {
-                statusDiv.innerHTML += ` <a href="#" onclick="window.offlineIntegration.syncAllPendingData(); return false;" style="margin-left:8px; color:var(--success);">
-                  <i class="fas fa-sync-alt"></i> Sincronizar
-                </a>`;
-              }
-            }
-            
-            // Actualizar también la estadística de datos si existe
-            if (dataStats) {
-              dataStats.innerHTML += ` · <span style="color:var(--warning-dark);">
-                ${totalPending} elemento${totalPending !== 1 ? 's' : ''} pendiente${totalPending !== 1 ? 's' : ''}
-              </span>`;
-            }
-          }
-        })
-        .catch(error => {
-          console.error('Error al obtener conteo de elementos pendientes:', error);
-        });
-      }
-    }
-    
-    // 4. Event listeners adicionales para el sistema offline
-    document.addEventListener('DOMContentLoaded', () => {
-      // Código existente...
-      
-      // Añadir verificación periódica del estado offline
-      setInterval(() => {
-        if (window.offlineManager && document.getElementById('scanner').style.display !== 'none') {
-          actualizarInfoEstado();
-        }
-      }, 30000); // Actualizar cada 30 segundos
-      
-      // Actualizar el estado cuando cambia la conexión
-      window.addEventListener('online', function() {
-        if (window.offlineIntegration) {
-          window.offlineIntegration.showToast('Conexión restablecida', 'success');
-          actualizarInfoEstado();
-          
-          // Intentar sincronizar automáticamente después de un breve retardo
-          setTimeout(() => {
-            if (window.offlineIntegration.syncAllPendingData) {
-              window.offlineIntegration.syncAllPendingData();
-            }
-          }, 3000);
-        }
-      });
-      
-      window.addEventListener('offline', function() {
-        if (window.offlineIntegration) {
-          window.offlineIntegration.showToast('Sin conexión - Modo offline', 'warning');
-          actualizarInfoEstado();
-        }
-      });
-    });
-  </script>
-  
-  <!-- Cargar scripts para el sistema offline -->
-  <script src="offline-manager.js"></script>
-  <script src="offline-integration.js"></script>
 </body>
 </html>
