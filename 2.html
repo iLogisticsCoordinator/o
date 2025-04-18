@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#ffffff" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
@@ -40,18 +40,6 @@
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      touch-action: manipulation;
-    }
-    
-    html, body {
-      overflow: hidden;
-      position: fixed;
-      width: 100%;
-      height: 100%;
-      max-width: 100%;
-      max-height: 100%;
-      overscroll-behavior: none;
-      -webkit-text-size-adjust: 100%;
     }
     
     body {
@@ -60,27 +48,12 @@
       padding: 0;
       background: var(--bg-color);
       color: var(--dark);
-      touch-action: none;
+      touch-action: manipulation;
       -webkit-touch-callout: none;
       -webkit-user-select: none;
       user-select: none;
       line-height: 1.5;
       font-size: 15px;
-      overflow: auto;
-      -webkit-overflow-scrolling: touch;
-    }
-    
-    /* Deshabilitar doble-tap para zoom */
-    input, button, select, textarea, a {
-      touch-action: manipulation;
-    }
-    
-    /* Evitar selección de texto */
-    * {
-      -webkit-user-select: none;
-      -moz-user-select: none;
-      -ms-user-select: none;
-      user-select: none;
     }
     
     /* Pantalla de carga */
@@ -97,15 +70,6 @@
       align-items: center;
       z-index: 9999;
       transition: opacity 0.5s ease;
-      width: 100%;
-      height: 100%;
-      max-width: 800px;
-      margin: 0 auto;
-      overflow: hidden;
-      touch-action: none;
-      -webkit-touch-callout: none;
-      -webkit-user-select: none;
-      user-select: none;
     }
     
     .logo {
@@ -194,7 +158,6 @@
       box-shadow: 0 0 20px rgba(0,0,0,0.1);
       background: var(--card-bg);
       position: relative;
-      overflow: hidden;
     }
     
     /* Estilos de la barra de código QR */
@@ -216,7 +179,6 @@
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
       transition: all 0.3s ease;
       appearance: none;
-      touch-action: manipulation;
     }
     
     #barcode::placeholder {
@@ -285,7 +247,6 @@
       overflow-y: auto;
       padding: 15px;
       background: #ffffff;
-      -webkit-overflow-scrolling: touch;
     }
     
     .result-item {
@@ -428,8 +389,6 @@
       transition: var(--transition);
       border: none;
       gap: 8px;
-      touch-action: manipulation;
-      -webkit-tap-highlight-color: transparent;
     }
     
     .btn-primary {
@@ -493,8 +452,6 @@
       justify-content: center;
       gap: 8px;
       margin-top: 10px;
-      touch-action: manipulation;
-      -webkit-tap-highlight-color: transparent;
     }
     
     .delivery-btn:hover {
@@ -564,8 +521,7 @@
       justify-content: center;
       -webkit-user-select: none;
       user-select: none;
-      touch-action: none;
-      overflow: hidden;
+      touch-action: manipulation;
     }
     
     .camera-view {
@@ -650,189 +606,6 @@
       font-size: 14px;
       color: var(--primary-dark);
     }
-
-    /* NUEVO: Contador de elementos pendientes */
-    .pending-counter {
-      position: fixed;
-      top: 10px;
-      right: 10px;
-      background-color: var(--danger);
-      color: white;
-      border-radius: 50%;
-      width: 30px;
-      height: 30px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      font-size: 14px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-      z-index: 1000;
-      animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-      0% {
-        transform: scale(1);
-        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-      }
-      50% {
-        transform: scale(1.05);
-        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-      }
-      100% {
-        transform: scale(1);
-        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-      }
-    }
-
-    /* NUEVO: Toast de notificación para procesos en segundo plano */
-    .toast-notification {
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background-color: rgba(51, 51, 51, 0.9);
-      color: white;
-      padding: 10px 15px;
-      border-radius: 4px;
-      font-size: 14px;
-      max-width: 80%;
-      z-index: 1001;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.2);
-      transition: opacity 0.3s, transform 0.3s;
-      opacity: 0;
-      transform: translateX(-50%) translateY(20px);
-    }
-
-    .toast-notification.visible {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
-    }
-
-    .toast-notification.success {
-      background-color: rgba(40, 167, 69, 0.9);
-    }
-
-    .toast-notification.error {
-      background-color: rgba(220, 53, 69, 0.9);
-    }
-
-    /* NUEVO: Modal de pendientes */
-    .pending-modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0,0,0,0.7);
-      z-index: 10001;
-      align-items: center;
-      justify-content: center;
-      touch-action: none;
-      overflow: hidden;
-    }
-
-    .pending-modal-content {
-      background-color: white;
-      width: 90%;
-      max-width: 500px;
-      border-radius: 8px;
-      padding: 20px;
-      max-height: 80vh;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-    }
-
-    .pending-modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 15px;
-      padding-bottom: 10px;
-      border-bottom: 1px solid var(--border-color);
-    }
-
-    .pending-modal-title {
-      font-size: 18px;
-      font-weight: bold;
-      color: var(--dark);
-    }
-
-    .pending-modal-close {
-      font-size: 22px;
-      color: var(--gray);
-      background: none;
-      border: none;
-      cursor: pointer;
-      touch-action: manipulation;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    .pending-modal-footer {
-      margin-top: 15px;
-      padding-top: 10px;
-      border-top: 1px solid var(--border-color);
-      display: flex;
-      justify-content: flex-end;
-    }
-
-    .pending-item {
-      padding: 10px;
-      margin-bottom: 10px;
-      border-radius: 4px;
-      background-color: var(--light);
-      border-left: 3px solid var(--warning);
-    }
-
-    .pending-item-header {
-      display: flex;
-      justify-content: space-between;
-      font-weight: 500;
-      margin-bottom: 5px;
-    }
-
-    .pending-item-time {
-      font-size: 12px;
-      color: var(--gray);
-    }
-
-    .sync-btn {
-      background-color: var(--primary);
-      color: white;
-      border: none;
-      border-radius: 4px;
-      padding: 8px 12px;
-      font-size: 14px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      touch-action: manipulation;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    .sync-btn:hover {
-      background-color: var(--primary-dark);
-    }
-
-    /* NUEVO: Indicador de progreso mini */
-    .mini-progress {
-      width: 100%;
-      height: 4px;
-      background-color: var(--gray-light);
-      border-radius: 2px;
-      overflow: hidden;
-      margin-top: 5px;
-    }
-
-    .mini-progress-bar {
-      height: 100%;
-      background-color: var(--success);
-      width: 0%;
-      transition: width 0.3s ease;
-    }
   </style>
 </head>
 <body>
@@ -847,30 +620,6 @@
     <h1>PandaDash</h1>
     <div class="name">Andrés Mendoza</div>
     <button id="installBtn">Instalar App</button>
-  </div>
-
-  <!-- NUEVO: Contador de pendientes -->
-  <div id="pendingCounter" class="pending-counter" style="display: none;">0</div>
-
-  <!-- NUEVO: Toast de notificación -->
-  <div id="toastNotification" class="toast-notification">
-    <span id="toastMessage"></span>
-  </div>
-
-  <!-- NUEVO: Modal para ver elementos pendientes -->
-  <div id="pendingModal" class="pending-modal">
-    <div class="pending-modal-content">
-      <div class="pending-modal-header">
-        <div class="pending-modal-title">Elementos pendientes de sincronizar</div>
-        <button class="pending-modal-close" id="pendingModalClose">&times;</button>
-      </div>
-      <div id="pendingItems"></div>
-      <div class="pending-modal-footer">
-        <button id="syncAllBtn" class="sync-btn">
-          <i class="fas fa-sync-alt"></i> Sincronizar todos
-        </button>
-      </div>
-    </div>
   </div>
 
   <!-- Contenido principal -->
@@ -910,15 +659,13 @@
   <script>
     // Configuración y constantes
     const CONFIG = {
-      VERSION: "4.1.0", // Incrementado por nuevas funcionalidades
+      VERSION: "4.0.0",
       CACHE_TTL: 24 * 60 * 60 * 1000, // 24 horas en milisegundos
       MAX_IMAGE_SIZE: 800, // Tamaño máximo para redimensionar imágenes
       MAX_CHUNK_SIZE: 50000, // ~50KB por solicitud
-      SYNC_INTERVAL: 60 * 1000, // Intentar sincronización cada 60 segundos
-      TOAST_DURATION: 3000, // Duración de las notificaciones toast en ms
     };
     
-    // API URLs
+    // API URLs - Variables globales que faltaban en el código original
     const API_URL_GET = "https://script.google.com/macros/s/AKfycbwz6LT-e4m3R74wRvC5h4isRE4wmSnzpa-MJtYnAg56PCWbrwI3rdwbekWxauVPGrsmLw/exec";
     const API_URL_POST = "https://script.google.com/macros/s/AKfycbwgnkjVCMWlWuXnVaxSBD18CGN3rXGZtQZIvX9QlBXSgbQndWC4uqQ2sc00DuNH6yrb/exec";
 
@@ -930,10 +677,6 @@
     let preventKeyboardTimer = null;
     let currentQRParts = null; // Para almacenar las partes del QR actual
     let dataLoaded = false;
-    let syncInProgress = false; // NUEVO: Para controlar sincronización en segundo plano
-    let backgroundUploadQueue = []; // NUEVO: Cola para subir fotos en segundo plano
-    let pendingItemsCount = 0; // NUEVO: Contador de elementos pendientes
-    let syncInterval = null; // NUEVO: Intervalo para sincronización periódica
     
     // Elementos del DOM
     const loadingScreen = document.getElementById('loadingScreen');
@@ -944,112 +687,41 @@
     const dataStats = document.getElementById('data-stats');
     const offlineBanner = document.getElementById('offline-banner');
     const installBtn = document.getElementById('installBtn');
-    const pendingCounter = document.getElementById('pendingCounter'); // NUEVO
-    const toastNotification = document.getElementById('toastNotification'); // NUEVO
-    const toastMessage = document.getElementById('toastMessage'); // NUEVO
-    const pendingModal = document.getElementById('pendingModal'); // NUEVO
-    const pendingItems = document.getElementById('pendingItems'); // NUEVO
-    const pendingModalClose = document.getElementById('pendingModalClose'); // NUEVO
-    const syncAllBtn = document.getElementById('syncAllBtn'); // NUEVO
-    
-    // NUEVO: Detector de click en el contador de pendientes
-    if (pendingCounter) {
-      pendingCounter.addEventListener('click', showPendingModal);
-    }
-
-    // NUEVO: Funciones para mostrar y ocultar el modal de pendientes
-    function showPendingModal() {
-      updatePendingItems();
-      pendingModal.style.display = 'flex';
-    }
-    
-    function hidePendingModal() {
-      pendingModal.style.display = 'none';
-    }
-    
-    // NUEVO: Botón para cerrar el modal
-    if (pendingModalClose) {
-      pendingModalClose.addEventListener('click', hidePendingModal);
-    }
-    
-    // NUEVO: Botón para sincronizar todos los elementos pendientes
-    if (syncAllBtn) {
-      syncAllBtn.addEventListener('click', syncAllPendingItems);
-    }
-    
-    // NUEVO: Funciones para mostrar notificaciones toast
-    function showToast(message, type = '') {
-      toastMessage.textContent = message;
-      toastNotification.className = 'toast-notification';
-      if (type) {
-        toastNotification.classList.add(type);
-      }
-      toastNotification.classList.add('visible');
-      
-      // Ocultar después de un tiempo
-      setTimeout(() => {
-        toastNotification.classList.remove('visible');
-      }, CONFIG.TOAST_DURATION);
-    }
     
     // Detector de eventos para PWA Install
     let deferredPrompt;
-
-    // Mostrar el botón de instalación por defecto
-installBtn.style.display = 'block';
-
     
     window.addEventListener('beforeinstallprompt', (e) => {
-  // Prevenir que Chrome muestre automáticamente el prompt
-  e.preventDefault();
-  // Guardar el evento para usarlo después
-  deferredPrompt = e;
-  // Mostrar el botón de instalación
-  installBtn.style.display = 'block';
-});
+      // Prevenir que Chrome muestre automáticamente el prompt
+      e.preventDefault();
+      // Guardar el evento para usarlo después
+      deferredPrompt = e;
+      // Mostrar el botón de instalación
+      installBtn.style.display = 'block';
+    });
     
     installBtn.addEventListener('click', async () => {
-  if (deferredPrompt) {
-    // Mostrar el prompt de instalación
-    deferredPrompt.prompt();
-    // Esperar a que el usuario responda al prompt
-    const choiceResult = await deferredPrompt.userChoice;
-    if (choiceResult.outcome === 'accepted') {
-      console.log('App instalada');
-    } else {
-      console.log('Instalación cancelada');
-    }
-    // Limpiar el prompt guardado
-    deferredPrompt = null;
-  } else {
-    // Si no hay prompt disponible, intentar técnica alternativa
-    alert("Para instalar la aplicación: Presiona el botón de menú en tu navegador y selecciona 'Añadir a pantalla de inicio' o 'Instalar aplicación'");
-  }
-});
-
-
-
-
-
+      if (deferredPrompt) {
+        // Mostrar el prompt de instalación
+        deferredPrompt.prompt();
+        // Esperar a que el usuario responda al prompt
+        const choiceResult = await deferredPrompt.userChoice;
+        if (choiceResult.outcome === 'accepted') {
+          console.log('App instalada');
+        } else {
+          console.log('Instalación cancelada');
+        }
+        // Limpiar el prompt guardado
+        deferredPrompt = null;
+        // Ocultar botón
+        installBtn.style.display = 'none';
+      }
+    });
     
     // Registrar Service Worker
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('service-worker.js')
-          .then(registration => {
-            console.log('ServiceWorker registrado con éxito:', registration.scope);
-            
-            // NUEVO: Escuchar mensaje del service worker
-            navigator.serviceWorker.addEventListener('message', function(event) {
-              if (event.data && event.data.type === 'sync-complete') {
-                updatePendingCounter();
-                showToast('Sincronización completada', 'success');
-              }
-            });
-          })
-          .catch(error => {
-            console.error('Error al registrar ServiceWorker:', error);
-          });
+        navigator.serviceWorker.register('service-worker.js');
       });
     }
 
@@ -1159,7 +831,6 @@ installBtn.style.display = 'block';
       }, 'image/jpeg', 0.85);
     }
 
-    // MODIFICADO: Función para subir foto usando el sistema de cola
     function subirFoto() {
       if (!currentDocumentData || !photoBlob) {
         console.error("No hay datos disponibles para subir");
@@ -1172,16 +843,16 @@ installBtn.style.display = 'block';
       
       // Deshabilitar botón y mostrar estado de carga
       takePhotoBtn.disabled = true;
-      takePhotoBtn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Procesando...';
+      takePhotoBtn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Subiendo...';
       uploadStatus.style.display = 'flex';
-      uploadStatus.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Preparando...';
+      uploadStatus.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Subiendo foto...';
       
       // Convertir blob a base64
       const reader = new FileReader();
       reader.onloadend = function() {
         // Extraer solo la parte base64 de la cadena (eliminar el prefijo data:image/jpeg;base64,)
         const base64Data = reader.result.split(',')[1];
-        const nombreArchivo = factura.replace(/[^a-zA-Z0-9\-]/g, '') + '_' + Date.now() + '.jpg';
+        const nombreArchivo = factura.replace(/[^a-zA-Z0-9\-]/g, '') + '.jpg';
         
         // Obtener NIT de las partes actuales del QR
         const nit = currentQRParts ? currentQRParts.nit : '';
@@ -1193,7 +864,7 @@ installBtn.style.display = 'block';
         let cantidad = 0;
         
         try {
-          // Extraer datos de la UI
+          // Buscar elemento de lote
           const loteElements = document.querySelectorAll('.result-row');
           for (let i = 0; i < loteElements.length; i++) {
             if (loteElements[i].textContent.includes('Lote')) {
@@ -1205,6 +876,7 @@ installBtn.style.display = 'block';
             }
           }
           
+          // Buscar elemento de referencia
           // Buscar elemento de referencia
           const refElements = document.querySelectorAll('.result-row');
           for (let i = 0; i < refElements.length; i++) {
@@ -1231,51 +903,81 @@ installBtn.style.display = 'block';
         } catch (e) {
           console.warn("Error al extraer datos de la UI:", e);
         }
-
-        // NUEVO: Preparar datos para la cola de subida
-        const uploadData = {
-          id: Date.now().toString(),
-          type: 'photo',
-          data: {
-            documento: documento,
-            lote: lote,
-            referencia: referencia,
-            cantidad: cantidad,
-            factura: factura,
-            nit: nit,
-            nombreArchivo: nombreArchivo,
-            base64Data: base64Data,
-            timestamp: new Date().toISOString()
-          },
-          status: 'pending',
-          attempts: 0,
-          btnElement: btnElement
-        };
         
-        // NUEVO: Agregar a la cola y guardar en localStorage
-        addToUploadQueue(uploadData);
+        console.log("Datos extraídos:", {
+          lote: lote,
+          referencia: referencia,
+          cantidad: cantidad
+        });
         
-        // Mostrar mensaje de éxito y cerrar cámara rápidamente
-        uploadStatus.innerHTML = '<i class="fas fa-check-circle"></i> Procesado correctamente';
-        takePhotoBtn.innerHTML = '<i class="fas fa-check"></i> Listo';
+        // Crear FormData para la solicitud
+        const formData = new FormData();
+        formData.append('documento', documento);
+        formData.append('lote', lote);
+        formData.append('referencia', referencia);
+        formData.append('cantidad', cantidad);
+        formData.append('factura', factura);
+        formData.append('nit', nit);
+        formData.append('fotoBase64', base64Data);
+        formData.append('fotoNombre', nombreArchivo);
+        formData.append('fotoTipo', 'image/jpeg');
         
-        // Marcar botón como procesado pero pendiente
-        if (btnElement) {
-          btnElement.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Foto en proceso';
-          btnElement.style.backgroundColor = '#f8961e'; // Color warning
-          btnElement.setAttribute('data-upload-id', uploadData.id);
-        }
+        console.log("Enviando datos de foto:", {
+          documento,
+          lote,
+          referencia,
+          cantidad,
+          factura, 
+          nit,
+          fotoNombre: nombreArchivo,
+          fotoTipo: 'image/jpeg',
+          fotoBase64Length: base64Data ? base64Data.length : 0 // Solo el tamaño para debug
+        });
         
-        // Mostrar notificación
-        showToast('Foto procesada. Subiendo en segundo plano...', 'success');
-        
-        // Cerrar cámara rápidamente para que el usuario pueda seguir trabajando
-        setTimeout(cerrarCamara, 800);
-        
-        // Iniciar sincronización en segundo plano si no está en progreso
-        if (!syncInProgress) {
-          processUploadQueue();
-        }
+        // Realizar la solicitud fetch
+        fetch(API_URL_POST, {
+          method: 'POST',
+          body: formData
+        })
+        .then(response => {
+          // Verificar respuesta HTTP
+          if (!response.ok) {
+            throw new Error(`Error HTTP: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(result => {
+          console.log("Respuesta del servidor:", result);
+          
+          if (result.success) {
+            // Éxito
+            uploadStatus.innerHTML = '<i class="fas fa-check-circle"></i> Foto subida correctamente';
+            takePhotoBtn.innerHTML = '<i class="fas fa-check"></i> Foto subida';
+            
+            // Marcar como completado en el botón de entregas
+            if (btnElement) {
+              btnElement.innerHTML = '<i class="fas fa-check-circle"></i> Entregado con foto';
+              btnElement.style.backgroundColor = '#28a745';
+            }
+            
+            setTimeout(cerrarCamara, 1500);
+          } else {
+            throw new Error(result.message || "Error al guardar la foto");
+          }
+        })
+        .catch(error => {
+          console.error("Error al subir foto:", error);
+          uploadStatus.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error al subir foto';
+          takePhotoBtn.disabled = false;
+          takePhotoBtn.innerHTML = '<i class="fas fa-redo"></i> Reintentar';
+          
+          // Si estamos offline, guardamos localmente para sincronizar después
+          if (!navigator.onLine) {
+            saveOfflinePhoto(base64Data, nombreArchivo, factura);
+            uploadStatus.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Guardada offline';
+            setTimeout(cerrarCamara, 2000);
+          }
+        });
       };
       
       reader.onerror = function() {
@@ -1283,380 +985,14 @@ installBtn.style.display = 'block';
         uploadStatus.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error al leer la imagen';
         takePhotoBtn.disabled = false;
         takePhotoBtn.innerHTML = '<i class="fas fa-redo"></i> Reintentar';
-        showToast('Error al procesar la imagen', 'error');
       };
       
       // Iniciar la lectura del blob de la imagen
       reader.readAsDataURL(photoBlob);
     }
 
-    // NUEVO: Función para agregar elemento a la cola de subida
-    function addToUploadQueue(uploadData) {
-      // Cargar cola actual
-      loadBackgroundUploadQueue();
-      
-      // Agregar nuevo elemento
-      backgroundUploadQueue.push(uploadData);
-      
-      // Guardar cola actualizada
-      saveBackgroundUploadQueue();
-      
-      // Actualizar contador de pendientes
-      updatePendingCounter();
-    }
-    
-    // NUEVO: Cargar cola desde localStorage
-    function loadBackgroundUploadQueue() {
-      try {
-        const savedQueue = localStorage.getItem('pdaUploadQueue');
-        if (savedQueue) {
-          backgroundUploadQueue = JSON.parse(savedQueue);
-          
-          // Restaurar referencias de botones si es necesario
-          backgroundUploadQueue.forEach(item => {
-            if (item.data && item.data.factura) {
-              const btnSelector = `.delivery-btn[data-factura="${item.data.factura}"]`;
-              const btn = document.querySelector(btnSelector);
-              if (btn) {
-                item.btnElement = btn;
-                
-                // Actualizar apariencia de botón
-                if (item.status === 'pending') {
-                  btn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Foto en proceso';
-                  btn.style.backgroundColor = '#f8961e';
-                  btn.setAttribute('data-upload-id', item.id);
-                } else if (item.status === 'completed') {
-                  btn.innerHTML = '<i class="fas fa-check-circle"></i> Entregado con foto';
-                  btn.style.backgroundColor = '#28a745';
-                }
-              }
-            }
-          });
-        } else {
-          backgroundUploadQueue = [];
-        }
-      } catch (error) {
-        console.error("Error al cargar la cola de subida:", error);
-        backgroundUploadQueue = [];
-      }
-    }
-    
-    // NUEVO: Guardar cola en localStorage
-    function saveBackgroundUploadQueue() {
-      try {
-        // Clonar la cola para evitar guardar referencias del DOM
-        const queueToSave = backgroundUploadQueue.map(item => {
-          const itemClone = {...item};
-          delete itemClone.btnElement; // No guardar referencias del DOM
-          return itemClone;
-        });
-        
-        localStorage.setItem('pdaUploadQueue', JSON.stringify(queueToSave));
-      } catch (error) {
-        console.error("Error al guardar la cola de subida:", error);
-        // Si hay error por cuota excedida, limpiar elementos completados
-        if (error.name === 'QuotaExceededError') {
-          backgroundUploadQueue = backgroundUploadQueue.filter(item => item.status === 'pending');
-          saveBackgroundUploadQueue();
-        }
-      }
-    }
-    
-    // NUEVO: Procesar cola de subida en segundo plano
-    function processUploadQueue() {
-      if (syncInProgress || backgroundUploadQueue.length === 0) {
-        return;
-      }
-      
-      syncInProgress = true;
-      
-      // Encontrar el primer elemento pendiente
-      const pendingItem = backgroundUploadQueue.find(item => item.status === 'pending');
-      
-      if (!pendingItem) {
-        syncInProgress = false;
-        updatePendingCounter();
-        return;
-      }
-      
-      console.log(`Procesando elemento pendiente ${pendingItem.id}...`);
-      
-      // Marcar como en proceso
-      pendingItem.status = 'uploading';
-      pendingItem.attempts += 1;
-      saveBackgroundUploadQueue();
-      
-      // Preparar datos para el envío
-      const formData = new FormData();
-      
-      if (pendingItem.type === 'photo') {
-        const { documento, lote, referencia, cantidad, factura, nit, base64Data, nombreArchivo } = pendingItem.data;
-        
-        formData.append('documento', documento || '');
-        formData.append('lote', lote || '');
-        formData.append('referencia', referencia || '');
-        formData.append('cantidad', cantidad || 0);
-        formData.append('factura', factura || '');
-        formData.append('nit', nit || '');
-        formData.append('fotoBase64', base64Data || '');
-        formData.append('fotoNombre', nombreArchivo || '');
-        formData.append('fotoTipo', 'image/jpeg');
-      }
-      
-      // Actualizar UI de elementos pendientes
-      updatePendingItems();
-      
-      // Realizar solicitud
-      fetch(API_URL_POST, {
-        method: 'POST',
-        body: formData
-      })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`Error HTTP: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then(result => {
-        if (result.success) {
-          // Marcar como completado
-          pendingItem.status = 'completed';
-          pendingItem.completedAt = new Date().toISOString();
-          
-          // Actualizar botón en la UI si existe
-          if (pendingItem.btnElement) {
-            pendingItem.btnElement.innerHTML = '<i class="fas fa-check-circle"></i> Entregado con foto';
-            pendingItem.btnElement.style.backgroundColor = '#28a745';
-          }
-          
-          // Mostrar notificación si la sincronización fue iniciada manualmente
-          if (pendingItem.manualSync) {
-            showToast('Sincronización completada correctamente', 'success');
-          }
-        } else {
-          throw new Error(result.message || "Error al sincronizar");
-        }
-      })
-      .catch(error => {
-        console.error("Error al sincronizar:", error);
-        
-        // Si hay demasiados intentos fallidos o no hay conexión
-        if (pendingItem.attempts >= 3 || !navigator.onLine) {
-          pendingItem.status = 'failed';
-          pendingItem.error = error.message || "Error al sincronizar";
-          
-          // Mostrar notificación si la sincronización fue iniciada manualmente
-          if (pendingItem.manualSync) {
-            showToast('Error al sincronizar: ' + error.message, 'error');
-          }
-        } else {
-          // Devolver a pendiente para reintentar más tarde
-          pendingItem.status = 'pending';
-        }
-      })
-      .finally(() => {
-        // Guardar estado actualizado de la cola
-        saveBackgroundUploadQueue();
-        
-        // Actualizar UI
-        updatePendingCounter();
-        updatePendingItems();
-        
-        // Permitir procesar el siguiente elemento
-        syncInProgress = false;
-        
-        // Continuar procesando la cola si hay más elementos
-        if (backgroundUploadQueue.some(item => item.status === 'pending')) {
-          setTimeout(processUploadQueue, 1000); // Pequeña pausa entre solicitudes
-        }
-      });
-    }
-    
-    // NUEVO: Actualizar contador de elementos pendientes
-    function updatePendingCounter() {
-      // Cargar cola actual
-      loadBackgroundUploadQueue();
-      
-      // Contar elementos pendientes
-      const pendingCount = backgroundUploadQueue.filter(item => 
-        item.status === 'pending' || item.status === 'uploading'
-      ).length;
-      
-      // Actualizar contador en la UI
-      if (pendingCounter) {
-        if (pendingCount > 0) {
-          pendingCounter.textContent = pendingCount;
-          pendingCounter.style.display = 'flex';
-        } else {
-          pendingCounter.style.display = 'none';
-        }
-      }
-      
-      pendingItemsCount = pendingCount;
-      return pendingCount;
-    }
-    
-    // NUEVO: Actualizar lista de elementos pendientes en el modal
-    function updatePendingItems() {
-      if (!pendingItems) return;
-      
-      // Cargar cola actual
-      loadBackgroundUploadQueue();
-      
-      let html = '';
-      
-      if (backgroundUploadQueue.length === 0) {
-        html = '<div class="no-data" style="text-align: center; padding: 20px;">No hay elementos pendientes</div>';
-      } else {
-        // Ordenar por estado y tiempo
-        const sortedItems = [...backgroundUploadQueue].sort((a, b) => {
-          // Primero los que están en proceso
-          if (a.status === 'uploading' && b.status !== 'uploading') return -1;
-          if (b.status === 'uploading' && a.status !== 'uploading') return 1;
-          
-          // Luego los pendientes
-          if (a.status === 'pending' && b.status !== 'pending') return -1;
-          if (b.status === 'pending' && a.status !== 'pending') return 1;
-          
-          // Por último los completados y fallidos, ordenados por tiempo
-          return new Date(b.data.timestamp) - new Date(a.data.timestamp);
-        });
-        
-        sortedItems.forEach(item => {
-          let statusClass = '';
-          let statusText = '';
-          let statusIcon = '';
-          
-          switch (item.status) {
-            case 'pending':
-              statusClass = 'var(--warning)';
-              statusText = 'Pendiente';
-              statusIcon = '<i class="fas fa-clock"></i>';
-              break;
-            case 'uploading':
-              statusClass = 'var(--primary)';
-              statusText = 'Subiendo';
-              statusIcon = '<i class="fas fa-sync fa-spin"></i>';
-              break;
-            case 'completed':
-              statusClass = 'var(--success)';
-              statusText = 'Completado';
-              statusIcon = '<i class="fas fa-check-circle"></i>';
-              break;
-            case 'failed':
-              statusClass = 'var(--danger)';
-              statusText = 'Error';
-              statusIcon = '<i class="fas fa-exclamation-circle"></i>';
-              break;
-          }
-          
-          let itemDetails = '';
-          
-          if (item.type === 'photo') {
-            itemDetails = `
-              <div>Factura: ${item.data.factura || 'N/A'}</div>
-              <div>Lote: ${item.data.lote || 'N/A'}</div>
-              <div>Documento: ${item.data.documento || 'N/A'}</div>
-            `;
-          }
-          
-          // Crear barra de progreso para elementos en carga
-          let progressBar = '';
-          if (item.status === 'uploading') {
-            progressBar = `
-              <div class="mini-progress">
-                <div class="mini-progress-bar" style="width: ${Math.min((item.attempts/3) * 100, 100)}%"></div>
-              </div>
-            `;
-          }
-          
-          // Botón de reintento para elementos fallidos
-          let retryButton = '';
-          if (item.status === 'failed') {
-            retryButton = `
-              <button class="btn btn-sm btn-primary retry-btn" data-id="${item.id}">
-                <i class="fas fa-redo"></i> Reintentar
-              </button>
-            `;
-          }
-          
-          html += `
-            <div class="pending-item" style="border-left-color: ${statusClass}">
-              <div class="pending-item-header">
-                <div>${statusIcon} ${statusText}</div>
-                <div class="pending-item-time">${formatRelativeTime(new Date(item.data.timestamp))}</div>
-              </div>
-              ${itemDetails}
-              ${progressBar}
-              ${retryButton}
-            </div>
-          `;
-        });
-      }
-      
-      pendingItems.innerHTML = html;
-      
-      // Agregar listeners para botones de reintento
-      document.querySelectorAll('.retry-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-          const itemId = this.getAttribute('data-id');
-          retryUpload(itemId);
-        });
-      });
-    }
-    
-    // NUEVO: Función para reintentar subida de un elemento
-    function retryUpload(itemId) {
-      const itemIndex = backgroundUploadQueue.findIndex(item => item.id === itemId);
-      
-      if (itemIndex !== -1) {
-        backgroundUploadQueue[itemIndex].status = 'pending';
-        backgroundUploadQueue[itemIndex].manualSync = true; // Marcar como sincronización manual
-        backgroundUploadQueue[itemIndex].attempts = 0; // Reiniciar intentos
-        
-        saveBackgroundUploadQueue();
-        updatePendingItems();
-        
-        // Iniciar sincronización inmediatamente
-        if (!syncInProgress) {
-          processUploadQueue();
-        }
-      }
-    }
-    
-    // NUEVO: Sincronizar todos los elementos pendientes
-    function syncAllPendingItems() {
-      // Marcar todos los elementos fallidos como pendientes
-      backgroundUploadQueue.forEach(item => {
-        if (item.status === 'failed') {
-          item.status = 'pending';
-          item.attempts = 0;
-          item.manualSync = true; // Marcar como sincronización manual
-        }
-      });
-      
-      saveBackgroundUploadQueue();
-      updatePendingItems();
-      
-      showToast('Iniciando sincronización de todos los pendientes...', 'success');
-      
-      // Iniciar sincronización
-      if (!syncInProgress) {
-        processUploadQueue();
-      }
-    }
-    
-    // NUEVO: Formatear tiempo relativo
-    function formatRelativeTime(date) {
-      const now = new Date();
-      const diff = Math.floor((now - date) / 1000); // Diferencia en segundos
-      
-      if (diff < 60) return 'hace unos segundos';
-      if (diff < 3600) return `hace ${Math.floor(diff / 60)} minutos`;
-      if (diff < 86400) return `hace ${Math.floor(diff / 3600)} horas`;
-      return `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
-    }
-    
+
+
     // Función auxiliar para reducir el tamaño de la imagen
     async function reduceImageSize(base64Data) {
       return new Promise((resolve, reject) => {
@@ -1700,27 +1036,55 @@ installBtn.style.display = 'block';
       });
     }
 
-    // Guardar datos offline (ahora solo registra, la sincronización se hace por la cola)
-    function saveOfflineData(action, data) {
+    // Función actualizada para subir imágenes sin restricción de tamaño
+    async function uploadImageToServer(base64Data, nombreArchivo, factura, btnElement, takePhotoBtn, uploadStatus) {
       try {
-        // Si es una foto, usar el nuevo sistema de cola
-        if (action === 'guardarFoto') {
-          addToUploadQueue({
-            id: Date.now().toString(),
-            type: 'photo',
-            data: {
-              ...data,
-              timestamp: new Date().toISOString()
-            },
-            status: 'pending',
-            attempts: 0
-          });
-          return;
+        // Enviar la imagen completa sin dividirla
+        const url = `${API_URL_POST}?action=guardarFoto&base64Data=${encodeURIComponent(base64Data)}&nombreArchivo=${encodeURIComponent(nombreArchivo)}&factura=${encodeURIComponent(factura)}&nocache=${new Date().getTime()}`;
+        
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`Error HTTP: ${response.status}`);
         }
         
-        // Para otros tipos de datos, usar el sistema anterior
+        const result = await response.json();
+        if (!result.success) {
+          throw new Error(result.error || "Error al guardar la foto");
+        }
+        
+        uploadStatus.innerHTML = '<i class="fas fa-check-circle"></i> Foto subida correctamente';
+        takePhotoBtn.innerHTML = '<i class="fas fa-check"></i> Foto subida';
+        
+        // Marcar como completado en el botón de entregas
+        if (btnElement) {
+          btnElement.innerHTML = '<i class="fas fa-check-circle"></i> Entregado con foto';
+          btnElement.style.backgroundColor = '#28a745';
+        }
+        
+        setTimeout(cerrarCamara, 1500);
+      } catch (error) {
+        console.error("Error al subir foto:", error);
+        uploadStatus.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error al subir foto';
+        takePhotoBtn.disabled = false;
+        takePhotoBtn.innerHTML = '<i class="fas fa-redo"></i> Reintentar';
+        
+        // Si estamos offline, guardamos localmente para sincronizar después
+        if (!navigator.onLine) {
+          saveOfflinePhoto(base64Data, nombreArchivo, factura);
+          uploadStatus.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Guardada offline';
+          setTimeout(cerrarCamara, 2000);
+        }
+      }
+    }
+
+    // Funciones para manejo offline
+    // Guardar datos para sincronizar después
+    function saveOfflineData(action, data) {
+      try {
+        // Obtenemos los datos actuales o inicializamos un array vacío
         const savedData = JSON.parse(localStorage.getItem('pdaOfflineData') || '[]');
         
+        // Agregamos el nuevo item
         savedData.push({
           id: Date.now(),
           action: action,
@@ -1728,6 +1092,7 @@ installBtn.style.display = 'block';
           timestamp: new Date().toISOString()
         });
         
+        // Guardamos de vuelta en localStorage
         localStorage.setItem('pdaOfflineData', JSON.stringify(savedData));
         
         // Registramos para sync cuando haya conexión
@@ -1741,23 +1106,16 @@ installBtn.style.display = 'block';
       }
     }
 
-    // NUEVO: Versión optimizada para guardar foto offline
+    // Guardar foto offline (versión simplificada)
     function saveOfflinePhoto(base64Data, nombreArchivo, factura) {
-      // Usar el nuevo sistema de cola
-      addToUploadQueue({
-        id: Date.now().toString(),
-        type: 'photo',
-        data: {
-          base64Data: base64Data,
-          nombreArchivo: nombreArchivo,
-          factura: factura,
-          timestamp: new Date().toISOString()
-        },
-        status: 'pending',
-        attempts: 0
+      saveOfflineData('guardarFoto', {
+        base64Data: base64Data.substring(0, 100) + '...', // Solo guardamos una referencia
+        nombreArchivo: nombreArchivo,
+        factura: factura,
+        timestamp: new Date().toISOString()
       });
       
-      showToast('Foto guardada. Se subirá automáticamente cuando haya conexión.', 'success');
+      alert("Las fotos no se pueden guardar completamente en modo offline. Se registrará la entrega, pero deberás subir la foto cuando tengas conexión.");
     }
 
     // Función para cerrar la cámara
@@ -1849,49 +1207,10 @@ installBtn.style.display = 'block';
 
     // Inicialización al cargar el documento
     document.addEventListener('DOMContentLoaded', () => {
-  // Fix para iOS para asegurar que no haya escalado
-  const setViewportMeta = () => {
-    const viewportMeta = document.querySelector('meta[name="viewport"]');
-    if (viewportMeta) {
-      viewportMeta.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover');
-    }
-  };
-  
-  // Asegurar que el viewport esté configurado correctamente
-  setViewportMeta();
-  
-  // AÑADIR ESTO: Agregar un timeout de seguridad para mostrar la aplicación
-  setTimeout(() => {
-    if (document.getElementById('loadingScreen').style.display !== 'none') {
-      console.log("Timeout de seguridad activado - mostrando aplicación");
-      hideLoadingScreen();
-    }
-  }, 10000); // 10 segundos máximo de pantalla de carga
-  
-  // Configurar botón de instalación manualmente para asegurar que funcione
-  const installBtn = document.getElementById('installBtn');
-  installBtn.style.display = 'block'; // Mostrar el botón por defecto
-  
-  // Algunos dispositivos iOS pueden ignorar el atributo user-scalable=no
-  // Este hack crea un elemento div del tamaño de la ventana para bloquear el zoom
-  const preventZoomDiv = document.createElement('div');
-  preventZoomDiv.style.position = 'absolute';
-  preventZoomDiv.style.top = '0';
-  preventZoomDiv.style.left = '0';
-  preventZoomDiv.style.width = '100%';
-  preventZoomDiv.style.height = '100%';
-  preventZoomDiv.style.zIndex = '-1'; // Detrás de todo
-  preventZoomDiv.style.pointerEvents = 'none'; // No interfiere con clics
-  document.body.appendChild(preventZoomDiv);
-  
-  // Cargar cualquier dato pendiente que pudiera existir
-  loadBackgroundUploadQueue();
-  updatePendingCounter();
-  
-  // Cargar datos desde el servidor
-  loadDataFromServer();
-  
-  setupEventListeners();
+      // Cargar datos desde el servidor
+      loadDataFromServer();
+      
+      setupEventListeners();
       
       // Agregar eventos para prevenir el teclado virtual en la cámara
       document.addEventListener('focusin', function(e) {
@@ -1904,72 +1223,27 @@ installBtn.style.display = 'block';
       
       // Manejar el cambio de orientación en dispositivos móviles
       window.addEventListener('orientationchange', function() {
-        // Reajustar el viewport en cambio de orientación
-        setTimeout(() => {
-          setViewportMeta();
-          
-          if (document.getElementById('cameraModal').style.display === 'flex') {
+        if (document.getElementById('cameraModal').style.display === 'flex') {
+          setTimeout(() => {
             document.activeElement.blur();
-          }
-        }, 300);
+          }, 300);
+        }
       });
       
       // Verificar si estamos en modo offline
       window.addEventListener('online', function() {
         offlineBanner.style.display = 'none';
         statusDiv.innerHTML = '<i class="fas fa-wifi"></i> Conexión restablecida';
-        
-        // Mostrar notificación
-        showToast('Conexión restablecida', 'success');
-        
-        // Intentar cargar datos si aún no lo hemos hecho
+        // Si los datos aún no se han cargado, intentar cargarlos de nuevo
         if (!dataLoaded) {
           setTimeout(() => loadDataFromServer(), 1000);
-        }
-        
-        // Iniciar procesamiento de la cola de subida
-        if (!syncInProgress && backgroundUploadQueue.some(item => item.status === 'pending')) {
-          processUploadQueue();
         }
       });
       
       window.addEventListener('offline', function() {
         offlineBanner.style.display = 'block';
         statusDiv.innerHTML = '<i class="fas fa-wifi-slash"></i> Sin conexión - Modo offline';
-        showToast('Sin conexión. Trabajando en modo offline', 'warning');
       });
-      
-      // NUEVO: Iniciar intervalo de sincronización
-      syncInterval = setInterval(() => {
-        if (navigator.onLine && !syncInProgress && 
-            backgroundUploadQueue.some(item => item.status === 'pending')) {
-          processUploadQueue();
-        }
-      }, CONFIG.SYNC_INTERVAL);
-      
-      // Prevenir el zoom con gestos táctiles
-      document.addEventListener('touchstart', function(e) {
-        if (e.touches.length > 1) {
-          e.preventDefault();
-        }
-      }, { passive: false });
-      
-      // Evitar que funcione el doble toque para zoom
-      document.addEventListener('dblclick', function(e) {
-        e.preventDefault();
-      }, { passive: false });
-      
-      // Específico para iOS - Evitar el escalado con pinza
-      document.addEventListener('gesturestart', function(e) {
-        e.preventDefault();
-      }, { passive: false });
-    });
-
-    // Limpiar al cerrar ventana/pestaña
-    window.addEventListener('beforeunload', () => {
-      if (syncInterval) {
-        clearInterval(syncInterval);
-      }
     });
 
     function loadDataFromServer() {
@@ -2013,83 +1287,76 @@ installBtn.style.display = 'block';
     }
 
     function handleDataLoadError(error) {
-  console.error("Error al cargar datos:", error);
-  
-  // Verificar si hay datos en caché
-  const cachedData = getCachedData();
-  if (cachedData) {
-    database = cachedData.data;
-    dataLoaded = true;
-    
-    statusDiv.innerHTML = '<i class="fas fa-database"></i> SISTEMA LISTO (DATOS CACHEADOS)';
-    dataStats.innerHTML = `${database.length} registros | Última actualización: ${new Date(cachedData.timestamp).toLocaleString()}`;
-    resultsDiv.innerHTML = `
-      <div class="result-item" style="text-align: center; color: var(--gray);">
-        <img src="https://raw.githubusercontent.com/iLogisticsCoordinator/o/main/icons/icon-512.png" alt="PandaDash Logo" class="logo" style="width: 4rem; height: 4rem; margin-bottom: 0.5rem;">
-        <h1>PandaDash</h1>
-        <div class="name">Andrés Mendoza</div>
-      </div>
-    `;
-    
-    offlineBanner.style.display = 'block';
-    
-    // Ocultar pantalla de carga ya que tenemos datos en caché
-    hideLoadingScreen();
-  } else {
-    statusDiv.innerHTML = '<span style="color: var(--danger)">ERROR AL CARGAR DATOS</span>';
-    dataStats.textContent = error.message || 'Error desconocido';
-    resultsDiv.innerHTML = `<div class="error"><i class="fas fa-exclamation-circle"></i> No se pudo cargar la base de datos: ${error.message || 'Error desconocido'}</div>`;
-    
-    // Mostrar mensaje de error en la pantalla de carga pero no ocultarla
-    const loadingName = document.querySelector('#loadingScreen .name');
-    if (loadingName) {
-      loadingName.innerHTML = 'Error al cargar datos. <br>Comprueba tu conexión.';
-      loadingName.style.color = '#f72585';
+      console.error("Error al cargar datos:", error);
+      
+      // Verificar si hay datos en caché
+      const cachedData = getCachedData();
+      if (cachedData) {
+        database = cachedData.data;
+        dataLoaded = true;
+        
+        statusDiv.innerHTML = '<i class="fas fa-database"></i> SISTEMA LISTO (DATOS CACHEADOS)';
+        dataStats.innerHTML = `${database.length} registros | Última actualización: ${new Date(cachedData.timestamp).toLocaleString()}`;
+        resultsDiv.innerHTML = `
+          <div class="result-item" style="text-align: center; color: var(--gray);">
+            <img src="https://raw.githubusercontent.com/iLogisticsCoordinator/o/main/icons/icon-512.png" alt="PandaDash Logo" class="logo" style="width: 4rem; height: 4rem; margin-bottom: 0.5rem;">
+            <h1>PandaDash</h1>
+            <div class="name">Andrés Mendoza</div>
+          </div>
+        `;
+        
+        offlineBanner.style.display = 'block';
+        
+        // Ocultar pantalla de carga ya que tenemos datos en caché
+        hideLoadingScreen();
+      } else {
+        statusDiv.innerHTML = '<span style="color: var(--danger)">ERROR AL CARGAR DATOS</span>';
+        dataStats.textContent = error.message || 'Error desconocido';
+        resultsDiv.innerHTML = `<div class="error"><i class="fas fa-exclamation-circle"></i> No se pudo cargar la base de datos: ${error.message || 'Error desconocido'}</div>`;
+        
+        // Mostrar mensaje de error en la pantalla de carga pero no ocultarla
+        const loadingName = document.querySelector('#loadingScreen .name');
+        if (loadingName) {
+          loadingName.innerHTML = 'Error al cargar datos. <br>Comprueba tu conexión.';
+          loadingName.style.color = '#f72585';
+        }
+        
+        playErrorSound();
+      }
     }
-    
-    // AÑADIR ESTA LÍNEA: Añadir un botón para continuar en modo offline incluso sin datos
-    const loadingScreen = document.getElementById('loadingScreen');
-    const continueBtn = document.createElement('button');
-    continueBtn.innerHTML = 'Continuar sin datos';
-    continueBtn.style.marginTop = '15px';
-    continueBtn.style.padding = '7px 14px';
-    continueBtn.style.background = '#6c757d';
-    continueBtn.style.color = 'white';
-    continueBtn.style.border = 'none';
-    continueBtn.style.borderRadius = '3px';
-    continueBtn.onclick = hideLoadingScreen;
-    loadingScreen.appendChild(continueBtn);
-    
-    playErrorSound();
-  }
-}
 
     // Función para ocultar la pantalla de carga
-    // Función para ocultar la pantalla de carga
-function hideLoadingScreen() {
-  try {
-    // Mostrar el contenido principal
-    scanner.style.display = 'flex';
-    
-    // Desvanecer la pantalla de carga
-    loadingScreen.style.opacity = '0';
-    
-    // Eliminar la pantalla de carga después de la transición
-    setTimeout(() => {
-      loadingScreen.style.display = 'none';
+    function hideLoadingScreen() {
+      // Mostrar el contenido principal
+      scanner.style.display = 'flex';
       
-      // Enfocar el campo de entrada
-      if (barcodeInput) {
-        barcodeInput.focus();
+      // Desvanecer la pantalla de carga
+      loadingScreen.style.opacity = '0';
+      
+      // Eliminar la pantalla de carga después de la transición
+      setTimeout(() => {
+        loadingScreen.style.display = 'none';
+        
+        // Enfocar el campo de entrada
+        if (barcodeInput) {
+          barcodeInput.focus();
+        }
+      }, 500);
+    }
+
+    function getCachedData() {
+      const cache = localStorage.getItem('pdaScannerCache');
+      if (!cache) return null;
+      
+      try {
+        const parsed = JSON.parse(cache);
+        if (Date.now() - parsed.timestamp > CONFIG.CACHE_TTL) return null;
+        return parsed;
+      } catch (e) {
+        console.error("Error al parsear cache:", e);
+        return null;
       }
-    }, 500);
-  } catch (error) {
-    console.error("Error al ocultar pantalla de carga:", error);
-    // Forzar ocultamiento en caso de error
-    document.getElementById('loadingScreen').style.display = 'none';
-    document.getElementById('scanner').style.display = 'flex';
-  }
-}
+    }
 
     function cacheData(data) {
       const cache = {
@@ -2123,8 +1390,7 @@ function hideLoadingScreen() {
       function enforceFocus() {
         // Solo aplicar foco si la cámara no está abierta
         if (document.activeElement !== barcodeInput && 
-            document.getElementById('cameraModal').style.display !== 'flex' &&
-            document.getElementById('pendingModal').style.display !== 'flex') {
+            document.getElementById('cameraModal').style.display !== 'flex') {
           barcodeInput.focus();
         }
         setTimeout(enforceFocus, 100);
@@ -2309,33 +1575,11 @@ function hideLoadingScreen() {
               `;
             }
             
-            // Verificar si ya hay un registro de entrega para esta factura
-            const existingUpload = backgroundUploadQueue.find(item => 
-              item.data && item.data.factura === siesa.factura
-            );
-            
-            let buttonLabel = '<i class="fas fa-truck"></i> Procesar Entrega';
-            let buttonColor = 'var(--success)';
-            
-            if (existingUpload) {
-              if (existingUpload.status === 'completed') {
-                buttonLabel = '<i class="fas fa-check-circle"></i> Entregado con foto';
-                buttonColor = '#28a745';
-              } else if (existingUpload.status === 'pending' || existingUpload.status === 'uploading') {
-                buttonLabel = '<i class="fas fa-cloud-upload-alt"></i> Foto en proceso';
-                buttonColor = '#f8961e';
-              } else if (existingUpload.status === 'failed') {
-                buttonLabel = '<i class="fas fa-exclamation-circle"></i> Error al subir';
-                buttonColor = '#dc3545';
-              }
-            }
-            
             // Botón de entregas que maneja todo el proceso con el NIT correcto
             html += `
               <div class="action-buttons">
                 <button class="delivery-btn" 
                   data-factura="${siesa.factura}"
-                  style="background-color: ${buttonColor};"
                   onclick="procesarEntrega(
                     '${data.documento}', 
                     '${siesa.lote || data.lote}', 
@@ -2345,7 +1589,7 @@ function hideLoadingScreen() {
                     '${siesa.nit || qrParts.nit}', 
                     this
                   )">
-                  ${buttonLabel}
+                  <i class="fas fa-truck"></i> Procesar Entrega
                 </button>
                 <span class="save-success" style="display: none;">
                   <i class="fas fa-check"></i> Registro guardado
@@ -2399,46 +1643,6 @@ function hideLoadingScreen() {
         </div>
       `;
     }
-    
-    // Adicional: Evitar el zoom y escalado por completo
-    document.addEventListener('wheel', function(e) {
-      if(e.ctrlKey) {
-        e.preventDefault();
-      }
-    }, { passive: false });
-    
-    // Desactivar zoom con teclas de atajo
-    window.addEventListener('keydown', function(e) {
-      if ((e.ctrlKey || e.metaKey) && (e.key === '+' || e.key === '-' || e.key === '0')) {
-        e.preventDefault();
-      }
-    });
-    
-    // Específico para iOS para prevenir zoom
-    document.addEventListener('touchmove', function(e) {
-      if (e.scale !== 1) {
-        e.preventDefault();
-      }
-    }, { passive: false });
-    
-    document.addEventListener('touchend', function(e) {
-      if (e.scale !== 1) {
-        e.preventDefault();
-      }
-    }, { passive: false });
-    
-    // Intentar atrapar y prevenir los gestos de iOS
-    document.addEventListener('gesturestart', function(e) {
-      e.preventDefault();
-    }, { passive: false });
-    
-    document.addEventListener('gesturechange', function(e) {
-      e.preventDefault();
-    }, { passive: false });
-    
-    document.addEventListener('gestureend', function(e) {
-      e.preventDefault();
-    }, { passive: false });
   </script>
 
 </body>
