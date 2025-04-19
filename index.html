@@ -606,76 +606,6 @@
       font-size: 14px;
       color: var(--primary-dark);
     }
-
-
-#upload-counter {
-  position: fixed;
-  bottom: 10px;
-  right: 10px;
-  background: var(--warning);
-  color: var(--dark);
-  padding: 5px 12px;
-  border-radius: 20px;
-  font-size: 13px;
-  font-weight: 600;
-  z-index: 1000;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-#upload-counter i {
-  font-size: 14px;
-}
-
-.upload-progress {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 3px;
-  background: transparent;
-  z-index: 1001;
-}
-
-.upload-progress-bar {
-  height: 100%;
-  background: var(--success);
-  width: 0%;
-  transition: width 0.3s ease;
-}
-
-
-
-
-// CSS para la notificación offline
-
-.offline-notification {
-  position: fixed;
-  bottom: 60px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: var(--warning);
-  color: var(--dark);
-  padding: 10px 20px;
-  border-radius: 30px;
-  font-size: 14px;
-  font-weight: 500;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.2);
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  opacity: 1;
-  transition: opacity 0.3s ease;
-}
-
-
-
-
-
-
   </style>
 </head>
 <body>
@@ -708,8 +638,6 @@
     <div id="results"></div>
   </div>
 
-  <div id="upload-counter" style="position: fixed; bottom: 10px; right: 10px; background: var(--warning); padding: 5px 10px; border-radius: 20px; font-size: 12px; z-index: 1000;"></div>
-
   <div id="cameraModal" class="camera-modal">
     <video id="cameraFeed" class="camera-view" autoplay playsinline></video>
     <img id="photoPreview" alt="Vista previa de la foto">
@@ -727,266 +655,6 @@
     <!-- Input oculto para evitar que el teclado aparezca en dispositivos móviles -->
     <input type="text" id="dummyInput" style="position: absolute; opacity: 0; height: 0; width: 0;" readonly />
   </div>
-
-  <div id="upload-counter" style="display: none;">
-  <i class="fas fa-camera"></i>
-  <span id="upload-counter-text">0</span>
-</div>
-
-<div class="upload-progress">
-  <div class="upload-progress-bar" id="upload-progress-bar"></div>
-</div>
-
-<script>
-  // Agregar al inicio del script
-const UPLOAD_QUEUE = 'photo-upload-queue';
-let uploadQueue = [];
-let isUploading = false;
-let uploadCounter = 0;
-
-// Modificar la función saveOfflinePhoto
-async function saveOfflinePhoto(base64Data, nombreArchivo, factura) {
-  try {
-    // Reducir tamaño de imagen para almacenamiento offline
-    const reducedImage = await reduceImageSize(base64Data);
-    
-    const photoData = {
-      id: Date.now(),
-      base64Data: reducedImage,
-      nombreArchivo: nombreArchivo,
-      factura: factura,
-      timestamp: new Date().toISOString(),
-      attempts: 0
-    };
-    
-    // Guardar en IndexedDB
-    await addToUploadQueue(photoData);
-    
-    // Registrar para sincronización cuando haya conexión
-    if ('serviceWorker' in navigator && 'SyncManager' in window) {
-      const registration = await navigator.serviceWorker.ready;
-      try {
-        await registration.sync.register('sync-offline-photos');
-        console.log('Sync registered for offline photos');
-      } catch (err) {
-        console.error('Error registering sync:', err);
-      }
-    }
-    
-    return true;
-  } catch (error) {
-    console.error('Error saving photo offline:', error);
-    return false;
-  }
-}
-
-// Funciones para manejar la cola de carga
-async function addToUploadQueue(photoData) {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open(UPLOAD_QUEUE, 1);
-    
-    request.onupgradeneeded = (event) => {
-      const db = event.target.result;
-      if (!db.objectStoreNames.contains('photos')) {
-        db.createObjectStore('photos', { keyPath: 'id' });
-      }
-    };
-    
-    request.onsuccess = (event) => {
-      const db = event.target.result;
-      const transaction = db.transaction('photos', 'readwrite');
-      const store = transaction.objectStore('photos');
-      
-      const addRequest = store.add(photoData);
-      
-      addRequest.onsuccess = () => {
-        uploadCounter++;
-        updateUploadCounter();
-        resolve();
-      };
-      
-      addRequest.onerror = (error) => {
-        reject(error);
-      };
-    };
-    
-    request.onerror = (error) => {
-      reject(error);
-    };
-  });
-}
-
-async function processUploadQueue() {
-  if (isUploading) return;
-  isUploading = true;
-  
-  try {
-    const photos = await getUploadQueue();
-    if (photos.length === 0) {
-      isUploading = false;
-      return;
-    }
-    
-    for (const photo of photos) {
-      try {
-        const formData = new FormData();
-        formData.append('factura', photo.factura);
-        formData.append('fotoBase64', photo.base64Data);
-        formData.append('fotoNombre', photo.nombreArchivo);
-        
-        const response = await fetch(API_URL_POST, {
-          method: 'POST',
-          body: formData
-        });
-        
-        if (response.ok) {
-          await removeFromUploadQueue(photo.id);
-          uploadCounter--;
-          updateUploadCounter();
-        } else {
-          photo.attempts++;
-          if (photo.attempts < 3) {
-            await updatePhotoInQueue(photo);
-          } else {
-            await removeFromUploadQueue(photo.id);
-          }
-        }
-      } catch (error) {
-        console.error('Error uploading photo:', error);
-        break; // Detener en caso de error, se reintentará después
-      }
-    }
-  } finally {
-    isUploading = false;
-    // Volver a verificar si hay más fotos para subir
-    setTimeout(processUploadQueue, 5000);
-  }
-}
-
-async function getUploadQueue() {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open(UPLOAD_QUEUE, 1);
-    
-    request.onsuccess = (event) => {
-      const db = event.target.result;
-      const transaction = db.transaction('photos', 'readonly');
-      const store = transaction.objectStore('photos');
-      const getAllRequest = store.getAll();
-      
-      getAllRequest.onsuccess = () => {
-        resolve(getAllRequest.result);
-      };
-      
-      getAllRequest.onerror = (error) => {
-        reject(error);
-      };
-    };
-    
-    request.onerror = (error) => {
-      reject(error);
-    };
-  });
-}
-
-async function removeFromUploadQueue(id) {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open(UPLOAD_QUEUE, 1);
-    
-    request.onsuccess = (event) => {
-      const db = event.target.result;
-      const transaction = db.transaction('photos', 'readwrite');
-      const store = transaction.objectStore('photos');
-      
-      const deleteRequest = store.delete(id);
-      
-      deleteRequest.onsuccess = () => {
-        resolve();
-      };
-      
-      deleteRequest.onerror = (error) => {
-        reject(error);
-      };
-    };
-    
-    request.onerror = (error) => {
-      reject(error);
-    };
-  });
-}
-
-async function updatePhotoInQueue(photo) {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open(UPLOAD_QUEUE, 1);
-    
-    request.onsuccess = (event) => {
-      const db = event.target.result;
-      const transaction = db.transaction('photos', 'readwrite');
-      const store = transaction.objectStore('photos');
-      
-      const putRequest = store.put(photo);
-      
-      putRequest.onsuccess = () => {
-        resolve();
-      };
-      
-      putRequest.onerror = (error) => {
-        reject(error);
-      };
-    };
-    
-    request.onerror = (error) => {
-      reject(error);
-    };
-  });
-}
-
-function updateUploadCounter() {
-  const counterElement = document.getElementById('upload-counter');
-  if (counterElement) {
-    counterElement.textContent = uploadCounter > 0 ? 
-      `Fotos pendientes: ${uploadCounter}` : '';
-  }
-}
-
-// Iniciar el procesamiento de la cola cuando la aplicación se carga
-document.addEventListener('DOMContentLoaded', () => {
-  // Verificar si hay conexión al cargar
-  if (navigator.onLine) {
-    processUploadQueue();
-  }
-  
-  // Escuchar cambios de conexión
-  window.addEventListener('online', () => {
-    processUploadQueue();
-  });
-});
-
-
-
-// Verificar estado de conexión al inicio
-function checkConnection() {
-  if (!navigator.onLine) {
-    offlineBanner.style.display = 'block';
-    statusDiv.innerHTML = '<i class="fas fa-wifi-slash"></i> Sin conexión - Modo offline';
-  }
-}
-
-// Mostrar notificación cuando se guarda offline
-function showOfflineNotification(message) {
-  const notification = document.createElement('div');
-  notification.className = 'offline-notification';
-  notification.innerHTML = `
-    <i class="fas fa-cloud-upload-alt"></i> ${message}
-  `;
-  document.body.appendChild(notification);
-  
-  setTimeout(() => {
-    notification.style.opacity = '0';
-    setTimeout(() => notification.remove(), 300);
-  }, 3000);
-}
-
-  </script>
 
   <script>
     // Configuración y constantes
@@ -1163,124 +831,154 @@ function showOfflineNotification(message) {
       }, 'image/jpeg', 0.85);
     }
 
-    // Función modificada para subir fotos (nunca bloquea)
-async function subirFoto() {
-  if (!currentDocumentData || !photoBlob) {
-    console.error("No hay datos disponibles para subir");
-    return;
-  }
-
-  const { factura, btnElement } = currentDocumentData;
-  const takePhotoBtn = document.getElementById('takePhotoBtn');
-  const uploadStatus = document.getElementById('uploadStatus');
-
-  // Deshabilitar botón y mostrar estado de carga
-  takePhotoBtn.disabled = true;
-  takePhotoBtn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Enviando...';
-  uploadStatus.style.display = 'flex';
-  uploadStatus.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Preparando envío...';
-
-  try {
-    // Convertir blob a base64 (esto puede demorar, pero es necesario)
-    const base64Data = await blobToBase64(photoBlob);
-    const nombreArchivo = `${factura}_${Date.now()}.jpg`;
-
-    // Crear objeto foto para la cola
-    const photoData = {
-      id: Date.now(),
-      factura: factura,
-      base64Data: base64Data,
-      nombreArchivo: nombreArchivo,
-      timestamp: new Date().toISOString(),
-      attempts: 0
-    };
-
-    // Guardar en cola de subida (IndexedDB)
-    await addPhotoToQueue(photoData);
-
-    // Notificar al usuario que se procesará en segundo plano
-    uploadStatus.innerHTML = '<i class="fas fa-check-circle"></i> En cola para subir';
-    takePhotoBtn.innerHTML = '<i class="fas fa-check"></i> En cola';
-
-    // Marcar como completado en la UI (aunque aún no se haya subido)
-    if (btnElement) {
-      btnElement.innerHTML = '<i class="fas fa-check-circle"></i> Entregado (pendiente subir)';
-      btnElement.style.backgroundColor = '#28a745';
-    }
-
-    // Registrar sync para subir en segundo plano
-    if ('serviceWorker' in navigator && 'SyncManager' in window) {
-      try {
-        const registration = await navigator.serviceWorker.ready;
-        await registration.sync.register('sync-photos');
-        console.log('Sync registrado para subida en segundo plano');
-      } catch (syncError) {
-        console.error('Error registrando sync:', syncError);
-        // En caso de error, igual se subirá cuando haya conexión
+    function subirFoto() {
+      if (!currentDocumentData || !photoBlob) {
+        console.error("No hay datos disponibles para subir");
+        return;
       }
-    }
-
-    // Cerrar cámara después de breve espera
-    setTimeout(cerrarCamara, 1500);
-  } catch (error) {
-    console.error("Error preparando foto:", error);
-    uploadStatus.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error al preparar';
-    takePhotoBtn.disabled = false;
-    takePhotoBtn.innerHTML = '<i class="fas fa-redo"></i> Reintentar';
-  }
-}
-
-// Función auxiliar para convertir blob a base64
-function blobToBase64(blob) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => resolve(reader.result.split(',')[1]);
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
-}
-
-// Función para agregar foto a la cola (IndexedDB)
-async function addPhotoToQueue(photoData) {
-  const db = await openPhotoQueueDB();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction('photos', 'readwrite');
-    const store = tx.objectStore('photos');
-    const request = store.add(photoData);
-    
-    request.onsuccess = () => {
-      updateUploadCounter();
-      resolve();
-    };
-    request.onerror = () => reject(new Error('Error agregando foto a la cola'));
-  });
-}
-
-// Actualizar contador de fotos pendientes
-async function updateUploadCounter() {
-  try {
-    const queue = await getPhotoQueue();
-    const counter = document.getElementById('upload-counter');
-    const counterText = document.getElementById('upload-counter-text');
-    
-    if (queue.length > 0) {
-      counter.style.display = 'flex';
-      counterText.textContent = queue.length;
-    } else {
-      counter.style.display = 'none';
-    }
-  } catch (error) {
-    console.error('Error actualizando contador:', error);
-  }
-}
-
-// Iniciar el monitoreo de la cola al cargar la aplicación
-document.addEventListener('DOMContentLoaded', () => {
-  updateUploadCounter();
-  
-  // Verificar periódicamente si hay fotos pendientes
-  setInterval(updateUploadCounter, 30000);
-});
+      
+      const { factura, btnElement } = currentDocumentData;
+      const takePhotoBtn = document.getElementById('takePhotoBtn');
+      const uploadStatus = document.getElementById('uploadStatus');
+      
+      // Deshabilitar botón y mostrar estado de carga
+      takePhotoBtn.disabled = true;
+      takePhotoBtn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Subiendo...';
+      uploadStatus.style.display = 'flex';
+      uploadStatus.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Subiendo foto...';
+      
+      // Convertir blob a base64
+      const reader = new FileReader();
+      reader.onloadend = function() {
+        // Extraer solo la parte base64 de la cadena (eliminar el prefijo data:image/jpeg;base64,)
+        const base64Data = reader.result.split(',')[1];
+        const nombreArchivo = factura.replace(/[^a-zA-Z0-9\-]/g, '') + '.jpg';
+        
+        // Obtener NIT de las partes actuales del QR
+        const nit = currentQRParts ? currentQRParts.nit : '';
+        const documento = currentQRParts ? currentQRParts.documento : '';
+        
+        // Obtener valores de lote, referencia y cantidad de manera segura
+        let lote = '';
+        let referencia = '';
+        let cantidad = 0;
+        
+        try {
+          // Buscar elemento de lote
+          const loteElements = document.querySelectorAll('.result-row');
+          for (let i = 0; i < loteElements.length; i++) {
+            if (loteElements[i].textContent.includes('Lote')) {
+              const valueElement = loteElements[i].querySelector('.json-value');
+              if (valueElement) {
+                lote = valueElement.textContent.trim();
+              }
+              break;
+            }
+          }
+          
+          // Buscar elemento de referencia
+          // Buscar elemento de referencia
+          const refElements = document.querySelectorAll('.result-row');
+          for (let i = 0; i < refElements.length; i++) {
+            if (refElements[i].textContent.includes('Referencia')) {
+              const valueElement = refElements[i].querySelector('.json-value');
+              if (valueElement) {
+                referencia = valueElement.textContent.trim();
+              }
+              break;
+            }
+          }
+          
+          // Buscar elemento de cantidad
+          const cantElements = document.querySelectorAll('.result-row');
+          for (let i = 0; i < cantElements.length; i++) {
+            if (cantElements[i].textContent.includes('Cantidad')) {
+              const valueElement = cantElements[i].querySelector('.json-value');
+              if (valueElement) {
+                cantidad = parseFloat(valueElement.textContent.trim()) || 0;
+              }
+              break;
+            }
+          }
+        } catch (e) {
+          console.warn("Error al extraer datos de la UI:", e);
+        }
+        
+        console.log("Datos extraídos:", {
+          lote: lote,
+          referencia: referencia,
+          cantidad: cantidad
+        });
+        
+        // Crear FormData para la solicitud
+        const formData = new FormData();
+        formData.append('documento', documento);
+        formData.append('lote', lote);
+        formData.append('referencia', referencia);
+        formData.append('cantidad', cantidad);
+        formData.append('factura', factura);
+        formData.append('nit', nit);
+        formData.append('fotoBase64', base64Data);
+        formData.append('fotoNombre', nombreArchivo);
+        formData.append('fotoTipo', 'image/jpeg');
+        
+        console.log("Enviando datos de foto:", {
+          documento,
+          lote,
+          referencia,
+          cantidad,
+          factura, 
+          nit,
+          fotoNombre: nombreArchivo,
+          fotoTipo: 'image/jpeg',
+          fotoBase64Length: base64Data ? base64Data.length : 0 // Solo el tamaño para debug
+        });
+        
+        // Realizar la solicitud fetch
+        fetch(API_URL_POST, {
+          method: 'POST',
+          body: formData
+        })
+        .then(response => {
+          // Verificar respuesta HTTP
+          if (!response.ok) {
+            throw new Error(`Error HTTP: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(result => {
+          console.log("Respuesta del servidor:", result);
+          
+          if (result.success) {
+            // Éxito
+            uploadStatus.innerHTML = '<i class="fas fa-check-circle"></i> Foto subida correctamente';
+            takePhotoBtn.innerHTML = '<i class="fas fa-check"></i> Foto subida';
+            
+            // Marcar como completado en el botón de entregas
+            if (btnElement) {
+              btnElement.innerHTML = '<i class="fas fa-check-circle"></i> Entregado con foto';
+              btnElement.style.backgroundColor = '#28a745';
+            }
+            
+            setTimeout(cerrarCamara, 1500);
+          } else {
+            throw new Error(result.message || "Error al guardar la foto");
+          }
+        })
+        .catch(error => {
+          console.error("Error al subir foto:", error);
+          uploadStatus.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error al subir foto';
+          takePhotoBtn.disabled = false;
+          takePhotoBtn.innerHTML = '<i class="fas fa-redo"></i> Reintentar';
+          
+          // Si estamos offline, guardamos localmente para sincronizar después
+          if (!navigator.onLine) {
+            saveOfflinePhoto(base64Data, nombreArchivo, factura);
+            uploadStatus.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Guardada offline';
+            setTimeout(cerrarCamara, 2000);
+          }
+        });
+      };
       
       reader.onerror = function() {
         console.error("Error al leer la imagen");
@@ -1453,46 +1151,22 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('cancelCaptureBtn').addEventListener('click', cerrarCamara);
 
     // Función actualizada para procesar entregas
-    // Modificar la función procesarEntrega para ser más eficiente
-function procesarEntrega(documento, lote, referencia, cantidad, factura, nit, btnElement) {
-  // Guardar datos mínimos necesarios para la foto
-  currentDocumentData = {
-    factura: factura,
-    btnElement: btnElement
-  };
-  
-  // Extraer partes del QR si están disponibles
-  if (!currentQRParts) {
-    currentQRParts = { documento, nit };
-  }
-  
-  // Abrir cámara inmediatamente sin esperar
-  abrirCamara(factura);
-}
-
-// Función optimizada para cerrar cámara
-function cerrarCamara() {
-  // Limpiar stream de cámara si existe
-  if (cameraStream) {
-    cameraStream.getTracks().forEach(track => track.stop());
-    cameraStream = null;
-  }
-  
-  const cameraModal = document.getElementById('cameraModal');
-  cameraModal.style.display = 'none';
-  
-  // Limpiar temporizadores
-  if (preventKeyboardTimer) {
-    clearInterval(preventKeyboardTimer);
-    preventKeyboardTimer = null;
-  }
-  
-  // Restaurar foco al campo de búsqueda
-  setTimeout(() => {
-    const barcodeInput = document.getElementById('barcode');
-    barcodeInput.focus();
-  }, 100);
-}
+    function procesarEntrega(documento, lote, referencia, cantidad, factura, nit, btnElement) {
+      // Crear objeto con los datos completos
+      const datos = {
+        documento: documento,
+        lote: lote || '',
+        referencia: referencia || '',
+        cantidad: parseFloat(cantidad) || 0,
+        factura: factura,
+        nit: nit || ''
+      };
+      
+      // Luego abrimos la cámara automáticamente
+      setTimeout(() => {
+        abrirCamara(factura);
+      }, 500);
+    }
 
     // Funciones para sonidos de feedback
     function playSuccessSound() {
@@ -1572,134 +1246,21 @@ function cerrarCamara() {
       });
     });
 
-async function loadDataFromServer() {
-  statusDiv.innerHTML = '<i class="fas fa-sync fa-spin"></i> Cargando Datos...';
-  dataStats.innerHTML = '<i class="fas fa-server"></i> Conectando con el servidor...';
-  
-  try {
-    // Intentar cargar desde la red primero
-    const response = await fetch(`${API_URL_GET}?nocache=${new Date().getTime()}`);
-    
-    if (!response.ok) {
-      throw new Error(`Error HTTP: ${response.status}`);
+    function loadDataFromServer() {
+      statusDiv.innerHTML = '<i class="fas fa-sync fa-spin"></i> Cargando Datos...';
+      dataStats.innerHTML = '<i class="fas fa-server"></i> Conectando con el servidor...';
+      
+      // Usamos fetch para obtener los datos del servidor
+      fetch(`${API_URL_GET}?nocache=${new Date().getTime()}`)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`Error HTTP: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(serverData => handleDataLoadSuccess(serverData))
+        .catch(error => handleDataLoadError(error));
     }
-    
-    const serverData = await response.json();
-    await handleDataLoadSuccess(serverData);
-    
-    // Guardar en caché para uso offline
-    await cacheFullDatabase(serverData.data);
-  } catch (error) {
-    console.log("Error al cargar datos online, intentando caché...", error);
-    await handleOfflineDataLoad();
-  }
-}
-
-async function cacheFullDatabase(data) {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open('PandaDashDB', 1);
-    
-    request.onupgradeneeded = (event) => {
-      const db = event.target.result;
-      if (!db.objectStoreNames.contains('documents')) {
-        db.createObjectStore('documents', { keyPath: 'documento' });
-      }
-    };
-    
-    request.onsuccess = (event) => {
-      const db = event.target.result;
-      const transaction = db.transaction('documents', 'readwrite');
-      const store = transaction.objectStore('documents');
-      
-      // Limpiar datos antiguos
-      store.clear();
-      
-      // Agregar nuevos datos
-      data.forEach(item => {
-        store.put(item);
-      });
-      
-      transaction.oncomplete = () => {
-        console.log('Database cached successfully');
-        resolve();
-      };
-      
-      transaction.onerror = (error) => {
-        reject(error);
-      };
-    };
-    
-    request.onerror = (error) => {
-      reject(error);
-    };
-  });
-}
-
-async function handleOfflineDataLoad() {
-  try {
-    // Intentar cargar desde IndexedDB
-    const cachedData = await getCachedDatabase();
-    
-    if (cachedData && cachedData.length > 0) {
-      database = cachedData;
-      dataLoaded = true;
-      
-      statusDiv.innerHTML = '<i class="fas fa-database"></i> SISTEMA LISTO (DATOS CACHEADOS)';
-      dataStats.innerHTML = `${database.length} registros | Última actualización: ${new Date().toLocaleString()}`;
-      resultsDiv.innerHTML = `
-        <div class="result-item" style="text-align: center; color: var(--gray);">
-          <img src="https://raw.githubusercontent.com/iLogisticsCoordinator/o/main/icons/icon-512.png" alt="PandaDash Logo" class="logo" style="width: 4rem; height: 4rem; margin-bottom: 0.5rem;">
-          <h1>PandaDash</h1>
-          <div class="name">Andrés Mendoza</div>
-        </div>
-      `;
-      
-      offlineBanner.style.display = 'block';
-      hideLoadingScreen();
-    } else {
-      // No hay datos en caché
-      throw new Error('No hay datos disponibles offline');
-    }
-  } catch (error) {
-    console.error("Error al cargar datos offline:", error);
-    statusDiv.innerHTML = '<span style="color: var(--danger)">ERROR AL CARGAR DATOS</span>';
-    dataStats.textContent = error.message || 'Error desconocido';
-    resultsDiv.innerHTML = `<div class="error"><i class="fas fa-exclamation-circle"></i> No se pudo cargar la base de datos: ${error.message || 'Error desconocido'}</div>`;
-    
-    const loadingName = document.querySelector('#loadingScreen .name');
-    if (loadingName) {
-      loadingName.innerHTML = 'Error al cargar datos. <br>Comprueba tu conexión.';
-      loadingName.style.color = '#f72585';
-    }
-    
-    playErrorSound();
-  }
-}
-
-async function getCachedDatabase() {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open('PandaDashDB', 1);
-    
-    request.onsuccess = (event) => {
-      const db = event.target.result;
-      const transaction = db.transaction('documents', 'readonly');
-      const store = transaction.objectStore('documents');
-      const getAllRequest = store.getAll();
-      
-      getAllRequest.onsuccess = () => {
-        resolve(getAllRequest.result);
-      };
-      
-      getAllRequest.onerror = (error) => {
-        reject(error);
-      };
-    };
-    
-    request.onerror = (error) => {
-      reject(error);
-    };
-  });
-}
 
     function handleDataLoadSuccess(serverData) {
       if (serverData && serverData.success && serverData.data) {
