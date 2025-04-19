@@ -1366,6 +1366,7 @@ function procesarImagenCapturada(archivo) {
 
 // Función para aplicar marca de agua
 
+// Función para aplicar marca de agua
 function aplicarMarcaDeAgua(ctx, width, height) {
   // Área más compacta para la marca de agua
   const marcaHeight = Math.floor(height / 6);
@@ -1380,8 +1381,8 @@ function aplicarMarcaDeAgua(ctx, width, height) {
   ctx.fillRect(0, height - marcaHeight, width, marcaHeight);
   
   // Calcular tamaños de fuente relativos a la resolución
-  const fontSizeLarge = Math.max(32, Math.floor(width / 16)); // PandaDash grande
-  const fontSizeMedium = Math.max(18, Math.floor(width / 35)); // Fecha y hora
+  const fontSizeLarge = Math.max(36, Math.floor(width / 15)); // PandaDash original
+  const fontSizeMedium = Math.max(20, Math.floor(width / 30)); // Fecha y hora más grande y legible
   const fontSizeSmall = Math.max(16, Math.floor(width / 40)); // Datos adicionales
   
   // Margen lateral
@@ -1390,42 +1391,57 @@ function aplicarMarcaDeAgua(ctx, width, height) {
   // Posición Y inicial (desde abajo)
   let posY = height - Math.floor(marcaHeight * 0.15);
   
-  // Datos de lote, referencia y cantidad
+  // Datos técnicos - solo si están disponibles
   ctx.fillStyle = "white";
-  ctx.font = `${fontSizeSmall}px Verdana, Arial`;
   
-  // Obtener datos si están disponibles
-  let infoText = "Lote: ";
+  let infoText = "";
+  let hasData = false;
+  
   if (currentDocumentData) {
-    infoText += (currentDocumentData.lote || "N/A") + " | Ref: ";
-    infoText += (currentDocumentData.referencia || "N/A") + " | Cant: ";
-    infoText += (currentDocumentData.cantidad || "0");
-  } else {
-    infoText += "N/A | Ref: N/A | Cant: N/A";
+    // Construir texto solo con datos disponibles
+    if (currentDocumentData.lote) {
+      infoText += "Lote: " + currentDocumentData.lote;
+      hasData = true;
+    }
+    
+    if (currentDocumentData.referencia) {
+      if (hasData) infoText += " | ";
+      infoText += "Ref: " + currentDocumentData.referencia;
+      hasData = true;
+    }
+    
+    if (currentDocumentData.cantidad) {
+      if (hasData) infoText += " | ";
+      infoText += "Cant: " + currentDocumentData.cantidad;
+      hasData = true;
+    }
+    
+    if (currentDocumentData.factura) {
+      if (hasData) infoText += " | ";
+      infoText += "Fac: " + currentDocumentData.factura;
+      hasData = true;
+    }
   }
   
-  ctx.fillText(infoText, marginLeft, posY);
+  // Solo mostrar si hay datos
+  if (hasData) {
+    ctx.font = `${fontSizeSmall}px "Consolas", "Courier New", monospace`;
+    ctx.fillText(infoText, marginLeft, posY);
+  } else {
+    // Si no hay datos, ajustar posY para que no haya espacio vacío
+    posY += fontSizeSmall;
+  }
   
-  // Fecha y hora con mejor tipografía
+  // Fecha y hora con mejor tipografía para máxima legibilidad
   posY -= Math.floor(fontSizeMedium * 1.1);
   const fecha = new Date().toLocaleString();
-  ctx.font = `${fontSizeMedium}px "Segoe UI", Tahoma, Arial`; // Tipografía más legible
+  ctx.font = `${fontSizeMedium}px "Consolas", "Courier New", monospace`; // Fuente monoespaciada para mejor legibilidad de números
   ctx.fillText(fecha, marginLeft, posY);
   
-  // PandaDash grande
+  // PandaDash original
   posY -= Math.floor(fontSizeLarge * 1.05);
-  ctx.font = `bold ${fontSizeLarge}px "Arial Black", Impact, sans-serif`;
+  ctx.font = `bold ${fontSizeLarge}px Arial`;
   ctx.fillText("PandaDash", marginLeft, posY);
-  
-  // Factura a la derecha
-  if (currentDocumentData && currentDocumentData.factura) {
-    const facturaText = `Factura: ${currentDocumentData.factura}`;
-    ctx.font = `bold ${fontSizeSmall}px "Segoe UI", Arial`;
-    
-    // Calcular ancho del texto para alinearlo a la derecha
-    const textWidth = ctx.measureText(facturaText).width;
-    ctx.fillText(facturaText, width - marginLeft - textWidth, height - Math.floor(marcaHeight * 0.15));
-  }
 }
 
 
