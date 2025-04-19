@@ -10,6 +10,7 @@
   <link rel="manifest" href="manifest.json" />
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600&display=swap" rel="stylesheet">
   <title>PandaDash</title>
   
   <style>
@@ -1367,7 +1368,7 @@ function procesarImagenCapturada(archivo) {
 // Función para aplicar marca de agua
 
 function aplicarMarcaDeAgua(ctx, width, height) {
-  // Área compacta para la marca de agua
+  // Área para marca de agua
   const marcaHeight = Math.floor(height / 6);
 
   // Fondo degradado
@@ -1379,44 +1380,41 @@ function aplicarMarcaDeAgua(ctx, width, height) {
   ctx.fillStyle = gradient;
   ctx.fillRect(0, height - marcaHeight, width, marcaHeight);
 
-  // Configuración de texto uniforme
-  const fontFamily = "Arial, Helvetica, sans-serif";
-  const fontSize = Math.max(20, Math.floor(width / 35)); // Tamaño único
-  ctx.font = `bold ${fontSize}px ${fontFamily}`;
+  // Fuente y estilos
+  const fontFamily = "Montserrat, sans-serif";
+  const fontSize = Math.max(10, Math.floor(width / 70)); // Tamaño reducido
+  ctx.font = `600 ${fontSize}px ${fontFamily}`;
   ctx.fillStyle = "white";
   ctx.textAlign = "left";
   ctx.textBaseline = "bottom";
 
-  // Márgenes
+  // Margen y espaciado
   const marginLeft = Math.floor(width / 20);
-  const lineSpacing = Math.floor(fontSize * 1.2);
-
-  // Posición inicial
+  const lineSpacing = Math.floor(fontSize * 1.6);
   let posY = height - Math.floor(marcaHeight * 0.2);
 
-  // 1. FECHA Y HORA (primero arriba del todo)
+  // 1. Fecha y hora (último)
   const fecha = new Date().toLocaleString();
   ctx.fillText(fecha, marginLeft, posY);
   posY -= lineSpacing;
 
-  // 2. DATOS TÉCNICOS
-  const partes = [];
-
+  // 2. Datos técnicos (FACTURA | LOTE | REF | CANT)
+  const datos = [];
   if (currentDocumentData) {
-    if (currentDocumentData.lote) partes.push("LOTE: " + currentDocumentData.lote);
-    if (currentDocumentData.referencia) partes.push("REF: " + currentDocumentData.referencia);
-    if (currentDocumentData.cantidad) partes.push("CANT: " + currentDocumentData.cantidad);
+    if (currentDocumentData.factura) datos.push(currentDocumentData.factura);
+    if (currentDocumentData.lote) datos.push(currentDocumentData.lote);
+    if (currentDocumentData.referencia) datos.push(currentDocumentData.referencia);
+    if (currentDocumentData.cantidad) datos.push(currentDocumentData.cantidad);
   }
 
-  if (partes.length > 0) {
-    ctx.fillText(partes.join(" | "), marginLeft, posY);
+  if (datos.length > 0) {
+    ctx.fillText(datos.join(" | "), marginLeft, posY);
     posY -= lineSpacing;
   }
 
-  // 3. FACTURA
-  if (currentDocumentData && currentDocumentData.factura) {
-    ctx.fillText("FACTURA: " + currentDocumentData.factura, marginLeft, posY);
-  }
+  // 3. Marca principal: PandaDash® (título arriba del bloque)
+  ctx.font = `700 ${fontSize}px ${fontFamily}`;
+  ctx.fillText("PandaDash®", marginLeft, posY);
 }
 
 
