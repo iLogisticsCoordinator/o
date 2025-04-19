@@ -1366,9 +1366,8 @@ function procesarImagenCapturada(archivo) {
 
 // Función para aplicar marca de agua
 
-// Función para aplicar marca de agua
 function aplicarMarcaDeAgua(ctx, width, height) {
-  // Área más compacta para la marca de agua
+  // Área compacta para la marca de agua
   const marcaHeight = Math.floor(height / 6);
   
   // Crear gradiente semi-transparente para el fondo de la marca
@@ -1380,69 +1379,72 @@ function aplicarMarcaDeAgua(ctx, width, height) {
   ctx.fillStyle = gradient;
   ctx.fillRect(0, height - marcaHeight, width, marcaHeight);
   
+  // Usar la misma tipografía para todo: Consolas es ideal para datos técnicos y fechas
+  const fontFamily = "Consolas, 'Courier New', monospace";
+  
   // Calcular tamaños de fuente relativos a la resolución
-  const fontSizeLarge = Math.max(36, Math.floor(width / 15)); // PandaDash original
-  const fontSizeMedium = Math.max(20, Math.floor(width / 30)); // Fecha y hora más grande y legible
-  const fontSizeSmall = Math.max(16, Math.floor(width / 40)); // Datos adicionales
+  const fontSizeMedium = Math.max(20, Math.floor(width / 30)); // Fecha y hora
+  const fontSizeSmall = Math.max(16, Math.floor(width / 40)); // Datos técnicos
   
   // Margen lateral
   const marginLeft = Math.floor(width / 20);
   
   // Posición Y inicial (desde abajo)
-  let posY = height - Math.floor(marcaHeight * 0.15);
+  let posY = height - Math.floor(marcaHeight * 0.25);
   
-  // Datos técnicos - solo si están disponibles
+  // Color para todo el texto
   ctx.fillStyle = "white";
   
-  let infoText = "";
-  let hasData = false;
+  // 1. FACTURA (abajo del todo, si existe)
+  if (currentDocumentData && currentDocumentData.factura) {
+    ctx.font = `${fontSizeSmall}px ${fontFamily}`;
+    ctx.fillText(`Factura: ${currentDocumentData.factura}`, marginLeft, posY);
+    posY -= Math.floor(fontSizeSmall * 1.2);
+  }
+  
+  // 2. DATOS TÉCNICOS (en medio, solo si hay datos)
+  let datosText = "";
+  let hayDatos = false;
   
   if (currentDocumentData) {
     // Construir texto solo con datos disponibles
     if (currentDocumentData.lote) {
-      infoText += "Lote: " + currentDocumentData.lote;
-      hasData = true;
+      datosText += "Lote: " + currentDocumentData.lote;
+      hayDatos = true;
     }
     
     if (currentDocumentData.referencia) {
-      if (hasData) infoText += " | ";
-      infoText += "Ref: " + currentDocumentData.referencia;
-      hasData = true;
+      if (hayDatos) datosText += " | ";
+      datosText += "Ref: " + currentDocumentData.referencia;
+      hayDatos = true;
     }
     
     if (currentDocumentData.cantidad) {
-      if (hasData) infoText += " | ";
-      infoText += "Cant: " + currentDocumentData.cantidad;
-      hasData = true;
+      if (hayDatos) datosText += " | ";
+      datosText += "Cant: " + currentDocumentData.cantidad;
+      hayDatos = true;
     }
     
-    if (currentDocumentData.factura) {
-      if (hasData) infoText += " | ";
-      infoText += "Fac: " + currentDocumentData.factura;
-      hasData = true;
+    if (currentDocumentData.estado) {
+      if (hayDatos) datosText += " | ";
+      datosText += "Estado: " + currentDocumentData.estado;
+      hayDatos = true;
     }
   }
   
-  // Solo mostrar si hay datos
-  if (hasData) {
-    ctx.font = `${fontSizeSmall}px "Consolas", "Courier New", monospace`;
-    ctx.fillText(infoText, marginLeft, posY);
-  } else {
-    // Si no hay datos, ajustar posY para que no haya espacio vacío
-    posY += fontSizeSmall;
+  // Mostrar datos técnicos si existen
+  if (hayDatos) {
+    ctx.font = `${fontSizeSmall}px ${fontFamily}`;
+    ctx.fillText(datosText, marginLeft, posY);
+    posY -= Math.floor(fontSizeSmall * 1.2);
   }
   
-  // Fecha y hora con mejor tipografía para máxima legibilidad
-  posY -= Math.floor(fontSizeMedium * 1.1);
+  // 3. FECHA Y HORA (arriba de todo)
   const fecha = new Date().toLocaleString();
-  ctx.font = `${fontSizeMedium}px "Consolas", "Courier New", monospace`; // Fuente monoespaciada para mejor legibilidad de números
+  ctx.font = `${fontSizeMedium}px ${fontFamily}`;
   ctx.fillText(fecha, marginLeft, posY);
-  
-  // PandaDash original
-  posY -= Math.floor(fontSizeLarge * 1.05);
-  ctx.font = `bold ${fontSizeLarge}px Arial`;
-  ctx.fillText("PandaDash", marginLeft, posY);
 }
+
 
 
 // Función para mostrar brevemente una vista previa (opcional)
