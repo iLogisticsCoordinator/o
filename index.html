@@ -1368,7 +1368,6 @@ function procesarImagenCapturada(archivo) {
 
 // Función para aplicar marca de agua
 function aplicarMarcaDeAgua(ctx, width, height) {
-  // Área para la marca de agua
   const marcaHeight = Math.floor(height / 6);
 
   // Fondo degradado
@@ -1376,30 +1375,28 @@ function aplicarMarcaDeAgua(ctx, width, height) {
   gradient.addColorStop(0, "rgba(0, 0, 0, 0)");
   gradient.addColorStop(0.2, "rgba(0, 0, 0, 0.6)");
   gradient.addColorStop(1, "rgba(0, 0, 0, 0.8)");
-
   ctx.fillStyle = gradient;
   ctx.fillRect(0, height - marcaHeight, width, marcaHeight);
 
-  // Fuente y estilo
+  // Fuente y estilos
   const fontFamily = "Inter, sans-serif";
-  const fontSize = Math.max(10, Math.floor(width / 70)); // Tamaño base
-  const fontSizeTitle = fontSize * 2; // Título al doble
+  const fontSize = Math.max(10, Math.floor(width / 70));
+  const fontSizeTitle = fontSize * 2;
   ctx.fillStyle = "white";
   ctx.textAlign = "left";
   ctx.textBaseline = "bottom";
 
-  // Márgenes y espaciado
   const marginLeft = Math.floor(width / 20);
   const lineSpacing = Math.floor(fontSize * 1.6);
   let posY = height - Math.floor(marcaHeight * 0.2);
 
-  // 1. Fecha y hora
+  // 1. Fecha
   ctx.font = `500 ${fontSize}px ${fontFamily}`;
   const fecha = new Date().toLocaleString();
   ctx.fillText(fecha, marginLeft, posY);
   posY -= lineSpacing;
 
-  // 2. Datos técnicos (FACTURA | LOTE | REF | CANT)
+  // 2. Datos técnicos
   const datos = [];
   if (currentDocumentData) {
     if (currentDocumentData.factura) datos.push(currentDocumentData.factura);
@@ -1413,9 +1410,22 @@ function aplicarMarcaDeAgua(ctx, width, height) {
     posY -= lineSpacing;
   }
 
-  // 3. Título: PandaDash (más grande)
-  ctx.font = `700 ${fontSizeTitle}px ${fontFamily}`;
-  ctx.fillText("PandaDash", marginLeft, posY);
+  // 3. Cargar imagen del panda y dibujar junto al título
+  const img = new Image();
+  img.src = "https://i.ibb.co/jPsD2br1/panda.png";
+  img.onload = () => {
+    // Tamaño ajustado del ícono
+    const pandaSize = fontSizeTitle * 1.2; // Ligeramente más alto que el texto
+    const imageY = posY - pandaSize + fontSizeTitle * 0.15;
+
+    // Dibuja la imagen
+    ctx.drawImage(img, marginLeft, imageY, pandaSize, pandaSize);
+
+    // Texto del título justo a la derecha de la imagen
+    const textX = marginLeft + pandaSize + 10; // espacio entre panda y texto
+    ctx.font = `700 ${fontSizeTitle}px ${fontFamily}`;
+    ctx.fillText("PandaDash", textX, posY);
+  };
 }
 
 
