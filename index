@@ -647,139 +647,6 @@
     .queue-item-error {
       border-left: 3px solid #f72585;
     }
-
-    /* Estilos para el contador de cola y modal */
-.queue-counter {
-  position: fixed;
-  top: 15px;
-  right: 15px;
-  width: 24px;
-  height: 24px;
-  background-color: var(--danger);
-  color: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: bold;
-  z-index: 1000;
-  cursor: pointer;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-  transition: all 0.3s ease;
-}
-
-.queue-counter:hover {
-  transform: scale(1.1);
-}
-
-.queue-counter.empty {
-  background-color: var(--success);
-}
-
-.queue-modal {
-  display: none;
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 90%;
-  max-width: 500px;
-  max-height: 80vh;
-  background: white;
-  border-radius: var(--border-radius);
-  box-shadow: var(--box-shadow);
-  z-index: 10001;
-  padding: 20px;
-  overflow-y: auto;
-}
-
-.queue-modal h3 {
-  margin-bottom: 15px;
-  color: var(--primary);
-  border-bottom: 1px solid var(--border-color);
-  padding-bottom: 10px;
-}
-
-.queue-item {
-  padding: 10px;
-  margin-bottom: 8px;
-  border-radius: var(--border-radius);
-  background: var(--light);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.queue-item-type {
-  font-weight: 500;
-  color: var(--primary);
-}
-
-.queue-item-details {
-  font-size: 12px;
-  color: var(--gray);
-}
-
-.queue-item-status {
-  font-size: 10px;
-  padding: 3px 8px;
-  border-radius: 10px;
-  text-transform: uppercase;
-}
-
-.status-pending {
-  background: var(--warning-light);
-  color: var(--warning-dark);
-}
-
-.status-retrying {
-  background: var(--warning-light);
-  color: var(--warning-dark);
-}
-
-.status-error {
-  background: var(--danger-light);
-  color: var(--danger-dark);
-}
-
-.status-completed {
-  background: var(--success-light);
-  color: var(--success-dark);
-}
-
-.queue-modal-overlay {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0,0,0,0.5);
-  z-index: 10000;
-}
-
-/* Estados para botones de entrega */
-.delivery-btn.pending {
-  background-color: var(--warning);
-}
-
-.delivery-btn.completed {
-  background-color: var(--success);
-  cursor: default;
-}
-
-.delivery-btn.failed {
-  background-color: var(--danger);
-}
-
-:root {
-  --warning-light: rgba(248, 150, 30, 0.1);
-  --danger-light: rgba(247, 37, 133, 0.1);
-  --success-light: rgba(76, 201, 240, 0.1);
-}
-
-
   </style>
 </head>
 <body>
@@ -830,19 +697,6 @@
     <input type="text" id="dummyInput" style="position: absolute; opacity: 0; height: 0; width: 0;" readonly />
   </div>
 
-  <!-- Contador de cola flotante -->
-<div id="queueCounter" class="queue-counter empty" style="display: none;">0</div>
-
-<!-- Modal de cola -->
-<div id="queueModalOverlay" class="queue-modal-overlay"></div>
-<div id="queueModal" class="queue-modal">
-  <h3>Elementos en cola de carga</h3>
-  <div id="queueItemsContainer"></div>
-  <div class="action-buttons" style="margin-top: 20px;">
-    <button id="closeQueueModal" class="btn btn-primary btn-block">Cerrar</button>
-  </div>
-</div>
-
   <script>
     // Configuración y constantes
     const CONFIG = {
@@ -885,7 +739,6 @@
         this.queue = this.loadQueue();
         this.isProcessing = false;
         this.initEventListeners();
-        this.updateQueueCounter();
         this.processQueue(); // Intentar procesar cola al iniciar
       }
       
@@ -902,71 +755,17 @@
       saveQueue() {
         localStorage.setItem(UPLOAD_QUEUE_KEY, JSON.stringify(this.queue));
       }
-
-  updateQueueCounter() {
-    const pendingItems = this.queue.filter(item => !item.completed).length;
-    const counterElement = document.getElementById('queueCounter');
-    
-    if (pendingItems > 0) {
-      counterElement.textContent = pendingItems;
-      counterElement.style.display = 'flex';
-      counterElement.classList.remove('empty');
-    } else {
-      counterElement.classList.add('empty');
-      setTimeout(() => {
-        if (this.queue.filter(item => !item.completed).length === 0) {
-          counterElement.style.display = 'none';
-        }
-      }, 2000);
-    }
-  }
-
-  renderQueueModal() {
-    const container = document.getElementById('queueItemsContainer');
-    container.innerHTML = '';
-    
-    if (this.queue.length === 0) {
-      container.innerHTML = '<p class="no-data">No hay elementos en la cola</p>';
-      return;
-    }
-    
-    this.queue.forEach(item => {
-      const itemElement = document.createElement('div');
-      itemElement.className = 'queue-item';
       
-      let statusClass = 'status-pending';
-      if (item.status === 'completed') statusClass = 'status-completed';
-      else if (item.status === 'error') statusClass = 'status-error';
-      else if (item.status === 'retrying') statusClass = 'status-retrying';
-      
-      itemElement.innerHTML = `
-        <div>
-          <div class="queue-item-type">${item.type === 'photo' ? 'Foto de entrega' : 'Datos'}</div>
-          <div class="queue-item-details">Factura: ${item.factura} | Intentos: ${item.retries}</div>
-        </div>
-        <div class="queue-item-status ${statusClass}">${item.status}</div>
-      `;
-      
-      container.appendChild(itemElement);
-    });
-  }
-}
-
-      
-addJob(job) {
-    this.queue.push({
-      ...job,
-      id: Date.now().toString(),
-      retries: 0,
-      timestamp: new Date().toISOString(),
-      status: 'pending',
-      completed: false
-    });
-    this.saveQueue();
-    this.updateQueueCounter();
-    this.updateDeliveryButton(job.factura, 'pending');
-    this.processQueue();
-  }
+      addJob(job) {
+        this.queue.push({
+          ...job,
+          retries: 0,
+          timestamp: new Date().toISOString(),
+          status: 'pending'
+        });
+        this.saveQueue();
+        this.processQueue();
+      }
       
       initEventListeners() {
         window.addEventListener('online', () => {
@@ -1026,65 +825,35 @@ addJob(job) {
           "Todos los trabajos completados");
       }
       
-async processPhotoJob(job) {
-    try {
-      const formData = new FormData();
-      Object.keys(job.data).forEach(key => {
-        formData.append(key, job.data[key]);
-      });
-      
-      const response = await fetch(API_URL_POST, {
-        method: 'POST',
-        body: formData
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error: ${response.status}`);
+      async processPhotoJob(job) {
+        const formData = new FormData();
+        Object.keys(job.data).forEach(key => {
+          formData.append(key, job.data[key]);
+        });
+        
+        const response = await fetch(API_URL_POST, {
+          method: 'POST',
+          body: formData
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        if (!result.success) {
+          throw new Error(result.message || "Error en la respuesta del servidor");
+        }
+        
+        // Actualizar UI si el elemento todavía está visible
+        if (job.btnElementId) {
+          const btnElement = document.querySelector(`[data-factura="${job.btnElementId}"]`);
+          if (btnElement) {
+            btnElement.innerHTML = '<i class="fas fa-check-circle"></i> Entregado con foto';
+            btnElement.style.backgroundColor = '#28a745';
+          }
+        }
       }
-      
-      const result = await response.json();
-      if (!result.success) {
-        throw new Error(result.message || "Error en la respuesta del servidor");
-      }
-      
-      // Marcar como completado
-      job.completed = true;
-      job.status = 'completed';
-      this.saveQueue();
-      
-      // Actualizar UI
-      this.updateDeliveryButton(job.factura, 'completed');
-      this.updateQueueCounter();
-      
-      return true;
-    } catch (error) {
-      job.status = 'error';
-      job.lastError = error.message;
-      this.saveQueue();
-      this.updateDeliveryButton(job.factura, 'failed');
-      throw error;
-    }
-  }
-
-  updateDeliveryButton(factura, status) {
-    const btnElement = document.querySelector(`.delivery-btn[data-factura="${factura}"]`);
-    if (btnElement) {
-      // Limpiar clases anteriores
-      btnElement.classList.remove('pending', 'completed', 'failed');
-      
-      // Añadir nueva clase según estado
-      if (status === 'pending') {
-        btnElement.classList.add('pending');
-        btnElement.innerHTML = '<i class="fas fa-clock"></i> Pendiente de subir';
-      } else if (status === 'completed') {
-        btnElement.classList.add('completed');
-        btnElement.innerHTML = '<i class="fas fa-check-circle"></i> Entregado con foto';
-      } else if (status === 'failed') {
-        btnElement.classList.add('failed');
-        btnElement.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error al subir';
-      }
-    }
-  }
       
       async processDataJob(job) {
         const response = await fetch(API_URL_POST, {
@@ -1104,27 +873,10 @@ async processPhotoJob(job) {
           throw new Error(result.message || "Error en la respuesta del servidor");
         }
       }
-    
+    }
 
     // Inicializar la cola de carga
     const uploadQueue = new UploadQueue();
-
-    // Eventos para el modal de cola
-document.getElementById('queueCounter').addEventListener('click', () => {
-  uploadQueue.renderQueueModal();
-  document.getElementById('queueModalOverlay').style.display = 'block';
-  document.getElementById('queueModal').style.display = 'block';
-});
-
-document.getElementById('closeQueueModal').addEventListener('click', () => {
-  document.getElementById('queueModalOverlay').style.display = 'none';
-  document.getElementById('queueModal').style.display = 'none';
-});
-
-document.getElementById('queueModalOverlay').addEventListener('click', () => {
-  document.getElementById('queueModalOverlay').style.display = 'none';
-  document.getElementById('queueModal').style.display = 'none';
-});
 
     // Función para actualizar el estado de la cola en la UI
     function updateQueueStatus(message) {
@@ -1155,54 +907,42 @@ document.getElementById('queueModalOverlay').addEventListener('click', () => {
       });
     }
 
-    // Función para verificar estado de facturas al cargar la página
-function checkInitialDeliveryStatuses() {
-  uploadQueue.queue.forEach(item => {
-    if (item.completed) {
-      uploadQueue.updateDeliveryButton(item.factura, 'completed');
-    } else {
-      uploadQueue.updateDeliveryButton(item.factura, 'pending');
+    // Función para extraer datos de la UI
+    function extractDataFromUI(factura) {
+      let lote = '', referencia = '', cantidad = 0;
+      
+      // Buscar contenedor de la factura
+      const facturaContainer = document.querySelector(`.siesa-item button[data-factura="${factura}"]`)?.closest('.siesa-item');
+      
+      if (facturaContainer) {
+        const rows = facturaContainer.querySelectorAll('.result-row');
+        
+        rows.forEach(row => {
+          const header = row.querySelector('.col-header')?.textContent.trim();
+          const value = row.querySelector('.json-value')?.textContent.trim();
+          
+          if (!header || !value) return;
+          
+          if (header.includes('Lote')) lote = value;
+          else if (header.includes('Referencia')) referencia = value;
+          else if (header.includes('Cantidad')) cantidad = parseFloat(value) || 0;
+        });
+      }
+      
+      return { lote, referencia, cantidad };
     }
-  });
-  uploadQueue.updateQueueCounter();
-}
-
-
-// Función para extraer datos de la UI
-function extractDataFromUI(factura) {
-  let lote = '', referencia = '', cantidad = 0;
-  
-  // Buscar contenedor de la factura específica
-  const facturaContainer = document.querySelector(`.siesa-item button[data-factura="${factura}"]`)?.closest('.siesa-item');
-  
-  if (facturaContainer) {
-    const rows = facturaContainer.querySelectorAll('.result-row');
-    
-    rows.forEach(row => {
-      const header = row.querySelector('.col-header')?.textContent.trim();
-      const value = row.querySelector('.json-value')?.textContent.trim();
-      
-      if (!header || !value) return;
-      
-      if (header.includes('Lote')) lote = value;
-      else if (header.includes('Referencia')) referencia = value;
-      else if (header.includes('Cantidad')) cantidad = parseFloat(value) || 0;
-    });
-  }
-  
-  return { lote, referencia, cantidad };
-}
 
     // Función para abrir la cámara
-function abrirCamara(factura) {
-  if (!currentDocumentData) {
-    console.error("No hay datos del documento disponibles");
-    return;
-  }
-  
-  // Mostrar la cámara
-  mostrarCamara();
-}
+    function abrirCamara(factura) {
+      // Guardar datos para uso posterior
+      currentDocumentData = {
+        factura: factura,
+        btnElement: document.querySelector(`.delivery-btn[data-factura="${factura}"]`)
+      };
+      
+      // Mostrar la cámara
+      mostrarCamara();
+    }
 
     // Función para mostrar la cámara
     function mostrarCamara() {
@@ -1318,35 +1058,27 @@ async function subirFoto() {
   try {
     // Convertir blob a base64
     const base64Data = await blobToBase64(photoBlob);
-    const nombreArchivo = factura.replace(/[^a-zA-Z0-9\-]/g, '') + '.jpg';
+    const nombreArchivo = `${factura}_${Date.now()}.jpg`.replace(/[^a-zA-Z0-9\-]/g, '');
     
-    // Usar los datos específicos de la factura que fueron guardados en currentDocumentData
+    // Crear objeto de trabajo para la cola con TODOS los datos específicos
     const jobData = {
-      documento: documento || (currentQRParts ? currentQRParts.documento : ''),
-      lote: lote || '',
-      referencia: referencia || '',
-      cantidad: cantidad || 0,
+      documento: documento,
+      lote: lote,
+      referencia: referencia,
+      cantidad: cantidad,
       factura: factura,
-      nit: nit || (currentQRParts ? currentQRParts.nit : ''),
+      nit: nit,
       fotoBase64: base64Data,
       fotoNombre: nombreArchivo,
-      fotoTipo: 'image/jpeg'
+      fotoTipo: 'image/jpeg',
+      timestamp: new Date().toISOString()
     };
-    
-    console.log("Enviando datos de factura:", { 
-      documento: jobData.documento,
-      lote: jobData.lote,
-      referencia: jobData.referencia,
-      cantidad: jobData.cantidad,
-      factura: jobData.factura,
-      nit: jobData.nit
-    });
     
     // Agregar a la cola
     uploadQueue.addJob({
       type: 'photo',
       data: jobData,
-      factura,
+      factura: factura,
       btnElementId: btnElement ? btnElement.getAttribute('data-factura') : null
     });
     
@@ -1363,6 +1095,47 @@ async function subirFoto() {
     takePhotoBtn.disabled = false;
     takePhotoBtn.innerHTML = '<i class="fas fa-redo"></i> Reintentar';
   }
+}
+
+// Función para extraer datos específicos de la factura seleccionada
+function getFacturaData(factura) {
+  const facturaContainer = document.querySelector(`.siesa-item button[data-factura="${factura}"]`)?.closest('.siesa-item');
+  if (!facturaContainer) return null;
+  
+  const data = {
+    documento: '',
+    lote: '',
+    referencia: '',
+    cantidad: 0,
+    factura: factura,
+    nit: ''
+  };
+  
+  // Extraer datos del contenedor principal (documento)
+  const mainContainer = document.querySelector('.result-item');
+  if (mainContainer) {
+    const docElement = mainContainer.querySelector('.col-header:contains("Documento") + .json-value');
+    if (docElement) data.documento = docElement.textContent.trim();
+    
+    const loteElement = mainContainer.querySelector('.col-header:contains("Lote") + .json-value');
+    if (loteElement) data.lote = loteElement.textContent.trim();
+  }
+  
+  // Extraer datos específicos de la factura
+  const rows = facturaContainer.querySelectorAll('.result-row');
+  rows.forEach(row => {
+    const header = row.querySelector('.col-header')?.textContent.trim();
+    const value = row.querySelector('.json-value')?.textContent.trim();
+    
+    if (!header || !value) return;
+    
+    if (header.includes('Referencia')) data.referencia = value;
+    else if (header.includes('Cantidad')) data.cantidad = parseFloat(value) || 0;
+    else if (header.includes('NIT')) data.nit = value;
+    else if (header.includes('Nit')) data.nit = value;
+  });
+  
+  return data;
 }
 
     // Función para cerrar la cámara
@@ -1397,31 +1170,22 @@ async function subirFoto() {
     // Configurar botón cancelar
     document.getElementById('cancelCaptureBtn').addEventListener('click', cerrarCamara);
 
-
-// Función para procesar entregas corregida
+    // Función actualizada para procesar entregas
 function procesarEntrega(documento, lote, referencia, cantidad, factura, nit, btnElement) {
-  // Extraer datos directamente de la UI para asegurar que sean los correctos para esta factura específica
-  const datosFactura = extractDataFromUI(factura);
-  
-  // Usar los datos extraídos de la UI, o los proporcionados como parámetros si no se pudieron extraer
-  const datosFinales = {
-    documento: documento,
-    lote: datosFactura.lote || lote || '',
-    referencia: datosFactura.referencia || referencia || '',
-    cantidad: datosFactura.cantidad || parseFloat(cantidad) || 0,
-    factura: factura,
-    nit: nit || ''
-  };
-  
-  // Guardar los datos finales para usar al subir la foto
+  // Guardar todos los datos específicos de la factura
   currentDocumentData = {
-    ...datosFinales,
+    documento: documento,
+    lote: lote || '',
+    referencia: referencia || '',
+    cantidad: parseFloat(cantidad) || 0,
+    factura: factura,
+    nit: nit || '',
     btnElement: btnElement
   };
   
-  // Abrir la cámara para tomar la foto
+  // Abrir la cámara con los datos ya almacenados
   setTimeout(() => {
-    abrirCamara(factura);
+    mostrarCamara();
   }, 500);
 }
 
@@ -1541,10 +1305,6 @@ function procesarEntrega(documento, lote, referencia, cantidad, factura, nit, bt
       } else {
         handleDataLoadError(new Error('Formato de datos incorrecto'));
       }
-        // Después de cargar los datos, verificar estados de entrega
-  setTimeout(() => {
-    checkInitialDeliveryStatuses();
-  }, 500);
     }
 
     function handleDataLoadError(error) {
@@ -1748,124 +1508,123 @@ function procesarEntrega(documento, lote, referencia, cantidad, factura, nit, bt
       }
     }
 
-function displayFullResult(item, qrParts) {
-  const totalRegistros = item.datosSiesa ? item.datosSiesa.length : 0;
-  const filtradosRegistros = item.datosSiesa ? item.datosSiesa.length : 0;
-  
-  resultsDiv.innerHTML = `
-    <div class="result-item">
-      ${filtradosRegistros < totalRegistros ? `
-        <div class="filter-info">
-          <i class="fas fa-info-circle"></i> Mostrando ${filtradosRegistros} de ${totalRegistros} registros (filtrado por NIT ${qrParts.nit})
-        </div>
-      ` : ''}
+    function displayFullResult(item, qrParts) {
+      const totalRegistros = item.datosSiesa ? item.datosSiesa.length : 0;
+      const filtradosRegistros = item.datosSiesa ? item.datosSiesa.length : 0;
       
-      ${displayItemData(item, 'Datos del Documento', qrParts)}
-    </div>
-  `;
-}
-
-
-function displayItemData(data, title = 'Datos', qrParts) {
-  let html = `<div class="siesa-header">${title} <span class="timestamp">${new Date().toLocaleString()}</span></div>`;
-  
-  // Asegurar que se muestra el lote en primer lugar, seguido de otras propiedades
-  // Orden de propiedades: documento, lote, referencia, y luego el resto
-  const ordenPropiedades = ['documento', 'lote', 'referencia'];
-  
-  // Mostrar primero las propiedades prioritarias en el orden deseado
-  ordenPropiedades.forEach(propKey => {
-    if (propKey in data && propKey !== 'datosSiesa') {
-      html += `
-        <div class="result-row">
-          <div class="col-header">${formatKey(propKey)}:</div>
-          <div class="json-value">${formatValue(data[propKey], propKey)}</div>
+      resultsDiv.innerHTML = `
+        <div class="result-item">
+          ${filtradosRegistros < totalRegistros ? `
+            <div class="filter-info">
+              <i class="fas fa-info-circle"></i> Mostrando ${filtradosRegistros} de ${totalRegistros} registros (filtrado por NIT ${qrParts.nit})
+            </div>
+          ` : ''}
+          
+          ${displayItemData(item, 'Datos del Documento', qrParts)}
         </div>
       `;
     }
-  });
-  
-  // Mostrar el resto de propiedades que no están en la lista de prioridad
-  for (const key in data) {
-    if (key === 'datosSiesa' || ordenPropiedades.includes(key)) continue;
-    
-    html += `
-      <div class="result-row">
-        <div class="col-header">${formatKey(key)}:</div>
-        <div class="json-value">${formatValue(data[key], key)}</div>
-      </div>
-    `;
-  }
-  
-  // Mostrar datosSiesa si existen
-  if (data.datosSiesa && Array.isArray(data.datosSiesa)) {
-    if (data.datosSiesa.length === 0) {
-      html += `<div class="no-data" style="padding: 15px; text-align: center;"><i class="fas fa-search"></i> No hay registros que coincidan con el NIT escaneado</div>`;
-    } else {
-      html += `<div class="siesa-header">Documentos Relacionados <span class="badge badge-success">${data.datosSiesa.length} registros</span></div>`;
+
+    function displayItemData(data, title = 'Datos', qrParts) {
+      let html = `<div class="siesa-header">${title} <span class="timestamp">${new Date().toLocaleString()}</span></div>`;
       
-      data.datosSiesa.forEach((siesa, index) => {
-        const estadoBadge = siesa.estado === 'Aprobadas' ? 'badge-success' : 'badge-warning';
-        
-        html += `<div class="siesa-item">`;
-        html += `<div class="siesa-header">Factura #${index + 1} <span class="badge ${estadoBadge}">${siesa.estado || 'Sin estado'}</span></div>`;
-        
-        // Orden preferido para propiedades de datosSiesa
-        const ordenSiesaPropiedades = ['factura', 'nit', 'lote', 'referencia', 'cantidad', 'estado', 'cliente', 'valorBruto', 'fecha', 'proovedor'];
-        
-        // Mostrar propiedades en el orden preferido
-        ordenSiesaPropiedades.forEach(propKey => {
-          if (propKey in siesa) {
-            html += `
-              <div class="result-row">
-                <div class="col-header">${formatKey(propKey)}:</div>
-                <div class="json-value">${formatValue(siesa[propKey], propKey)}</div>
-              </div>
-            `;
-          }
-        });
-        
-        // Mostrar cualquier propiedad adicional que no esté en la lista ordenada
-        for (const key in siesa) {
-          if (ordenSiesaPropiedades.includes(key)) continue;
-          
+      // Asegurar que se muestra el lote en primer lugar, seguido de otras propiedades
+      // Orden de propiedades: documento, lote, referencia, y luego el resto
+      const ordenPropiedades = ['documento', 'lote', 'referencia'];
+      
+      // Mostrar primero las propiedades prioritarias en el orden deseado
+      ordenPropiedades.forEach(propKey => {
+        if (propKey in data && propKey !== 'datosSiesa') {
           html += `
             <div class="result-row">
-              <div class="col-header">${formatKey(key)}:</div>
-              <div class="json-value">${formatValue(siesa[key], key)}</div>
+              <div class="col-header">${formatKey(propKey)}:</div>
+              <div class="json-value">${formatValue(data[propKey], propKey)}</div>
             </div>
           `;
         }
+      });
+      
+      // Mostrar el resto de propiedades que no están en la lista de prioridad
+      for (const key in data) {
+        if (key === 'datosSiesa' || ordenPropiedades.includes(key)) continue;
         
-        // Botón de entregas que pasa los datos exactos de esta factura
         html += `
-          <div class="action-buttons">
-            <button class="delivery-btn" 
-              data-factura="${siesa.factura}"
-              onclick="procesarEntrega(
-                '${data.documento}', 
-                '${siesa.lote || ''}', 
-                '${siesa.referencia || ''}', 
-                '${siesa.cantidad || 0}', 
-                '${siesa.factura}', 
-                '${siesa.nit || qrParts.nit}', 
-                this
-              )">
-              <i class="fas fa-truck"></i> Procesar Entrega
-            </button>
-            <span class="save-success" style="display: none;">
-              <i class="fas fa-check"></i> Registro guardado
-            </span>
+          <div class="result-row">
+            <div class="col-header">${formatKey(key)}:</div>
+            <div class="json-value">${formatValue(data[key], key)}</div>
           </div>
         `;
-        
-        html += `</div>`;
-      });
+      }
+      
+      // Mostrar datosSiesa si existen
+      if (data.datosSiesa && Array.isArray(data.datosSiesa)) {
+        if (data.datosSiesa.length === 0) {
+          html += `<div class="no-data" style="padding: 15px; text-align: center;"><i class="fas fa-search"></i> No hay registros que coincidan con el NIT escaneado</div>`;
+        } else {
+          html += `<div class="siesa-header">Documentos Relacionados <span class="badge badge-success">${data.datosSiesa.length} registros</span></div>`;
+          
+          data.datosSiesa.forEach((siesa, index) => {
+            const estadoBadge = siesa.estado === 'Aprobadas' ? 'badge-success' : 'badge-warning';
+            
+            html += `<div class="siesa-item">`;
+            html += `<div class="siesa-header">Factura #${index + 1} <span class="badge ${estadoBadge}">${siesa.estado || 'Sin estado'}</span></div>`;
+            
+            // Orden preferido para propiedades de datosSiesa
+            const ordenSiesaPropiedades = ['factura', 'nit', 'lote', 'referencia', 'cantidad', 'estado', 'cliente', 'valorBruto', 'fecha', 'proovedor'];
+            
+            // Mostrar propiedades en el orden preferido
+            ordenSiesaPropiedades.forEach(propKey => {
+              if (propKey in siesa) {
+                html += `
+                  <div class="result-row">
+                    <div class="col-header">${formatKey(propKey)}:</div>
+                    <div class="json-value">${formatValue(siesa[propKey], propKey)}</div>
+                  </div>
+                `;
+              }
+            });
+            
+            // Mostrar cualquier propiedad adicional que no esté en la lista ordenada
+            for (const key in siesa) {
+              if (ordenSiesaPropiedades.includes(key)) continue;
+              
+              html += `
+                <div class="result-row">
+                  <div class="col-header">${formatKey(key)}:</div>
+                  <div class="json-value">${formatValue(siesa[key], key)}</div>
+                </div>
+              `;
+            }
+            
+            // Botón de entregas que maneja todo el proceso con el NIT correcto
+html += `
+  <div class="action-buttons">
+    <button class="delivery-btn" 
+      data-factura="${siesa.factura}"
+      onclick="procesarEntrega(
+        '${data.documento}', 
+        '${siesa.lote || data.lote}', 
+        '${siesa.referencia}', 
+        '${siesa.cantidad}', 
+        '${siesa.factura}', 
+        '${siesa.nit || qrParts.nit}', 
+        this
+      )">
+      <i class="fas fa-truck"></i> Procesar Entrega
+    </button>
+    <span class="save-success" style="display: none;">
+      <i class="fas fa-check"></i> Registro guardado
+    </span>
+  </div>
+`;
+            
+            html += `</div>`;
+          });
+        }
+      }
+      
+      return html;
     }
-  }
-  
-  return html;
-}
 
     function formatKey(key) {
       return key
