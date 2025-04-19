@@ -1366,9 +1366,97 @@ function procesarImagenCapturada(archivo) {
 
 // Función para aplicar marca de agua
 
+// Reemplazar la función procesarEntrega para usar la cámara nativa
+function procesarEntrega(documento, lote, referencia, cantidad, factura, nit, btnElement) {
+  // Guardar todos los datos específicos de la factura
+  currentDocumentData = {
+    documento: documento,
+    lote: lote || '',
+    referencia: referencia || '',
+    cantidad: parseFloat(cantidad) || 0,
+    factura: factura,
+    nit: nit || '',
+    btnElement: btnElement
+  };
+  
+  // Crear un input de tipo file temporal para capturar fotos
+  const fileInput = document.createElement('input');
+  fileInput.type = 'file';
+  fileInput.accept = 'image/*';
+  fileInput.capture = 'environment'; // Usar cámara trasera por defecto
+  
+  // Agregar evento para procesar la imagen cuando se capture
+  fileInput.addEventListener('change', function(e) {
+    if (e.target.files && e.target.files[0]) {
+      procesarImagenCapturada(e.target.files[0]);
+    }
+  });
+  
+  // Simular clic para abrir la cámara del dispositivo
+  fileInput.click();
+}
+
+// Nueva función para procesar la imagen capturada
+function procesarImagenCapturada(archivo) {
+  if (!archivo) {
+    console.error("No se seleccionó ninguna imagen");
+    return;
+  }
+  
+  // Mostrar estado de carga
+  statusDiv.innerHTML = '<i class="fas fa-image"></i> Procesando imagen...';
+  
+  const lector = new FileReader();
+  lector.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      // Crear canvas para procesamiento
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      
+      // Establecer dimensiones manteniendo proporciones pero limitando tamaño
+      let width = img.width;
+      let height = img.height;
+      
+      // Redimensionar si la imagen es muy grande (para optimizar)
+      const maxDimension = CONFIG.MAX_IMAGE_SIZE || 1200;
+      if (width > height && width > maxDimension) {
+        height = (height / width) * maxDimension;
+        width = maxDimension;
+      } else if (height > width && height > maxDimension) {
+        width = (width / height) * maxDimension;
+        height = maxDimension;
+      }
+      
+      canvas.width = width;
+      canvas.height = height;
+      
+      // Dibujar imagen en el canvas
+      ctx.drawImage(img, 0, 0, width, height);
+      
+      // Aplicar marca de agua
+      aplicarMarcaDeAgua(ctx, width, height);
+      
+      // Convertir a Blob
+      canvas.toBlob(function(blob) {
+        photoBlob = blob;
+        
+        // Opcionalmente mostrar una vista previa
+        mostrarVistaPrevia(URL.createObjectURL(blob));
+        
+        // Subir la imagen procesada a la cola
+        subirFotoCapturada(blob);
+      }, 'image/jpeg', 0.85);
+    };
+    img.src = e.target.result;
+  };
+  lector.readAsDataURL(archivo);
+}
+
+// Función para aplicar marca de agua
 function aplicarMarcaDeAgua(ctx, width, height) {
   // Área compacta para la marca de agua
-  const marcaHeight = Math.floor(height / 6);
+  const marcaHeight = Math.floor(height / 7);
   
   // Crear gradiente semi-transparente para el fondo de la marca
   const gradient = ctx.createLinearGradient(0, height - marcaHeight, 0, height);
@@ -1379,8 +1467,8 @@ function aplicarMarcaDeAgua(ctx, width, height) {
   ctx.fillStyle = gradient;
   ctx.fillRect(0, height - marcaHeight, width, marcaHeight);
   
-  // Usar la misma tipografía para todo: Consolas es ideal para datos técnicos y fechas
-  const fontFamily = "Consolas, 'Courier New', monospace";
+  // Usar Arial para todo
+  const fontFamily = "Arial, sans-serif";
   
   // Calcular tamaños de fuente relativos a la resolución
   const fontSizeMedium = Math.max(20, Math.floor(width / 30)); // Fecha y hora
@@ -1390,56 +1478,46 @@ function aplicarMarcaDeAgua(ctx, width, height) {
   const marginLeft = Math.floor(width / 20);
   
   // Posición Y inicial (desde abajo)
-  let posY = height - Math.floor(marcaHeight * 0.25);
+  let posY = height - Math.floor(marcaHeight * 0.5);
   
   // Color para todo el texto
   ctx.fillStyle = "white";
   
-  // 1. FACTURA (abajo del todo, si existe)
-  if (currentDocumentData && currentDocumentData.factura) {
-    ctx.font = `${fontSizeSmall}px ${fontFamily}`;
-    ctx.fillText(`Factura: ${currentDocumentData.factura}`, marginLeft, posY);
-    posY -= Math.floor(fontSizeSmall * 1.2);
-  }
-  
-  // 2. DATOS TÉCNICOS (en medio, solo si hay datos)
-  let datosText = "";
-  let hayDatos = false;
+  // 1. DATOS TÉCNICOS (valores separados por | sin títulos)
+  let valoresArray = [];
   
   if (currentDocumentData) {
-    // Construir texto solo con datos disponibles
+    // Agregar solo los valores que existen
     if (currentDocumentData.lote) {
-      datosText += "Lote: " + currentDocumentData.lote;
-      hayDatos = true;
+      valoresArray.push(currentDocumentData.lote);
     }
     
     if (currentDocumentData.referencia) {
-      if (hayDatos) datosText += " | ";
-      datosText += "Ref: " + currentDocumentData.referencia;
-      hayDatos = true;
+      valoresArray.push(currentDocumentData.referencia);
     }
     
     if (currentDocumentData.cantidad) {
-      if (hayDatos) datosText += " | ";
-      datosText += "Cant: " + currentDocumentData.cantidad;
-      hayDatos = true;
+      valoresArray.push(currentDocumentData.cantidad);
     }
     
     if (currentDocumentData.estado) {
-      if (hayDatos) datosText += " | ";
-      datosText += "Estado: " + currentDocumentData.estado;
-      hayDatos = true;
+      valoresArray.push(currentDocumentData.estado);
+    }
+    
+    if (currentDocumentData.factura) {
+      valoresArray.push(currentDocumentData.factura);
     }
   }
   
   // Mostrar datos técnicos si existen
-  if (hayDatos) {
+  if (valoresArray.length > 0) {
+    const datosText = valoresArray.join(' | ');
     ctx.font = `${fontSizeSmall}px ${fontFamily}`;
     ctx.fillText(datosText, marginLeft, posY);
-    posY -= Math.floor(fontSizeSmall * 1.2);
+    posY -= Math.floor(fontSizeSmall * 1.3);
   }
   
-  // 3. FECHA Y HORA (arriba de todo)
+  // 2. FECHA Y HORA
   const fecha = new Date().toLocaleString();
   ctx.font = `${fontSizeMedium}px ${fontFamily}`;
   ctx.fillText(fecha, marginLeft, posY);
