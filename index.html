@@ -741,12 +741,8 @@
   // Agregar al inicio del script
 const UPLOAD_QUEUE = 'photo-upload-queue';
 let uploadQueue = [];
-//let isUploading = false;
-//let uploadCounter = 0;
-
-let uploadQueue = [];
-let isProcessingQueue = false;
-const UPLOAD_QUEUE_KEY = 'photo_upload_queue';
+let isUploading = false;
+let uploadCounter = 0;
 
 // Modificar la función saveOfflinePhoto
 async function saveOfflinePhoto(base64Data, nombreArchivo, factura) {
@@ -1167,262 +1163,135 @@ function showOfflineNotification(message) {
       }, 'image/jpeg', 0.85);
     }
 
-    // Modificar la función subirFoto para usar cola en segundo plano
+    // Función modificada para subir fotos (nunca bloquea)
 async function subirFoto() {
-  if (!currentDocumentData || !photoBlob) return;
+  if (!currentDocumentData || !photoBlob) {
+    console.error("No hay datos disponibles para subir");
+    return;
+  }
 
   const { factura, btnElement } = currentDocumentData;
   const takePhotoBtn = document.getElementById('takePhotoBtn');
   const uploadStatus = document.getElementById('uploadStatus');
 
+  // Deshabilitar botón y mostrar estado de carga
   takePhotoBtn.disabled = true;
-  takePhotoBtn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Preparando...';
+  takePhotoBtn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Enviando...';
   uploadStatus.style.display = 'flex';
+  uploadStatus.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Preparando envío...';
 
   try {
-    const reader = new FileReader();
-    reader.onloadend = async function() {
-      const base64Data = reader.result.split(',')[1];
-      const nombreArchivo = `${factura}_${Date.now()}.jpg`;
-      
-      // Reducir tamaño de imagen para almacenamiento
-      const reducedImage = await reduceImageSize(base64Data);
-      
-      // Crear objeto foto para la cola
-      const photoData = {
-        id: Date.now(),
-        factura: factura,
-        base64Data: reducedImage,
-        nombreArchivo: nombreArchivo,
-        timestamp: new Date().toISOString(),
-        attempts: 0
-      };
+    // Convertir blob a base64 (esto puede demorar, pero es necesario)
+    const base64Data = await blobToBase64(photoBlob);
+    const nombreArchivo = `${factura}_${Date.now()}.jpg`;
 
-      if (navigator.onLine) {
-        // Intentar subir inmediatamente en segundo plano
-        queuePhotoForUpload(photoData);
-        
-        // Mostrar confirmación al usuario
-        uploadStatus.innerHTML = '<i class="fas fa-check-circle"></i> Foto en proceso de subida';
-        takePhotoBtn.innerHTML = '<i class="fas fa-check"></i> Foto procesada';
-        
-        if (btnElement) {
-          btnElement.innerHTML = '<i class="fas fa-check-circle"></i> Entregado con foto';
-          btnElement.style.backgroundColor = '#28a745';
-        }
-      } else {
-        // Guardar offline
-        await savePhotoOffline(photoData);
-        uploadStatus.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Guardada para subir luego';
-        takePhotoBtn.innerHTML = '<i class="fas fa-check"></i> Guardada offline';
-      }
-      
-      setTimeout(cerrarCamara, 1500);
+    // Crear objeto foto para la cola
+    const photoData = {
+      id: Date.now(),
+      factura: factura,
+      base64Data: base64Data,
+      nombreArchivo: nombreArchivo,
+      timestamp: new Date().toISOString(),
+      attempts: 0
     };
-    reader.readAsDataURL(photoBlob);
+
+    // Guardar en cola de subida (IndexedDB)
+    await addPhotoToQueue(photoData);
+
+    // Notificar al usuario que se procesará en segundo plano
+    uploadStatus.innerHTML = '<i class="fas fa-check-circle"></i> En cola para subir';
+    takePhotoBtn.innerHTML = '<i class="fas fa-check"></i> En cola';
+
+    // Marcar como completado en la UI (aunque aún no se haya subido)
+    if (btnElement) {
+      btnElement.innerHTML = '<i class="fas fa-check-circle"></i> Entregado (pendiente subir)';
+      btnElement.style.backgroundColor = '#28a745';
+    }
+
+    // Registrar sync para subir en segundo plano
+    if ('serviceWorker' in navigator && 'SyncManager' in window) {
+      try {
+        const registration = await navigator.serviceWorker.ready;
+        await registration.sync.register('sync-photos');
+        console.log('Sync registrado para subida en segundo plano');
+      } catch (syncError) {
+        console.error('Error registrando sync:', syncError);
+        // En caso de error, igual se subirá cuando haya conexión
+      }
+    }
+
+    // Cerrar cámara después de breve espera
+    setTimeout(cerrarCamara, 1500);
   } catch (error) {
-    console.error("Error al procesar foto:", error);
-    uploadStatus.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error al procesar';
+    console.error("Error preparando foto:", error);
+    uploadStatus.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error al preparar';
     takePhotoBtn.disabled = false;
     takePhotoBtn.innerHTML = '<i class="fas fa-redo"></i> Reintentar';
   }
 }
 
-// Función para encolar foto para subida en segundo plano
-function queuePhotoForUpload(photoData) {
-  if ('serviceWorker' in navigator && 'SyncManager' in window) {
-    // Usar Service Worker para manejar en segundo plano
-    navigator.serviceWorker.ready.then(reg => {
-      reg.active.postMessage({
-        type: 'queue_photo',
-        photo: photoData
-      });
-    });
-  } else {
-    // Fallback para navegadores sin soporte
-    addToLocalQueue(photoData);
-    processUploadQueue();
-  }
-  
-  // Actualizar UI
-  updateUploadQueueUI();
+// Función auxiliar para convertir blob a base64
+function blobToBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
 }
 
-// Función para guardar foto offline
-async function savePhotoOffline(photoData) {
+// Función para agregar foto a la cola (IndexedDB)
+async function addPhotoToQueue(photoData) {
+  const db = await openPhotoQueueDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('photos', 'readwrite');
+    const store = tx.objectStore('photos');
+    const request = store.add(photoData);
+    
+    request.onsuccess = () => {
+      updateUploadCounter();
+      resolve();
+    };
+    request.onerror = () => reject(new Error('Error agregando foto a la cola'));
+  });
+}
+
+// Actualizar contador de fotos pendientes
+async function updateUploadCounter() {
   try {
-    // Guardar en IndexedDB
-    await addToLocalQueue(photoData);
+    const queue = await getPhotoQueue();
+    const counter = document.getElementById('upload-counter');
+    const counterText = document.getElementById('upload-counter-text');
     
-    // Mostrar notificación
-    showToast('Foto guardada para subir cuando haya conexión', 'info');
-    
-    // Registrar sync para cuando haya conexión
-    if ('serviceWorker' in navigator && 'SyncManager' in window) {
-      const reg = await navigator.serviceWorker.ready;
-      await reg.sync.register('sync-photos');
+    if (queue.length > 0) {
+      counter.style.display = 'flex';
+      counterText.textContent = queue.length;
+    } else {
+      counter.style.display = 'none';
     }
   } catch (error) {
-    console.error("Error al guardar foto offline:", error);
-    showToast('Error al guardar foto offline', 'error');
+    console.error('Error actualizando contador:', error);
   }
 }
 
-// Funciones para manejar la cola local (IndexedDB)
-async function addToLocalQueue(photo) {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open('PandaDashUploads', 1);
-    
-    request.onupgradeneeded = (event) => {
-      const db = event.target.result;
-      if (!db.objectStoreNames.contains('photos')) {
-        db.createObjectStore('photos', { keyPath: 'id' });
-      }
-    };
-    
-    request.onsuccess = (event) => {
-      const db = event.target.result;
-      const tx = db.transaction('photos', 'readwrite');
-      const store = tx.objectStore('photos');
-      
-      store.put(photo);
-      
-      tx.oncomplete = () => {
-        updateUploadQueueUI();
-        resolve();
-      };
-      
-      tx.onerror = (error) => {
-        reject(error);
-      };
-    };
-    
-    request.onerror = (error) => {
-      reject(error);
-    };
-  });
-}
-
-async function processUploadQueue() {
-  if (isProcessingQueue) return;
-  isProcessingQueue = true;
-  
-  try {
-    const photos = await getLocalQueue();
-    
-    for (const photo of photos) {
-      try {
-        const formData = new FormData();
-        formData.append('factura', photo.factura);
-        formData.append('fotoBase64', photo.base64Data);
-        formData.append('fotoNombre', photo.nombreArchivo);
-        
-        const response = await fetch(API_URL_POST, {
-          method: 'POST',
-          body: formData
-        });
-        
-        if (response.ok) {
-          await removeFromLocalQueue(photo.id);
-          showToast(`Foto ${photo.factura} subida correctamente`, 'success');
-        } else {
-          photo.attempts++;
-          if (photo.attempts < 3) {
-            await updatePhotoInQueue(photo);
-          } else {
-            await removeFromLocalQueue(photo.id);
-          }
-        }
-      } catch (error) {
-        console.error('Error subiendo foto:', error);
-        break;
-      }
-    }
-  } finally {
-    isProcessingQueue = false;
-    updateUploadQueueUI();
-  }
-}
-
-async function getLocalQueue() {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open('PandaDashUploads', 1);
-    
-    request.onsuccess = (event) => {
-      const db = event.target.result;
-      const tx = db.transaction('photos', 'readonly');
-      const store = tx.objectStore('photos');
-      const request = store.getAll();
-      
-      request.onsuccess = () => resolve(request.result);
-      request.onerror = () => reject(request.error);
-    };
-    
-    request.onerror = () => reject(request.error);
-  });
-}
-
-async function removeFromLocalQueue(id) {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open('PandaDashUploads', 1);
-    
-    request.onsuccess = (event) => {
-      const db = event.target.result;
-      const tx = db.transaction('photos', 'readwrite');
-      const store = tx.objectStore('photos');
-      
-      store.delete(id);
-      
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => reject(tx.error);
-    };
-    
-    request.onerror = () => reject(request.error);
-  });
-}
-
-// Función para actualizar la UI de la cola
-async function updateUploadQueueUI() {
-  const queue = await getLocalQueue();
-  const counter = document.getElementById('upload-counter');
-  
-  if (queue.length > 0) {
-    counter.style.display = 'flex';
-    counter.innerHTML = `
-      <i class="fas fa-camera"></i>
-      <span>${queue.length} foto(s) pendientes</span>
-    `;
-  } else {
-    counter.style.display = 'none';
-  }
-}
-
-// Escuchar eventos de conexión
-window.addEventListener('online', () => {
-  processUploadQueue();
-});
-
-// Mostrar notificaciones toast
-function showToast(message, type = 'info') {
-  const toast = document.createElement('div');
-  toast.className = `toast toast-${type}`;
-  toast.textContent = message;
-  document.body.appendChild(toast);
-  
-  setTimeout(() => {
-    toast.classList.add('fade-out');
-    setTimeout(() => toast.remove(), 300);
-  }, 3000);
-}
-
-// Inicializar al cargar la aplicación
+// Iniciar el monitoreo de la cola al cargar la aplicación
 document.addEventListener('DOMContentLoaded', () => {
-  updateUploadQueueUI();
+  updateUploadCounter();
   
-  if (navigator.onLine) {
-    processUploadQueue();
-  }
+  // Verificar periódicamente si hay fotos pendientes
+  setInterval(updateUploadCounter, 30000);
 });
+      
+      reader.onerror = function() {
+        console.error("Error al leer la imagen");
+        uploadStatus.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error al leer la imagen';
+        takePhotoBtn.disabled = false;
+        takePhotoBtn.innerHTML = '<i class="fas fa-redo"></i> Reintentar';
+      };
+      
+      // Iniciar la lectura del blob de la imagen
+      reader.readAsDataURL(photoBlob);
+    }
 
 
 
@@ -1584,22 +1453,46 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('cancelCaptureBtn').addEventListener('click', cerrarCamara);
 
     // Función actualizada para procesar entregas
-    function procesarEntrega(documento, lote, referencia, cantidad, factura, nit, btnElement) {
-      // Crear objeto con los datos completos
-      const datos = {
-        documento: documento,
-        lote: lote || '',
-        referencia: referencia || '',
-        cantidad: parseFloat(cantidad) || 0,
-        factura: factura,
-        nit: nit || ''
-      };
-      
-      // Luego abrimos la cámara automáticamente
-      setTimeout(() => {
-        abrirCamara(factura);
-      }, 500);
-    }
+    // Modificar la función procesarEntrega para ser más eficiente
+function procesarEntrega(documento, lote, referencia, cantidad, factura, nit, btnElement) {
+  // Guardar datos mínimos necesarios para la foto
+  currentDocumentData = {
+    factura: factura,
+    btnElement: btnElement
+  };
+  
+  // Extraer partes del QR si están disponibles
+  if (!currentQRParts) {
+    currentQRParts = { documento, nit };
+  }
+  
+  // Abrir cámara inmediatamente sin esperar
+  abrirCamara(factura);
+}
+
+// Función optimizada para cerrar cámara
+function cerrarCamara() {
+  // Limpiar stream de cámara si existe
+  if (cameraStream) {
+    cameraStream.getTracks().forEach(track => track.stop());
+    cameraStream = null;
+  }
+  
+  const cameraModal = document.getElementById('cameraModal');
+  cameraModal.style.display = 'none';
+  
+  // Limpiar temporizadores
+  if (preventKeyboardTimer) {
+    clearInterval(preventKeyboardTimer);
+    preventKeyboardTimer = null;
+  }
+  
+  // Restaurar foco al campo de búsqueda
+  setTimeout(() => {
+    const barcodeInput = document.getElementById('barcode');
+    barcodeInput.focus();
+  }, 100);
+}
 
     // Funciones para sonidos de feedback
     function playSuccessSound() {
