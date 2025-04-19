@@ -1365,54 +1365,66 @@ function procesarImagenCapturada(archivo) {
 }
 
 // Función para aplicar marca de agua
+
 function aplicarMarcaDeAgua(ctx, width, height) {
-  // Área más compacta para la marca de agua (1/5 de la altura)
-  const marcaHeight = Math.floor(height / 5);
+  // Área más compacta para la marca de agua
+  const marcaHeight = Math.floor(height / 6);
   
   // Crear gradiente semi-transparente para el fondo de la marca
   const gradient = ctx.createLinearGradient(0, height - marcaHeight, 0, height);
   gradient.addColorStop(0, "rgba(0, 0, 0, 0)");
-  gradient.addColorStop(0.3, "rgba(0, 0, 0, 0.5)");
-  gradient.addColorStop(1, "rgba(0, 0, 0, 0.7)");
+  gradient.addColorStop(0.2, "rgba(0, 0, 0, 0.6)");
+  gradient.addColorStop(1, "rgba(0, 0, 0, 0.8)");
   
   ctx.fillStyle = gradient;
   ctx.fillRect(0, height - marcaHeight, width, marcaHeight);
   
   // Calcular tamaños de fuente relativos a la resolución
-  const fontSizeLarge = Math.max(36, Math.floor(width / 15)); // PandaDash grande
-  const fontSizeMedium = Math.max(18, Math.floor(width / 32)); // Fecha y hora
-  const fontSizeSmall = Math.max(14, Math.floor(width / 45)); // Copyright
+  const fontSizeLarge = Math.max(32, Math.floor(width / 16)); // PandaDash grande
+  const fontSizeMedium = Math.max(18, Math.floor(width / 35)); // Fecha y hora
+  const fontSizeSmall = Math.max(16, Math.floor(width / 40)); // Datos adicionales
   
   // Margen lateral
   const marginLeft = Math.floor(width / 20);
   
   // Posición Y inicial (desde abajo)
-  let posY = height - Math.floor(marcaHeight * 0.25);
+  let posY = height - Math.floor(marcaHeight * 0.15);
   
-  // Copyright (blanco, más pequeño) - abajo
+  // Datos de lote, referencia y cantidad
   ctx.fillStyle = "white";
-  ctx.font = `${fontSizeSmall}px Arial`;
-  ctx.fillText("© Andrés Mendoza", marginLeft, posY);
+  ctx.font = `${fontSizeSmall}px Verdana, Arial`;
   
-  // Fecha y hora (blanco) - en medio
-  posY -= Math.floor(fontSizeMedium * 1.2);
+  // Obtener datos si están disponibles
+  let infoText = "Lote: ";
+  if (currentDocumentData) {
+    infoText += (currentDocumentData.lote || "N/A") + " | Ref: ";
+    infoText += (currentDocumentData.referencia || "N/A") + " | Cant: ";
+    infoText += (currentDocumentData.cantidad || "0");
+  } else {
+    infoText += "N/A | Ref: N/A | Cant: N/A";
+  }
+  
+  ctx.fillText(infoText, marginLeft, posY);
+  
+  // Fecha y hora con mejor tipografía
+  posY -= Math.floor(fontSizeMedium * 1.1);
   const fecha = new Date().toLocaleString();
-  ctx.font = `${fontSizeMedium}px Arial`;
+  ctx.font = `${fontSizeMedium}px "Segoe UI", Tahoma, Arial`; // Tipografía más legible
   ctx.fillText(fecha, marginLeft, posY);
   
-  // PandaDash grande (blanco) - arriba
-  posY -= Math.floor(fontSizeLarge * 1.1);
-  ctx.font = `bold ${fontSizeLarge}px Arial`;
+  // PandaDash grande
+  posY -= Math.floor(fontSizeLarge * 1.05);
+  ctx.font = `bold ${fontSizeLarge}px "Arial Black", Impact, sans-serif`;
   ctx.fillText("PandaDash", marginLeft, posY);
   
-  // Datos de la entrega (pequeño, opcional) - a la derecha
+  // Factura a la derecha
   if (currentDocumentData && currentDocumentData.factura) {
-    const infoText = `Factura: ${currentDocumentData.factura}`;
-    ctx.font = `${fontSizeSmall}px Arial`;
+    const facturaText = `Factura: ${currentDocumentData.factura}`;
+    ctx.font = `bold ${fontSizeSmall}px "Segoe UI", Arial`;
     
     // Calcular ancho del texto para alinearlo a la derecha
-    const textWidth = ctx.measureText(infoText).width;
-    ctx.fillText(infoText, width - marginLeft - textWidth, height - Math.floor(marcaHeight * 0.25));
+    const textWidth = ctx.measureText(facturaText).width;
+    ctx.fillText(facturaText, width - marginLeft - textWidth, height - Math.floor(marcaHeight * 0.15));
   }
 }
 
