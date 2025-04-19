@@ -1277,48 +1277,145 @@ function procesarImagenCapturada(archivo) {
 }
 
 // Función para aplicar marca de agua
+// Reemplazar la función procesarEntrega para usar la cámara nativa
+function procesarEntrega(documento, lote, referencia, cantidad, factura, nit, btnElement) {
+  // Guardar todos los datos específicos de la factura
+  currentDocumentData = {
+    documento: documento,
+    lote: lote || '',
+    referencia: referencia || '',
+    cantidad: parseFloat(cantidad) || 0,
+    factura: factura,
+    nit: nit || '',
+    btnElement: btnElement
+  };
+  
+  // Crear un input de tipo file temporal para capturar fotos
+  const fileInput = document.createElement('input');
+  fileInput.type = 'file';
+  fileInput.accept = 'image/*';
+  fileInput.capture = 'environment'; // Usar cámara trasera por defecto
+  
+  // Agregar evento para procesar la imagen cuando se capture
+  fileInput.addEventListener('change', function(e) {
+    if (e.target.files && e.target.files[0]) {
+      procesarImagenCapturada(e.target.files[0]);
+    }
+  });
+  
+  // Simular clic para abrir la cámara del dispositivo
+  fileInput.click();
+}
+
+// Nueva función para procesar la imagen capturada
+function procesarImagenCapturada(archivo) {
+  if (!archivo) {
+    console.error("No se seleccionó ninguna imagen");
+    return;
+  }
+  
+  // Mostrar estado de carga
+  statusDiv.innerHTML = '<i class="fas fa-image"></i> Procesando imagen...';
+  
+  const lector = new FileReader();
+  lector.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      // Crear canvas para procesamiento
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      
+      // Establecer dimensiones manteniendo proporciones pero limitando tamaño
+      let width = img.width;
+      let height = img.height;
+      
+      // Redimensionar si la imagen es muy grande (para optimizar)
+      const maxDimension = CONFIG.MAX_IMAGE_SIZE || 1200;
+      if (width > height && width > maxDimension) {
+        height = (height / width) * maxDimension;
+        width = maxDimension;
+      } else if (height > width && height > maxDimension) {
+        width = (width / height) * maxDimension;
+        height = maxDimension;
+      }
+      
+      canvas.width = width;
+      canvas.height = height;
+      
+      // Dibujar imagen en el canvas
+      ctx.drawImage(img, 0, 0, width, height);
+      
+      // Aplicar marca de agua
+      aplicarMarcaDeAgua(ctx, width, height);
+      
+      // Convertir a Blob
+      canvas.toBlob(function(blob) {
+        photoBlob = blob;
+        
+        // Opcionalmente mostrar una vista previa
+        mostrarVistaPrevia(URL.createObjectURL(blob));
+        
+        // Subir la imagen procesada a la cola
+        subirFotoCapturada(blob);
+      }, 'image/jpeg', 0.85);
+    };
+    img.src = e.target.result;
+  };
+  lector.readAsDataURL(archivo);
+}
+
+// Función para aplicar marca de agua
 function aplicarMarcaDeAgua(ctx, width, height) {
-  // Fondo semi-transparente para el área de marca de agua
-  const marcaHeight = Math.floor(height / 4); // Área para la marca de agua (1/4 de la altura)
+  // Área más compacta para la marca de agua (1/5 de la altura)
+  const marcaHeight = Math.floor(height / 5);
   
   // Crear gradiente semi-transparente para el fondo de la marca
   const gradient = ctx.createLinearGradient(0, height - marcaHeight, 0, height);
   gradient.addColorStop(0, "rgba(0, 0, 0, 0)");
-  gradient.addColorStop(0.5, "rgba(0, 0, 0, 0.5)");
+  gradient.addColorStop(0.3, "rgba(0, 0, 0, 0.5)");
   gradient.addColorStop(1, "rgba(0, 0, 0, 0.7)");
   
   ctx.fillStyle = gradient;
   ctx.fillRect(0, height - marcaHeight, width, marcaHeight);
   
   // Calcular tamaños de fuente relativos a la resolución
-  const fontSizeLarge = Math.max(40, Math.floor(width / 15)); // PandaDash grande
-  const fontSizeMedium = Math.max(20, Math.floor(width / 30)); // Fecha y hora
-  const fontSizeSmall = Math.max(16, Math.floor(width / 40)); // Copyright
+  const fontSizeLarge = Math.max(36, Math.floor(width / 15)); // PandaDash grande
+  const fontSizeMedium = Math.max(18, Math.floor(width / 32)); // Fecha y hora
+  const fontSizeSmall = Math.max(14, Math.floor(width / 45)); // Copyright
   
   // Margen lateral
   const marginLeft = Math.floor(width / 20);
   
-  // PandaDash grande (blanco)
-  ctx.fillStyle = "white";
-  ctx.font = `bold ${fontSizeLarge}px Arial`;
-  ctx.fillText("PandaDash", marginLeft, height - marcaHeight + fontSizeLarge);
+  // Posición Y inicial (desde abajo)
+  let posY = height - Math.floor(marcaHeight * 0.25);
   
-  // Fecha y hora (blanco)
+  // Copyright (blanco, más pequeño) - abajo
+  ctx.fillStyle = "white";
+  ctx.font = `${fontSizeSmall}px Arial`;
+  ctx.fillText("© Andrés Mendoza", marginLeft, posY);
+  
+  // Fecha y hora (blanco) - en medio
+  posY -= Math.floor(fontSizeMedium * 1.2);
   const fecha = new Date().toLocaleString();
   ctx.font = `${fontSizeMedium}px Arial`;
-  ctx.fillText(fecha, marginLeft, height - marginLeft);
+  ctx.fillText(fecha, marginLeft, posY);
   
-  // Datos de la entrega (pequeño, opcional)
+  // PandaDash grande (blanco) - arriba
+  posY -= Math.floor(fontSizeLarge * 1.1);
+  ctx.font = `bold ${fontSizeLarge}px Arial`;
+  ctx.fillText("PandaDash", marginLeft, posY);
+  
+  // Datos de la entrega (pequeño, opcional) - a la derecha
   if (currentDocumentData && currentDocumentData.factura) {
     const infoText = `Factura: ${currentDocumentData.factura}`;
     ctx.font = `${fontSizeSmall}px Arial`;
-    ctx.fillText(infoText, marginLeft, height - marcaHeight/2);
+    
+    // Calcular ancho del texto para alinearlo a la derecha
+    const textWidth = ctx.measureText(infoText).width;
+    ctx.fillText(infoText, width - marginLeft - textWidth, height - Math.floor(marcaHeight * 0.25));
   }
-  
-  // Copyright (blanco, más pequeño)
-  ctx.font = `${fontSizeSmall}px Arial`;
-  ctx.fillText("© Andrés Mendoza", marginLeft, height - marginLeft/2);
 }
+
 
 // Función para mostrar brevemente una vista previa (opcional)
 function mostrarVistaPrevia(imgUrl) {
