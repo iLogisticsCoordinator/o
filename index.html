@@ -1,0 +1,2354 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <!-- <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" /> -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#ffffff" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  <meta name="apple-mobile-web-app-title" content="PandaDash" />
+  <link rel="manifest" href="manifest.json" />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700&display=swap" rel="stylesheet">
+
+  <title>PandaDash</title>
+
+  <!-- Estilos para prevenir zoom en iOS -->
+<style>
+    /* Estilos para bloquear zoom y escalado */
+    html {
+      touch-action: manipulation;
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+      overflow-x: hidden;
+    }
+    
+    body {
+      /* Fuerza el tamaño en desktop */
+      max-width: 450px; /* Tamaño móvil estándar */
+      margin: 0 auto;
+      position: relative;
+      overflow: hidden;
+      background: var(--bg-color);
+    }
+    
+    #scanner {
+      /* Mantiene el diseño móvil en desktop */
+      width: 100%;
+      min-height: 100vh;
+    }
+    
+    @media (min-width: 768px) {
+      body {
+        /* Efecto "mobile-like" en desktop */
+        box-shadow: 0 0 20px rgba(0,0,0,0.2);
+        height: 90vh;
+        margin-top: 5vh;
+        border-radius: 15px;
+      }
+    }
+  </style>
+
+ <script>
+    // Bloqueo de zoom con JavaScript (para mayor seguridad)
+    document.addEventListener('DOMContentLoaded', function() {
+      // Prevenir gestos de zoom
+      document.addEventListener('gesturestart', function(e) {
+        e.preventDefault();
+      });
+      
+      // Prevenir doble toque para zoom
+      let lastTouchEnd = 0;
+      document.addEventListener('touchend', function(e) {
+        const now = Date.now();
+        if (now - lastTouchEnd <= 300) e.preventDefault();
+        lastTouchEnd = now;
+      }, { passive: false });
+      
+      // Prevenir zoom con teclado (Ctrl + +/-)
+      document.addEventListener('keydown', function(e) {
+        if (e.ctrlKey && (e.key === '+' || e.key === '-' || e.key === '0')) {
+          e.preventDefault();
+        }
+      });
+    });
+
+    // Detectar si es móvil para ajustes específicos
+    function esMovil() {
+      return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    }
+  </script>
+  
+  <style>
+    :root {
+      --primary: #4361ee;
+      --primary-dark: #3a56d4;
+      --primary-light: #eef2ff;
+      --secondary: #3f37c9;
+      --success: #4cc9f0;
+      --success-dark: #3ab7dc;
+      --danger: #f72585;
+      --danger-dark: #e51775;
+      --warning: #f8961e;
+      --warning-dark: #e6870d;
+      --light: #f8f9fa;
+      --dark: #212529;
+      --gray: #6c757d;
+      --gray-light: #e9ecef;
+      --bg-color: #f5f7fa;
+      --card-bg: #ffffff;
+      --border-color: #e0e0e0;
+      --border-radius: 8px;
+      --box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      --transition: all 0.3s ease;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: var(--bg-color);
+      color: var(--dark);
+      touch-action: manipulation;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+      line-height: 1.5;
+      font-size: 15px;
+    }
+    
+    /* Pantalla de carga */
+    #loadingScreen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #fff;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      transition: opacity 0.5s ease;
+    }
+    
+    .logo {
+      width: 100px;
+      height: auto;
+      margin-bottom: 5px;
+    }
+    
+    h1 {
+      font-size: 1.7rem;
+      margin: 3px 0;
+      color: #333;
+    }
+    
+    .name {
+      color: #599191;
+      font-size: 0.8rem;
+      margin: 3px 0 10px;
+    }
+    
+    /* Spinner de 3 bolitas con efecto pulse */
+    .triple-pulse {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 10px;
+      margin: 10px 0;
+    }
+    
+    .triple-pulse span {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      background-color: #348a87;
+      border-radius: 50%;
+      margin: 0 3px;
+      animation: triplePulse 1.4s infinite ease-in-out;
+    }
+    
+    .triple-pulse span:nth-child(1) {
+      animation-delay: 0s;
+    }
+    
+    .triple-pulse span:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+    
+    .triple-pulse span:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+    
+    @keyframes triplePulse {
+      0%, 100% {
+        transform: scale(0.5);
+        opacity: 0;
+      }
+      50% {
+        transform: scale(1.1);
+        opacity: 0.4;
+      }
+    }
+    
+    /* Botón de instalación */
+    #installBtn {
+      display: none;
+      margin-top: 10px;
+      padding: 7px 14px;
+      background: #4CAF50;
+      color: white;
+      font-size: 0.8rem;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+    
+    #installBtn:hover {
+      background: #3e8e41;
+    }
+    
+    #scanner {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      max-width: 800px;
+      margin: 0 auto;
+      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+      background: var(--card-bg);
+      position: relative;
+    }
+    
+    /* Estilos de la barra de código QR */
+    .barcode-input-container {
+      position: relative;
+      max-width: 400px;
+      margin: 20px auto;
+    }
+    
+    #barcode {
+      width: 100%;
+      padding: 16px 16px 16px 48px;
+      font-size: 16px;
+      font-weight: 500;
+      color: #333;
+      background-color: #fff;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      transition: all 0.3s ease;
+      appearance: none;
+    }
+    
+    #barcode::placeholder {
+      color: #888;
+      opacity: 0.7;
+    }
+    
+    #barcode:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+    }
+    
+    .barcode-input-container i {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #a6acad;
+      font-size: 20px;
+      pointer-events: none;
+      transition: color 0.3s ease;
+    }
+    
+    .barcode-input-container:focus-within i {
+      color: #a6acad;
+    }
+    
+    @media (max-width: 768px) {
+      #barcode {
+        padding: 14px 14px 14px 44px;
+        font-size: 15px;
+      }
+    }
+    
+    #status {
+      padding: 0.5rem 1rem;
+      text-align: center;
+      background: linear-gradient(270deg, #007cf0, #00dfd8, #007cf0);
+      background-size: 600% 600%;
+      color: #ffffff;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.75px;
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+      animation: gradientMove 8s ease infinite;
+      transition: transform 0.3s ease;
+      margin-left: 15px;
+      margin-right: 15px;
+    }
+    
+    @keyframes gradientMove {
+      0% {
+        background-position: 0% 50%;
+      }
+      50% {
+        background-position: 100% 50%;
+      }
+      100% {
+        background-position: 0% 50%;
+      }
+    }
+    
+    #results {
+      flex: 1;
+      overflow-y: auto;
+      padding: 15px;
+      background: #ffffff;
+    }
+    
+    .result-item {
+      margin-bottom: 20px;
+      padding: 18px;
+      background: var(--card-bg);
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      border-left: 4px solid var(--primary);
+    }
+    
+    .result-row {
+      display: flex;
+      margin-bottom: 10px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border-color);
+      align-items: flex-start;
+    }
+    
+    .result-row:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+    
+    .col-header {
+      min-width: 140px;
+      font-weight: 500;
+      color: var(--primary-dark);
+      font-size: 15px;
+    }
+    
+    .error {
+      color: var(--danger);
+      text-align: center;
+      padding: 20px;
+      background: var(--card-bg);
+      border-radius: var(--border-radius);
+      margin: 15px;
+      box-shadow: var(--box-shadow);
+      font-weight: 500;
+    }
+    
+    .data-stats {
+      text-align: center;
+      padding: 12px 10px;
+      color: var(--gray);
+      font-size: 14px;
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--border-color);
+    }
+    
+    .loading {
+      color: var(--primary);
+      text-align: center;
+      padding: 30px 15px;
+      font-size: 16px;
+    }
+    
+    .offline-banner {
+      background: var(--warning);
+      color: var(--dark);
+      text-align: center;
+      padding: 8px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+    
+    .siesa-item {
+      margin-top: 15px;
+      padding: 15px;
+      background: rgba(67, 97, 238, 0.05);
+      border-radius: var(--border-radius);
+      border-left: 3px solid var(--success);
+    }
+    
+    .siesa-header {
+      font-weight: 600;
+      color: var(--secondary);
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(0,0,0,0.1);
+      font-size: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .json-value {
+      word-break: break-word;
+      flex: 1;
+      font-size: 15px;
+    }
+    
+    .no-data {
+      color: var(--gray);
+      font-style: italic;
+    }
+    
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-left: 8px;
+    }
+    
+    .badge-success {
+      background: rgba(76, 201, 240, 0.2);
+      color: var(--success-dark);
+    }
+    
+    .badge-warning {
+      background: rgba(248, 150, 30, 0.2);
+      color: var(--warning-dark);
+    }
+    
+    .numeric-value {
+      font-family: 'Roboto Mono', monospace;
+      font-weight: 500;
+    }
+    
+    .timestamp {
+      font-size: 12px;
+      color: var(--gray);
+      margin-top: 5px;
+    }
+    
+    /* Botones */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 18px;
+      border-radius: var(--border-radius);
+      font-weight: 500;
+      font-size: 14px;
+      cursor: pointer;
+      transition: var(--transition);
+      border: none;
+      gap: 8px;
+    }
+    
+    .btn-primary {
+      background-color: var(--primary);
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background-color: var(--primary-dark);
+    }
+    
+    .btn-success {
+      background-color: var(--success);
+      color: white;
+    }
+    
+    .btn-success:hover {
+      background-color: var(--success-dark);
+    }
+    
+    .btn-danger {
+      background-color: var(--danger);
+      color: white;
+    }
+    
+    .btn-danger:hover {
+      background-color: var(--danger-dark);
+    }
+    
+    .btn-warning {
+      background-color: var(--warning);
+      color: white;
+    }
+    
+    .btn-warning:hover {
+      background-color: var(--warning-dark);
+    }
+    
+    .btn-sm {
+      padding: 8px 14px;
+      font-size: 13px;
+    }
+    
+    .btn-block {
+      display: flex;
+      width: 100%;
+    }
+    
+    /* Botón de entregas */
+    .delivery-btn {
+      background-color: var(--success);
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: var(--border-radius);
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    
+    .delivery-btn:hover {
+      background-color: var(--success-dark);
+    }
+    
+    .delivery-btn i {
+      font-size: 16px;
+    }
+    
+    .save-success {
+      color: var(--success-dark);
+      font-weight: 500;
+      font-size: 14px;
+      display: none;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .save-success i {
+      font-size: 14px;
+    }
+    
+    /* Action buttons container */
+    .action-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 15px;
+    }
+    
+    /* Responsive */
+    @media (max-width: 600px) {
+      .result-row {
+        flex-direction: column;
+        gap: 5px;
+      }
+      
+      .col-header {
+        margin-bottom: 5px;
+        min-width: auto;
+      }
+      
+      .siesa-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+      }
+      
+      .badge {
+        margin-left: 0;
+      }
+    }
+    
+    /* Modal de cámara */
+    .camera-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.95);
+      z-index: 10000;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      -webkit-user-select: none;
+      user-select: none;
+      touch-action: manipulation;
+    }
+    
+    .camera-view {
+      width: 90%;
+      max-width: 500px;
+      background: #000;
+      margin-bottom: 20px;
+      height: auto;
+      border-radius: var(--border-radius);
+      overflow: hidden;
+    }
+    
+    .camera-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 15px;
+    }
+    
+    #photoPreview {
+      display: none;
+      max-width: 90%;
+      max-height: 60vh;
+      margin-bottom: 20px;
+      object-fit: contain;
+      border-radius: var(--border-radius);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+    
+    .uploading-status {
+      color: white;
+      margin-top: 15px;
+      display: none;
+      font-size: 16px;
+      font-weight: 500;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    
+    /* Estilos para las partes extraídas del QR */
+    .qr-info {
+      margin-bottom: 15px;
+      padding: 12px;
+      background: var(--primary-light);
+      border-radius: var(--border-radius);
+      border-left: 3px solid var(--primary);
+    }
+    
+    .qr-info-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 5px;
+    }
+    
+    .qr-info-label {
+      font-weight: 500;
+      color: var(--primary-dark);
+    }
+    
+    .qr-info-value {
+      font-weight: 400;
+    }
+    
+    /* Para evitar que el teclado aparezca en la pantalla de cámara */
+    .camera-modal * {
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    
+    /* Evitar que aparezca el resaltado de selección */
+    .camera-modal button {
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    .filter-info {
+      background: var(--primary-light);
+      border-radius: var(--border-radius);
+      padding: 10px;
+      margin-bottom: 15px;
+      font-size: 14px;
+      color: var(--primary-dark);
+    }
+
+    /* Estilo para el contador de cola */
+    #queueCounter {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 40px;
+      height: 40px;
+      background-color: var(--primary);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 16px;
+      cursor: pointer;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      z-index: 1000;
+      transition: all 0.3s ease;
+    }
+
+    #queueCounter:hover {
+      transform: scale(1.1);
+    }
+
+    #queueCounter.empty {
+      background-color: var(--gray);
+    }
+
+    #queueCounter.processing {
+      background-color: var(--warning);
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+
+    #queueDetails {
+      position: fixed;
+      bottom: 80px;
+      right: 20px;
+      width: 300px;
+      max-height: 400px;
+      background-color: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      padding: 15px;
+      overflow-y: auto;
+      z-index: 1001;
+      display: none;
+      font-size: 14px;
+    }
+
+    #queueDetails h3 {
+      margin-top: 0;
+      margin-bottom: 10px;
+      color: var(--primary);
+      font-size: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    #queueDetails h3 i {
+      cursor: pointer;
+    }
+
+    .queue-item-card {
+      padding: 10px;
+      margin-bottom: 10px;
+      background-color: var(--primary-light);
+      border-radius: var(--border-radius);
+      border-left: 3px solid var(--primary);
+    }
+
+    .queue-item-card.retrying {
+      border-left-color: var(--warning);
+    }
+
+    .queue-item-card.error {
+      border-left-color: var(--danger);
+    }
+
+    .queue-item-header {
+      font-weight: bold;
+      margin-bottom: 5px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .queue-item-type {
+      font-size: 12px;
+      color: var(--gray);
+    }
+
+    .queue-item-preview {
+      margin-top: 5px;
+      font-size: 12px;
+      color: var(--dark);
+      word-break: break-word;
+    }
+
+    .queue-item-status {
+      font-size: 11px;
+      margin-top: 5px;
+      font-style: italic;
+    }
+
+    .queue-item-status.retrying {
+      color: var(--warning-dark);
+    }
+
+    .queue-item-status.error {
+      color: var(--danger-dark);
+    }
+
+    .queue-thumbnail {
+      width: 100%;
+      max-height: 100px;
+      object-fit: contain;
+      margin-top: 5px;
+      border-radius: 4px;
+      background-color: #f0f0f0;
+      display: none;
+    }
+
+    .queue-no-items {
+      text-align: center;
+      color: var(--gray);
+      font-style: italic;
+      padding: 10px;
+    }
+  </style>
+
+  <style>
+  /* Estilos para las notificaciones del banner */
+  #status {
+    padding: 0.5rem 1rem;
+    text-align: center;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.75px;
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+    margin-left: 15px;
+    margin-right: 15px;
+    transition: all 0.5s ease;
+  }
+
+  /* Estado: Sistema listo */
+  #status.ready {
+    background: linear-gradient(270deg, #4361ee, #3a56d4, #4361ee);
+    background-size: 200% 200%;
+    animation: gradientMove 3s ease infinite;
+  }
+
+  /* Estado: Sin conexión */
+  #status.offline {
+    background: linear-gradient(270deg, #f8961e, #e6870d, #f8961e);
+    background-size: 200% 200%;
+    animation: gradientMove 5s ease infinite;
+  }
+
+  /* Estado: Conexión restablecida */
+  #status.reconnected {
+    background: linear-gradient(270deg, #4cc9f0, #3ab7dc, #4cc9f0);
+    background-size: 200% 200%;
+    animation: gradientMove 4s ease infinite;
+  }
+
+  /* Estado: Cargando datos */
+  #status.loading {
+    background: linear-gradient(270deg, #6c757d, #5a6268, #6c757d);
+    background-size: 200% 200%;
+    animation: gradientMove 6s ease infinite;
+  }
+
+  /* Estado: Error */
+  #status.error {
+    background: linear-gradient(270deg, #f72585, #e51775, #f72585);
+    background-size: 200% 200%;
+    animation: gradientMove 4s ease infinite;
+  }
+
+  /* Estado: Registro procesado */
+  #status.processed {
+    background: linear-gradient(270deg, #28a745, #218838, #28a745);
+    background-size: 200% 200%;
+    animation: gradientMove 3.5s ease infinite;
+  }
+
+  @keyframes gradientMove {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+</style>
+
+
+<style>
+  /* Estructura principal */
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+#scanner {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  height: 100vh;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* Estilos para el footer */
+footer {
+  margin-top: auto;
+  padding: 15px;
+  background: var(--card-bg);
+  border-top: 1px solid var(--border-color);
+  text-align: center;
+  font-size: 13px;
+  color: var(--gray);
+}
+
+.footer-content {
+  max-width: 450px;
+  margin: 0 auto;
+}
+
+footer a {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+footer a:hover {
+  color: var(--primary-dark);
+  text-decoration: underline;
+}
+
+.social-links {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 10px;
+}
+
+.social-links a {
+  color: var(--primary);
+  font-size: 18px;
+  transition: all 0.3s ease;
+}
+
+.social-links a:hover {
+  transform: scale(1.2);
+}
+
+.social-links a:nth-child(1):hover { color: #1877f2; } /* Facebook */
+.social-links a:nth-child(2):hover { color: #e1306c; } /* Instagram */
+.social-links a:nth-child(3):hover { color: #25d366; } /* WhatsApp */
+</style>
+
+</head>
+<body>
+  <!-- Pantalla de carga -->
+  <div id="loadingScreen">
+    <img src="https://raw.githubusercontent.com/iLogisticsCoordinator/o/main/icons/icon-512.png" alt="PandaDash Logo" class="logo">
+    <div class="triple-pulse">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+    <h1>PandaDash</h1>
+    <div class="name">Andrés Mendoza</div>
+    <button id="installBtn">Instalar App</button>
+  </div>
+
+  <!-- Contenido principal -->
+  <div id="scanner" style="display: none;">
+
+    <div class="barcode-input-container">
+      <i class="fa-solid fa-qrcode"></i>
+      <input type="text" id="barcode" autofocus placeholder="Escanea un código QR">
+    </div>
+
+    <div id="status">Iniciando Sistema...</div>
+    <div class="data-stats" id="data-stats">Cargando datos...</div>
+    <div id="results"></div>
+
+<footer>
+    <div class="footer-content">
+      <p>Developed by Andrés Mendoza © 2025</p>
+      <p>Supported by <a href="https://www.eltemplodelamoda.com/" target="_blank">GrupoTDM</a></p>
+      <div class="social-links">
+        <a href="https://www.facebook.com/templodelamoda/" target="_blank"><i class="fab fa-facebook"></i></a>
+        <a href="https://www.instagram.com/eltemplodelamoda/" target="_blank"><i class="fab fa-instagram"></i></a>
+        <a href="https://wa.me/573176418529" target="_blank"><i class="fab fa-whatsapp"></i></a>
+      </div>
+    </div>
+  </footer>
+
+  </div>
+
+  <!-- Modal de cámara -->
+  <div id="cameraModal" class="camera-modal">
+    <video id="cameraFeed" class="camera-view" autoplay playsinline></video>
+    <canvas id="photoCanvas" style="display: none;"></canvas>
+    <img id="photoPreview" alt="Vista previa de la foto">
+    <div class="camera-actions">
+      <button id="takePhotoBtn" class="btn btn-primary">
+        <i class="fas fa-camera"></i> Tomar Foto
+      </button>
+      <button id="cancelCaptureBtn" class="btn btn-danger">
+        <i class="fas fa-times"></i> Cancelar
+      </button>
+    </div>
+    <div id="uploadStatus" class="uploading-status">
+      <i class="fas fa-spinner fa-pulse"></i> Subiendo foto...
+    </div>
+    <input type="text" id="dummyInput" style="position: absolute; opacity: 0; height: 0; width: 0;" readonly />
+  </div>
+
+  <!-- Contador de cola y panel de detalles -->
+  <div id="queueCounter" class="empty" title="No hay elementos en cola">0</div>
+  <div id="queueDetails">
+    <h3>Elementos en cola <i class="fas fa-times" id="closeQueueDetails"></i></h3>
+    <div id="queueItemsList">
+      <div class="queue-no-items">No hay elementos pendientes</div>
+    </div>
+  </div>
+
+  <script>
+    // Configuración y constantes
+    const CONFIG = {
+      VERSION: "4.0.0",
+      CACHE_TTL: 24 * 60 * 60 * 1000, // 24 horas en milisegundos
+      MAX_IMAGE_SIZE: 800, // Tamaño máximo para redimensionar imágenes
+      MAX_CHUNK_SIZE: 50000, // ~50KB por solicitud
+    };
+    
+    // API URLs
+    const API_URL_GET = "https://script.google.com/macros/s/AKfycbwz6LT-e4m3R74wRvC5h4isRE4wmSnzpa-MJtYnAg56PCWbrwI3rdwbekWxauVPGrsmLw/exec";
+    const API_URL_POST = "https://script.google.com/macros/s/AKfycbwgnkjVCMWlWuXnVaxSBD18CGN3rXGZtQZIvX9QlBXSgbQndWC4uqQ2sc00DuNH6yrb/exec";
+
+    // Variables globales
+    let database = [];
+    let cameraStream = null;
+    let currentDocumentData = null;
+    let photoBlob = null;
+    let preventKeyboardTimer = null;
+    let currentQRParts = null;
+    let dataLoaded = false;
+    
+    // Constantes para la cola de carga
+    const UPLOAD_QUEUE_KEY = 'pdaUploadQueue';
+    const MAX_RETRIES = 3;
+    
+    // Elementos del DOM
+    const loadingScreen = document.getElementById('loadingScreen');
+    const scanner = document.getElementById('scanner');
+    const barcodeInput = document.getElementById('barcode');
+    const statusDiv = document.getElementById('status');
+    const resultsDiv = document.getElementById('results');
+    const dataStats = document.getElementById('data-stats');
+    const offlineBanner = document.getElementById('offline-banner');
+    const installBtn = document.getElementById('installBtn');
+    
+    // Clase para gestionar la cola de carga
+    class UploadQueue {
+      constructor() {
+        this.queue = this.loadQueue();
+        this.isProcessing = false;
+        this.initEventListeners();
+        this.updateQueueCounter();
+        this.processQueue(); // Intentar procesar cola al iniciar
+        
+        // Inicializar eventos para el contador de cola
+        document.getElementById('queueCounter').addEventListener('click', this.toggleQueueDetails.bind(this));
+        document.getElementById('closeQueueDetails').addEventListener('click', this.hideQueueDetails.bind(this));
+        
+        // Cerrar detalles al hacer clic fuera
+        document.addEventListener('click', (e) => {
+          const queueDetails = document.getElementById('queueDetails');
+          const queueCounter = document.getElementById('queueCounter');
+          
+          if (queueDetails.style.display === 'block' && 
+              e.target !== queueDetails && 
+              !queueDetails.contains(e.target) &&
+              e.target !== queueCounter) {
+            this.hideQueueDetails();
+          }
+        });
+      }
+      
+      loadQueue() {
+        try {
+          const saved = localStorage.getItem(UPLOAD_QUEUE_KEY);
+          return saved ? JSON.parse(saved) : [];
+        } catch (e) {
+          console.error("Error al cargar la cola:", e);
+          return [];
+        }
+      }
+      
+      saveQueue() {
+        localStorage.setItem(UPLOAD_QUEUE_KEY, JSON.stringify(this.queue));
+      }
+      
+      addJob(job) {
+        this.queue.push({
+          ...job,
+          retries: 0,
+          timestamp: new Date().toISOString(),
+          status: 'pending'
+        });
+        this.saveQueue();
+        this.updateQueueCounter();
+        this.processQueue();
+      }
+      
+      initEventListeners() {
+        window.addEventListener('online', () => {
+          if (this.queue.length > 0) {
+            this.processQueue();
+          }
+        });
+      }
+      
+      updateQueueCounter() {
+        const counter = document.getElementById('queueCounter');
+        const queueItemsList = document.getElementById('queueItemsList');
+        
+        if (this.queue.length === 0) {
+          counter.textContent = '0';
+          counter.className = 'empty';
+          counter.title = 'No hay elementos en cola';
+          queueItemsList.innerHTML = '<div class="queue-no-items">No hay elementos pendientes</div>';
+        } else {
+          counter.textContent = this.queue.length;
+          counter.className = this.isProcessing ? 'processing' : '';
+          counter.title = `${this.queue.length} elementos pendientes`;
+          
+          // Actualizar la lista de elementos
+          this.updateQueueItemsList();
+        }
+      }
+      
+      updateQueueItemsList() {
+        const queueItemsList = document.getElementById('queueItemsList');
+        
+        if (this.queue.length === 0) {
+          queueItemsList.innerHTML = '<div class="queue-no-items">No hay elementos pendientes</div>';
+          return;
+        }
+        
+        queueItemsList.innerHTML = '';
+        
+        this.queue.forEach((item, index) => {
+          const itemElement = document.createElement('div');
+          itemElement.className = `queue-item-card ${item.status === 'retrying' ? 'retrying' : ''} ${item.retries >= MAX_RETRIES ? 'error' : ''}`;
+          
+          let previewContent = '';
+          let thumbnail = '';
+          
+          if (item.type === 'photo') {
+            previewContent = `Factura: ${item.factura || 'N/A'}`;
+            if (item.data.fotoBase64) {
+              thumbnail = `<img src="data:image/jpeg;base64,${item.data.fotoBase64}" class="queue-thumbnail">`;
+            }
+          } else if (item.type === 'data') {
+            previewContent = `Datos: ${JSON.stringify(item.data).substring(0, 50)}...`;
+          }
+          
+          let statusInfo = '';
+          if (item.status === 'retrying') {
+            statusInfo = `<div class="queue-item-status retrying">Reintentando (${item.retries}/${MAX_RETRIES})</div>`;
+          } else if (item.retries >= MAX_RETRIES) {
+            statusInfo = `<div class="queue-item-status error">Error: ${item.lastError || 'Error desconocido'}</div>`;
+          } else {
+            statusInfo = `<div class="queue-item-status">En espera</div>`;
+          }
+          
+          itemElement.innerHTML = `
+            <div class="queue-item-header">
+              <span>${item.type === 'photo' ? 'Foto' : 'Datos'}</span>
+              <span class="queue-item-type">${new Date(item.timestamp).toLocaleTimeString()}</span>
+            </div>
+            <div class="queue-item-preview">${previewContent}</div>
+            ${thumbnail}
+            ${statusInfo}
+          `;
+          
+          // Mostrar miniaturas al pasar el ratón
+          itemElement.addEventListener('mouseenter', () => {
+            const thumbnail = itemElement.querySelector('.queue-thumbnail');
+            if (thumbnail) thumbnail.style.display = 'block';
+          });
+          
+          itemElement.addEventListener('mouseleave', () => {
+            const thumbnail = itemElement.querySelector('.queue-thumbnail');
+            if (thumbnail) thumbnail.style.display = 'none';
+          });
+          
+          queueItemsList.appendChild(itemElement);
+        });
+      }
+      
+      toggleQueueDetails() {
+        const details = document.getElementById('queueDetails');
+        if (details.style.display === 'block') {
+          this.hideQueueDetails();
+        } else {
+          this.showQueueDetails();
+        }
+      }
+      
+      showQueueDetails() {
+        const details = document.getElementById('queueDetails');
+        details.style.display = 'block';
+        this.updateQueueItemsList();
+      }
+      
+      hideQueueDetails() {
+        const details = document.getElementById('queueDetails');
+        details.style.display = 'none';
+      }
+      
+      async processQueue() {
+        if (this.isProcessing || this.queue.length === 0 || !navigator.onLine) {
+          this.updateQueueCounter();
+          return;
+        }
+        
+        this.isProcessing = true;
+        this.updateQueueCounter();
+        
+        while (this.queue.length > 0 && navigator.onLine) {
+          const job = this.queue[0];
+          
+          try {
+            if (job.type === 'photo') {
+              await this.processPhotoJob(job);
+            } else if (job.type === 'data') {
+              await this.processDataJob(job);
+            }
+            
+            // Eliminar trabajo completado
+            this.queue.shift();
+            this.saveQueue();
+            this.updateQueueCounter();
+          } catch (error) {
+            console.error("Error al procesar trabajo:", error);
+            job.retries++;
+            job.lastError = error.message;
+            job.lastAttempt = new Date().toISOString();
+            
+            if (job.retries >= MAX_RETRIES) {
+              // Eliminar después de máximos reintentos
+              this.queue.shift();
+            } else {
+              job.status = 'retrying';
+              // Mover al final de la cola para reintentar más tarde
+              this.queue.push(this.queue.shift());
+            }
+            
+            this.saveQueue();
+            this.updateQueueCounter();
+            break;
+          }
+        }
+        
+        this.isProcessing = false;
+        this.updateQueueCounter();
+      }
+      
+      async processPhotoJob(job) {
+        const formData = new FormData();
+        Object.keys(job.data).forEach(key => {
+          formData.append(key, job.data[key]);
+        });
+        
+        const response = await fetch(API_URL_POST, {
+          method: 'POST',
+          body: formData
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        if (!result.success) {
+          throw new Error(result.message || "Error en la respuesta del servidor");
+        }
+        
+        // Actualizar UI si el elemento todavía está visible
+        if (job.btnElementId) {
+          const btnElement = document.querySelector(`[data-factura="${job.btnElementId}"]`);
+          if (btnElement) {
+            btnElement.innerHTML = '<i class="fas fa-check-circle"></i> Entregado con foto';
+            btnElement.style.backgroundColor = '#28a745';
+          }
+        }
+      }
+      
+      async processDataJob(job) {
+        const response = await fetch(API_URL_POST, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(job.data)
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        if (!result.success) {
+          throw new Error(result.message || "Error en la respuesta del servidor");
+        }
+      }
+    }
+
+    // Inicializar la cola de carga
+    const uploadQueue = new UploadQueue();
+
+    // Función para convertir Blob a Base64
+    function blobToBase64(blob) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    }
+
+    // Función para extraer datos de la UI
+    function extractDataFromUI(factura) {
+      let lote = '', referencia = '', cantidad = 0;
+      
+      // Buscar contenedor de la factura
+      const facturaContainer = document.querySelector(`.siesa-item button[data-factura="${factura}"]`)?.closest('.siesa-item');
+      
+      if (facturaContainer) {
+        const rows = facturaContainer.querySelectorAll('.result-row');
+        
+        rows.forEach(row => {
+          const header = row.querySelector('.col-header')?.textContent.trim();
+          const value = row.querySelector('.json-value')?.textContent.trim();
+          
+          if (!header || !value) return;
+          
+          if (header.includes('Lote')) lote = value;
+          else if (header.includes('Referencia')) referencia = value;
+          else if (header.includes('Cantidad')) cantidad = parseFloat(value) || 0;
+        });
+      }
+      
+      return { lote, referencia, cantidad };
+    }
+
+    // Función para abrir la cámara
+    function abrirCamara(factura) {
+      // Guardar datos para uso posterior
+      currentDocumentData = {
+        factura: factura,
+        btnElement: document.querySelector(`.delivery-btn[data-factura="${factura}"]`)
+      };
+      
+      // Mostrar la cámara
+      mostrarCamara();
+    }
+
+    // Función para mostrar la cámara
+    function mostrarCamara() {
+      const cameraModal = document.getElementById('cameraModal');
+      const cameraFeed = document.getElementById('cameraFeed');
+      const photoPreview = document.getElementById('photoPreview');
+      const takePhotoBtn = document.getElementById('takePhotoBtn');
+      const dummyInput = document.getElementById('dummyInput');
+      
+      // Ocultar teclado al abrir la cámara
+      barcodeInput.blur();
+      document.activeElement.blur();
+      
+      // Forzar que no se muestre el teclado
+      if (dummyInput) {
+        dummyInput.readOnly = true; 
+        dummyInput.setAttribute('inputmode', 'none');
+      }
+      
+      // Prevenir que cualquier elemento obtenga el foco mientras la cámara está abierta
+      preventKeyboardTimer = setInterval(() => {
+        if (document.activeElement && document.activeElement.tagName === 'INPUT' && document.activeElement.id !== 'dummyInput') {
+          document.activeElement.blur();
+        }
+      }, 100);
+      
+      // Mostrar modal y ocultar vista previa
+      cameraModal.style.display = 'flex';
+      photoPreview.style.display = 'none';
+      cameraFeed.style.display = 'block';
+      
+      // Configurar cámara - usar cámara trasera por defecto
+      navigator.mediaDevices.getUserMedia({ 
+        video: { 
+          facingMode: 'environment',
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        } 
+      })
+        .then(stream => {
+          cameraStream = stream;
+          cameraFeed.srcObject = stream;
+        })
+        .catch(error => {
+          console.error("Error al acceder a la cámara:", error);
+          alert("No se pudo acceder a la cámara. Por favor permite el acceso.");
+          cerrarCamara();
+        });
+      
+      // Configurar botones
+      takePhotoBtn.innerHTML = '<i class="fas fa-camera"></i> Tomar Foto';
+      takePhotoBtn.disabled = false;
+      takePhotoBtn.onclick = capturarFoto;
+      document.getElementById('uploadStatus').style.display = 'none';
+      
+      // Agregar listener para prevenir el comportamiento predeterminado de los clics
+      cameraModal.addEventListener('touchstart', preventDefaultBehavior, { passive: false });
+      cameraModal.addEventListener('touchmove', preventDefaultBehavior, { passive: false });
+    }
+    
+    // Prevenir comportamiento predeterminado para evitar enfoque de teclado
+    function preventDefaultBehavior(e) {
+      if (e.target.tagName !== 'BUTTON') {
+        e.preventDefault();
+      }
+    }
+
+    // Función para capturar foto
+    function capturarFoto() {
+      const cameraFeed = document.getElementById('cameraFeed');
+      const photoPreview = document.getElementById('photoPreview');
+      const takePhotoBtn = document.getElementById('takePhotoBtn');
+      
+      // Crear canvas temporal
+      const canvas = document.createElement('canvas');
+      canvas.width = cameraFeed.videoWidth;
+      canvas.height = cameraFeed.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(cameraFeed, 0, 0, canvas.width, canvas.height);
+      
+      // Obtener blob de la imagen
+      canvas.toBlob(blob => {
+        photoBlob = blob;
+        
+        // Mostrar vista previa
+        photoPreview.src = URL.createObjectURL(blob);
+        photoPreview.style.display = 'block';
+        cameraFeed.style.display = 'none';
+        
+        // Cambiar botón para subir foto
+        takePhotoBtn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Subir Foto';
+        takePhotoBtn.onclick = subirFoto;
+      }, 'image/jpeg', 0.85);
+    }
+
+    // Función para subir foto (ahora usa la cola)
+    async function subirFoto() {
+      if (!currentDocumentData || !photoBlob) {
+        console.error("No hay datos disponibles para subir");
+        return;
+      }
+      
+      const { factura, btnElement } = currentDocumentData;
+      const takePhotoBtn = document.getElementById('takePhotoBtn');
+      const uploadStatus = document.getElementById('uploadStatus');
+      
+      // Deshabilitar botón y mostrar estado de carga
+      takePhotoBtn.disabled = true;
+      takePhotoBtn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Preparando...';
+      uploadStatus.style.display = 'flex';
+      uploadStatus.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Preparando foto...';
+      
+      try {
+        // Convertir blob a base64
+        const base64Data = await blobToBase64(photoBlob);
+        const nombreArchivo = `${factura}_${Date.now()}.jpg`.replace(/[^a-zA-Z0-9\-]/g, '');
+        
+        // Extraer datos específicos de la factura
+        const facturaData = getFacturaData(factura);
+        if (!facturaData) {
+          throw new Error("No se pudieron obtener los datos de la factura");
+        }
+        
+        // Crear objeto de trabajo para la cola con TODOS los datos específicos
+        const jobData = {
+          ...facturaData,
+          fotoBase64: base64Data,
+          fotoNombre: nombreArchivo,
+          fotoTipo: 'image/jpeg',
+          timestamp: new Date().toISOString()
+        };
+        
+        // Agregar a la cola
+        uploadQueue.addJob({
+          type: 'photo',
+          data: jobData,
+          factura: factura,
+          btnElementId: btnElement ? btnElement.getAttribute('data-factura') : null
+        });
+        
+        // Actualizar UI
+        uploadStatus.innerHTML = '<i class="fas fa-check-circle"></i> En cola para subir';
+        takePhotoBtn.innerHTML = '<i class="fas fa-check"></i> En cola';
+        
+        // Cerrar cámara después de un breve retraso
+        setTimeout(cerrarCamara, 1500);
+        
+      } catch (error) {
+        console.error("Error al preparar foto:", error);
+        uploadStatus.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error al preparar';
+        takePhotoBtn.disabled = false;
+        takePhotoBtn.innerHTML = '<i class="fas fa-redo"></i> Reintentar';
+      }
+    }
+
+    // Función para extraer datos específicos de la factura seleccionada
+    function getFacturaData(factura) {
+      const facturaContainer = document.querySelector(`.siesa-item button[data-factura="${factura}"]`)?.closest('.siesa-item');
+      if (!facturaContainer) return null;
+      
+      const data = {
+        documento: '',
+        lote: '',
+        referencia: '',
+        cantidad: 0,
+        factura: factura,
+        nit: ''
+      };
+      
+      // Extraer datos del contenedor principal (documento)
+      const mainContainer = document.querySelector('.result-item');
+      if (mainContainer) {
+        const docElement = mainContainer.querySelector('.col-header:contains("Documento") + .json-value');
+        if (docElement) data.documento = docElement.textContent.trim();
+        
+        const loteElement = mainContainer.querySelector('.col-header:contains("Lote") + .json-value');
+        if (loteElement) data.lote = loteElement.textContent.trim();
+      }
+      
+      // Extraer datos específicos de la factura
+      const rows = facturaContainer.querySelectorAll('.result-row');
+      rows.forEach(row => {
+        const header = row.querySelector('.col-header')?.textContent.trim();
+        const value = row.querySelector('.json-value')?.textContent.trim();
+        
+        if (!header || !value) return;
+        
+        if (header.includes('Referencia')) data.referencia = value;
+        else if (header.includes('Cantidad')) data.cantidad = parseFloat(value) || 0;
+        else if (header.includes('NIT')) data.nit = value;
+        else if (header.includes('Nit')) data.nit = value;
+      });
+      
+      return data;
+    }
+
+    // Función para cerrar la cámara
+    function cerrarCamara() {
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
+        cameraStream = null;
+      }
+      
+      const cameraModal = document.getElementById('cameraModal');
+      
+      // Eliminar los listeners para prevenir comportamiento predeterminado
+      cameraModal.removeEventListener('touchstart', preventDefaultBehavior);
+      cameraModal.removeEventListener('touchmove', preventDefaultBehavior);
+      
+      // Limpiar el timer de prevención de teclado
+      if (preventKeyboardTimer) {
+        clearInterval(preventKeyboardTimer);
+        preventKeyboardTimer = null;
+      }
+      
+      cameraModal.style.display = 'none';
+      photoBlob = null;
+      
+      // Restauramos el foco normal después de cerrar la cámara
+      setTimeout(() => {
+        const barcodeInput = document.getElementById('barcode');
+        barcodeInput.focus();
+      }, 300);
+    }
+
+    // Configurar botón cancelar
+    document.getElementById('cancelCaptureBtn').addEventListener('click', cerrarCamara);
+
+    // Función actualizada para procesar entregas
+    function procesarEntrega(documento, lote, referencia, cantidad, factura, nit, btnElement) {
+      // Guardar todos los datos específicos de la factura
+      currentDocumentData = {
+        documento: documento,
+        lote: lote || '',
+        referencia: referencia || '',
+        cantidad: parseFloat(cantidad) || 0,
+        factura: factura,
+        nit: nit || '',
+        btnElement: btnElement
+      };
+      
+      // Crear un input de tipo file temporal para capturar fotos
+      const fileInput = document.createElement('input');
+      fileInput.type = 'file';
+      fileInput.accept = 'image/*';
+      fileInput.capture = 'environment'; // Usar cámara trasera por defecto
+      
+      // Agregar evento para procesar la imagen cuando se capture
+      fileInput.addEventListener('change', function(e) {
+        if (e.target.files && e.target.files[0]) {
+          procesarImagenCapturada(e.target.files[0]);
+        }
+      });
+      
+      // Simular clic para abrir la cámara del dispositivo
+      fileInput.click();
+    }
+
+    // Nueva función para procesar la imagen capturada
+    function procesarImagenCapturada(archivo) {
+      if (!archivo) {
+        console.error("No se seleccionó ninguna imagen");
+        return;
+      }
+      
+      // Mostrar estado de carga
+      statusDiv.innerHTML = '<i class="fas fa-image"></i> Procesando imagen...';
+      
+      const lector = new FileReader();
+      lector.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          // Crear canvas para procesamiento
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          
+          // Establecer dimensiones manteniendo proporciones pero limitando tamaño
+          let width = img.width;
+          let height = img.height;
+          
+          // Redimensionar si la imagen es muy grande (para optimizar)
+          const maxDimension = CONFIG.MAX_IMAGE_SIZE || 1200;
+          if (width > height && width > maxDimension) {
+            height = (height / width) * maxDimension;
+            width = maxDimension;
+          } else if (height > width && height > maxDimension) {
+            width = (width / height) * maxDimension;
+            height = maxDimension;
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          
+          // Dibujar imagen en el canvas
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          // Aplicar marca de agua
+          aplicarMarcaDeAgua(ctx, width, height);
+          
+          // Convertir a Blob
+          canvas.toBlob(function(blob) {
+            photoBlob = blob;
+            
+            // Opcionalmente mostrar una vista previa
+            mostrarVistaPrevia(URL.createObjectURL(blob));
+            
+            // Subir la imagen procesada a la cola
+            subirFotoCapturada(blob);
+          }, 'image/jpeg', 0.85);
+        };
+        img.src = e.target.result;
+      };
+      lector.readAsDataURL(archivo);
+    }
+
+    // Función para aplicar marca de agua
+    function aplicarMarcaDeAgua(ctx, width, height) {
+      // Área para la marca de agua
+      const marcaHeight = Math.floor(height / 6);
+
+      // Fondo degradado
+      const gradient = ctx.createLinearGradient(0, height - marcaHeight, 0, height);
+      gradient.addColorStop(0, "rgba(0, 0, 0, 0)");
+      gradient.addColorStop(0.2, "rgba(0, 0, 0, 0.6)");
+      gradient.addColorStop(1, "rgba(0, 0, 0, 0.8)");
+
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, height - marcaHeight, width, marcaHeight);
+
+      // Fuente y estilo
+      const fontFamily = "Inter, sans-serif";
+      const fontSize = Math.max(10, Math.floor(width / 70)); // Tamaño base
+      const fontSizeTitle = fontSize * 2; // Título al doble
+      ctx.fillStyle = "white";
+      ctx.textAlign = "left";
+      ctx.textBaseline = "bottom";
+
+      // Márgenes y espaciado
+      const marginLeft = Math.floor(width / 20);
+      const lineSpacing = Math.floor(fontSize * 1.6);
+      let posY = height - Math.floor(marcaHeight * 0.2);
+
+      // 1. Fecha y hora
+      ctx.font = `500 ${fontSize}px ${fontFamily}`;
+      const fecha = new Date().toLocaleString();
+      ctx.fillText(fecha, marginLeft, posY);
+      posY -= lineSpacing;
+
+      // 2. Datos técnicos (FACTURA | LOTE | REF | CANT)
+      const datos = [];
+      if (currentDocumentData) {
+        if (currentDocumentData.factura) datos.push(currentDocumentData.factura);
+        if (currentDocumentData.lote) datos.push(currentDocumentData.lote);
+        if (currentDocumentData.referencia) datos.push(currentDocumentData.referencia);
+        if (currentDocumentData.cantidad) datos.push(currentDocumentData.cantidad);
+      }
+
+      if (datos.length > 0) {
+        ctx.fillText(datos.join(" | "), marginLeft, posY);
+        posY -= lineSpacing;
+      }
+
+      // 3. Título: PandaDash (más grande)
+      ctx.font = `700 ${fontSizeTitle}px ${fontFamily}`;
+      ctx.fillText("PandaDash", marginLeft, posY);
+    }
+
+    // Función para mostrar brevemente una vista previa (opcional)
+    function mostrarVistaPrevia(imgUrl) {
+      // Crear elemento para vista previa temporal
+      let preview = document.createElement('div');
+      preview.style.position = 'fixed';
+      preview.style.top = '50%';
+      preview.style.left = '50%';
+      preview.style.transform = 'translate(-50%, -50%)';
+      preview.style.zIndex = '10000';
+      preview.style.backgroundColor = 'rgba(0,0,0,0.8)';
+      preview.style.padding = '10px';
+      preview.style.borderRadius = '8px';
+      preview.style.boxShadow = '0 0 20px rgba(0,0,0,0.5)';
+      preview.style.maxWidth = '90%';
+      preview.style.maxHeight = '70%';
+      
+      let img = document.createElement('img');
+      img.src = imgUrl;
+      img.style.width = '100%';
+      img.style.height = 'auto';
+      img.style.maxHeight = '70vh';
+      img.style.objectFit = 'contain';
+      img.style.borderRadius = '4px';
+      
+      let mensaje = document.createElement('div');
+      mensaje.textContent = 'Procesando imagen...';
+      mensaje.style.color = 'white';
+      mensaje.style.textAlign = 'center';
+      mensaje.style.padding = '10px';
+      
+      preview.appendChild(img);
+      preview.appendChild(mensaje);
+      document.body.appendChild(preview);
+      
+      // Eliminar después de 3 segundos
+      setTimeout(() => {
+        document.body.removeChild(preview);
+      }, 3000);
+    }
+
+    // Función para subir la foto capturada
+    async function subirFotoCapturada(blob) {
+      if (!currentDocumentData || !blob) {
+        console.error("No hay datos disponibles para subir");
+        statusDiv.innerHTML = '<span style="color: var(--danger)">Error: No hay datos para subir</span>';
+        return;
+      }
+      
+      const { documento, lote, referencia, cantidad, factura, nit, btnElement } = currentDocumentData;
+      
+      try {
+        // Convertir blob a base64
+        const base64Data = await blobToBase64(blob);
+        const nombreArchivo = `${factura}_${Date.now()}.jpg`.replace(/[^a-zA-Z0-9\-]/g, '');
+        
+        // Mostrar estado
+        statusDiv.innerHTML = '<i class="fas fa-check-circle"></i> Foto agregada a la cola';
+        
+        // Crear objeto de trabajo para la cola
+        const jobData = {
+          documento: documento,
+          lote: lote,
+          referencia: referencia,
+          cantidad: cantidad,
+          factura: factura,
+          nit: nit,
+          fotoBase64: base64Data,
+          fotoNombre: nombreArchivo,
+          fotoTipo: 'image/jpeg',
+          timestamp: new Date().toISOString()
+        };
+        
+        // Agregar a la cola
+        uploadQueue.addJob({
+          type: 'photo',
+          data: jobData,
+          factura: factura,
+          btnElementId: btnElement ? btnElement.getAttribute('data-factura') : null
+        });
+        
+        // Actualizar botón de entrega si existe
+        if (btnElement) {
+          btnElement.innerHTML = '<i class="fas fa-check-circle"></i> Foto en cola';
+          btnElement.style.backgroundColor = '#4cc9f0';
+        }
+        
+        // Reproducir sonido de éxito
+        playSuccessSound();
+        
+      } catch (error) {
+        console.error("Error al preparar foto:", error);
+        statusDiv.innerHTML = '<span style="color: var(--danger)">Error al procesar la imagen</span>';
+        
+        // Reproducir sonido de error
+        playErrorSound();
+      }
+    }
+
+    // Funciones para sonidos de feedback
+    function playSuccessSound() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)(); 
+        const osc = ctx.createOscillator(); 
+        const gainNode = ctx.createGain(); 
+        osc.type = "sine"; 
+        osc.frequency.value = 800; 
+        gainNode.gain.value = 1; 
+        osc.connect(gainNode); 
+        gainNode.connect(ctx.destination); 
+        osc.start(); 
+        osc.stop(ctx.currentTime + 0.25);
+      } catch (e) {
+        console.log("Error al reproducir sonido de éxito:", e);
+      }
+    }
+
+    function playErrorSound() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)(); 
+        const osc = ctx.createOscillator(); 
+        const gainNode = ctx.createGain(); 
+        osc.type = "sawtooth"; 
+        osc.frequency.setValueAtTime(300, ctx.currentTime); 
+        osc.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.5); 
+        gainNode.gain.value = 0.8; 
+        gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5); 
+        osc.connect(gainNode); 
+        gainNode.connect(ctx.destination); 
+        osc.start(); 
+        osc.stop(ctx.currentTime + 0.5);
+      } catch (e) {
+        console.log("Error al reproducir sonido de error:", e);
+      }
+    }
+
+    // Inicialización al cargar el documento
+    document.addEventListener('DOMContentLoaded', () => {
+      // Cargar datos desde el servidor
+      loadDataFromServer();
+      
+      setupEventListeners();
+      
+      // Agregar eventos para prevenir el teclado virtual en la cámara
+      document.addEventListener('focusin', function(e) {
+        if (document.getElementById('cameraModal').style.display === 'flex' && 
+            e.target.id !== 'dummyInput') {
+          e.preventDefault();
+          e.target.blur();
+        }
+      });
+      
+      // Manejar el cambio de orientación en dispositivos móviles
+      window.addEventListener('orientationchange', function() {
+        if (document.getElementById('cameraModal').style.display === 'flex') {
+          setTimeout(() => {
+            document.activeElement.blur();
+          }, 300);
+        }
+      });
+      
+      // Verificar si estamos en modo offline
+      window.addEventListener('online', function() {
+        offlineBanner.style.display = 'none';
+        statusDiv.className = 'reconnected';
+        statusDiv.innerHTML = '<i class="fas fa-wifi"></i> Conexión restablecida';
+        // Si los datos aún no se han cargado, intentar cargarlos de nuevo
+        if (!dataLoaded) {
+          setTimeout(() => loadDataFromServer(), 1000);
+        }
+      });
+      
+      window.addEventListener('offline', function() {
+        offlineBanner.style.display = 'block';
+        statusDiv.className = 'offline';
+        statusDiv.innerHTML = '<i class="fas fa-wifi-slash"></i> Sin conexión - Modo offline';
+      });
+    });
+
+    function loadDataFromServer() {
+      statusDiv.className = 'loading';
+      statusDiv.innerHTML = '<i class="fas fa-sync fa-spin"></i> Cargando Datos...';
+      dataStats.innerHTML = '<i class="fas fa-server"></i> Conectando con el servidor...';
+      
+      // Usamos fetch para obtener los datos del servidor
+      fetch(`${API_URL_GET}?nocache=${new Date().getTime()}`)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`Error HTTP: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(serverData => handleDataLoadSuccess(serverData))
+        .catch(error => handleDataLoadError(error));
+    }
+
+    function handleDataLoadSuccess(serverData) {
+      if (serverData && serverData.success && serverData.data) {
+        database = serverData.data;
+        dataLoaded = true;
+        cacheData(database);
+
+        statusDiv.className = 'ready';
+        statusDiv.innerHTML = '<i class="fas fa-check"></i> Sistema Listo';
+        dataStats.innerHTML = `<i class="fas fa-database"></i> ${database.length} registros | ${new Date().toLocaleTimeString()}`;
+        resultsDiv.innerHTML = `
+          <div class="result-item" style="text-align: center; color: var(--gray);">
+            <img src="https://raw.githubusercontent.com/iLogisticsCoordinator/o/main/icons/icon-512.png" alt="PandaDash Logo" class="logo" style="width: 4rem; height: 4rem; margin-bottom: 0.5rem;">
+            <h1>PandaDash</h1>
+            <div class="name">Andrés Mendoza</div>
+          </div>
+        `;  
+        
+        // Ocultar pantalla de carga
+        hideLoadingScreen();
+        playSuccessSound();
+      } else {
+        handleDataLoadError(new Error('Formato de datos incorrecto'));
+      }
+    }
+
+    function handleDataLoadError(error) {
+      console.error("Error al cargar datos:", error);
+      
+      // Verificar si hay datos en caché
+      const cachedData = getCachedData();
+      if (cachedData) {
+        database = cachedData.data;
+        dataLoaded = true;
+        
+        statusDiv.innerHTML = '<i class="fas fa-database"></i> Sistema Listo (DATOS CACHEADOS)';
+        dataStats.innerHTML = `${database.length} registros | Última actualización: ${new Date(cachedData.timestamp).toLocaleString()}`;
+        resultsDiv.innerHTML = `
+          <div class="result-item" style="text-align: center; color: var(--gray);">
+            <img src="https://raw.githubusercontent.com/iLogisticsCoordinator/o/main/icons/icon-512.png" alt="PandaDash Logo" class="logo" style="width: 4rem; height: 4rem; margin-bottom: 0.5rem;">
+            <h1>PandaDash</h1>
+            <div class="name">Andrés Mendoza</div>
+          </div>
+        `;
+        
+        offlineBanner.style.display = 'block';
+        
+        // Ocultar pantalla de carga ya que tenemos datos en caché
+        hideLoadingScreen();
+      } else {
+        statusDiv.className = 'error';
+        statusDiv.innerHTML = '<span style="color: var(--danger)">Error al Cargar Datos</span>';
+        dataStats.textContent = error.message || 'Error desconocido';
+        resultsDiv.innerHTML = `<div class="error"><i class="fas fa-exclamation-circle"></i> No se pudo cargar la base de datos: ${error.message || 'Error desconocido'}</div>`;
+        
+        // Mostrar mensaje de error en la pantalla de carga pero no ocultarla
+        const loadingName = document.querySelector('#loadingScreen .name');
+        if (loadingName) {
+          loadingName.innerHTML = 'Error al cargar datos. <br>Comprueba tu conexión.';
+          loadingName.style.color = '#f72585';
+        }
+        
+        playErrorSound();
+      }
+    }
+
+    // Función para ocultar la pantalla de carga
+    function hideLoadingScreen() {
+      // Mostrar el contenido principal
+      scanner.style.display = 'flex';
+      
+      // Desvanecer la pantalla de carga
+      loadingScreen.style.opacity = '0';
+      
+      // Eliminar la pantalla de carga después de la transición
+      setTimeout(() => {
+        loadingScreen.style.display = 'none';
+        
+        // Enfocar el campo de entrada
+        if (barcodeInput) {
+          barcodeInput.focus();
+        }
+      }, 500);
+    }
+
+    function getCachedData() {
+      const cache = localStorage.getItem('pdaScannerCache');
+      if (!cache) return null;
+      
+      try {
+        const parsed = JSON.parse(cache);
+        if (Date.now() - parsed.timestamp > CONFIG.CACHE_TTL) return null;
+        return parsed;
+      } catch (e) {
+        console.error("Error al parsear cache:", e);
+        return null;
+      }
+    }
+
+    function cacheData(data) {
+      const cache = {
+        data: data,
+        timestamp: Date.now(),
+        version: CONFIG.VERSION
+      };
+      
+      try {
+        localStorage.setItem('pdaScannerCache', JSON.stringify(cache));
+      } catch (e) {
+        console.error("Error al guardar en cache:", e);
+        if (e.name === 'QuotaExceededError') {
+          clearOldCache();
+          cacheData(data);
+        }
+      }
+    }
+
+    function clearOldCache() {
+      const keys = Object.keys(localStorage);
+      for (const key of keys) {
+        if (key.startsWith('pdaScannerCache')) {
+          localStorage.removeItem(key);
+        }
+      }
+    }
+
+    function setupEventListeners() {
+      // Foco persistente excepto cuando la cámara está abierta
+      function enforceFocus() {
+        // Solo aplicar foco si la cámara no está abierta
+        if (document.activeElement !== barcodeInput && 
+            document.getElementById('cameraModal').style.display !== 'flex') {
+          barcodeInput.focus();
+        }
+        setTimeout(enforceFocus, 100);
+      }
+      enforceFocus();
+      
+      // Detector para deshabilitar el teclado virtual en dispositivos móviles
+      document.addEventListener('touchstart', function(e) {
+        if (document.getElementById('cameraModal').style.display === 'flex' && 
+            e.target.tagName !== 'BUTTON') {
+          e.preventDefault();
+          if (document.activeElement) {
+            document.activeElement.blur();
+          }
+        }
+      }, { passive: false });
+      
+      // Detectar escaneo
+      barcodeInput.addEventListener('input', function() {
+        const code = this.value.trim();
+        if (code.length < 5) return; // Un código válido debe tener al menos 5 caracteres
+        
+        // Analizar el formato del código: DOCUMENTO-NIT
+        const parts = parseQRCode(code);
+        
+        if (parts) {
+          currentQRParts = parts; // Guardar las partes para uso posterior
+          const startTime = Date.now();
+          processQRCodeParts(parts);
+          const searchTime = Date.now() - startTime;
+          
+          statusDiv.className = 'processed';
+          statusDiv.textContent = `Registro Procesado (${searchTime}ms)`;
+        } else {
+          showError(code, "Formato de código QR no válido. Use formato: DOCUMENTO-NIT");
+          playErrorSound();
+          statusDiv.textContent = `FORMATO INVÁLIDO`;
+        }
+        
+        setTimeout(() => {
+          this.value = '';
+          this.focus();
+        }, 50);
+      });
+    }
+    
+    // Función para analizar el código QR
+    function parseQRCode(code) {
+      // Buscamos un formato como "REC58101-805027653"
+      const regex = /^([A-Za-z0-9-]+)-([0-9]+)$/;
+      const match = code.match(regex);
+      
+      if (match) {
+        return {
+          documento: match[1],
+          nit: match[2]
+        };
+      }
+      
+      return null;
+    }
+    
+    // Procesa las partes del código QR y muestra los resultados
+    function processQRCodeParts(parts) {
+      const { documento, nit } = parts;
+      
+      // Buscar un registro que coincida con el documento
+      const result = database.find(item => 
+        item.documento && item.documento.toString() === documento
+      );
+      
+      if (result) {
+        // Filtramos los datosSiesa para mostrar solo los que coinciden con el NIT
+        const filteredItem = JSON.parse(JSON.stringify(result));
+        
+        if (filteredItem.datosSiesa && Array.isArray(filteredItem.datosSiesa)) {
+          // Filtramos por NIT en lugar de por cliente
+          filteredItem.datosSiesa = filteredItem.datosSiesa.filter(siesa => {
+            // Extraemos solo dígitos del NIT para comparar (por si acaso viene con formato)
+            const siesaNitDigits = siesa.nit ? siesa.nit.toString().replace(/\D/g, '') : '';
+            const scanNitDigits = nit.replace(/\D/g, '');
+            
+            return siesaNitDigits.includes(scanNitDigits) || scanNitDigits.includes(siesaNitDigits);
+          });
+          
+          displayFullResult(filteredItem, parts);
+          playSuccessSound();
+        } else {
+          displayFullResult(filteredItem, parts);
+          playSuccessSound();
+        }
+      } else {
+        showError(`${documento}-${nit}`, "Documento no encontrado en la base de datos");
+        playErrorSound();
+      }
+    }
+
+    function displayFullResult(item, qrParts) {
+      const totalRegistros = item.datosSiesa ? item.datosSiesa.length : 0;
+      const filtradosRegistros = item.datosSiesa ? item.datosSiesa.length : 0;
+      
+      resultsDiv.innerHTML = `
+        <div class="result-item">
+          ${filtradosRegistros < totalRegistros ? `
+            <div class="filter-info">
+              <i class="fas fa-info-circle"></i> Mostrando ${filtradosRegistros} de ${totalRegistros} registros (filtrado por NIT ${qrParts.nit})
+            </div>
+          ` : ''}
+          
+          ${displayItemData(item, 'Datos del Documento', qrParts)}
+        </div>
+      `;
+    }
+
+    function displayItemData(data, title = 'Datos', qrParts) {
+      let html = `<div class="siesa-header">${title} <span class="timestamp">${new Date().toLocaleString()}</span></div>`;
+      
+      // Asegurar que se muestra el lote en primer lugar, seguido de otras propiedades
+      // Orden de propiedades: documento, lote, referencia, y luego el resto
+      const ordenPropiedades = ['documento', 'lote', 'referencia'];
+      
+      // Mostrar primero las propiedades prioritarias en el orden deseado
+      ordenPropiedades.forEach(propKey => {
+        if (propKey in data && propKey !== 'datosSiesa') {
+          html += `
+            <div class="result-row">
+              <div class="col-header">${formatKey(propKey)}:</div>
+              <div class="json-value">${formatValue(data[propKey], propKey)}</div>
+            </div>
+          `;
+        }
+      });
+      
+      // Mostrar el resto de propiedades que no están en la lista de prioridad
+      for (const key in data) {
+        if (key === 'datosSiesa' || ordenPropiedades.includes(key)) continue;
+        
+        html += `
+          <div class="result-row">
+            <div class="col-header">${formatKey(key)}:</div>
+            <div class="json-value">${formatValue(data[key], key)}</div>
+          </div>
+        `;
+      }
+      
+      // Mostrar datosSiesa si existen
+      if (data.datosSiesa && Array.isArray(data.datosSiesa)) {
+        if (data.datosSiesa.length === 0) {
+          html += `<div class="no-data" style="padding: 15px; text-align: center;"><i class="fas fa-search"></i> No hay registros que coincidan con el NIT escaneado</div>`;
+        } else {
+          html += `<div class="siesa-header">Documentos Relacionados <span class="badge badge-success">${data.datosSiesa.length} registros</span></div>`;
+          
+          data.datosSiesa.forEach((siesa, index) => {
+            const estadoBadge = siesa.estado === 'Aprobadas' ? 'badge-success' : 'badge-warning';
+            
+            html += `<div class="siesa-item">`;
+            html += `<div class="siesa-header">Factura #${index + 1} <span class="badge ${estadoBadge}">${siesa.estado || 'Sin estado'}</span></div>`;
+            
+            // Orden preferido para propiedades de datosSiesa
+            const ordenSiesaPropiedades = ['factura', 'nit', 'lote', 'referencia', 'cantidad', 'estado', 'cliente', 'valorBruto', 'fecha', 'proovedor'];
+            
+            // Mostrar propiedades en el orden preferido
+            ordenSiesaPropiedades.forEach(propKey => {
+              if (propKey in siesa) {
+                html += `
+                  <div class="result-row">
+                    <div class="col-header">${formatKey(propKey)}:</div>
+                    <div class="json-value">${formatValue(siesa[propKey], propKey)}</div>
+                  </div>
+                `;
+              }
+            });
+            
+            // Mostrar cualquier propiedad adicional que no esté en la lista ordenada
+            for (const key in siesa) {
+              if (ordenSiesaPropiedades.includes(key)) continue;
+              
+              html += `
+                <div class="result-row">
+                  <div class="col-header">${formatKey(key)}:</div>
+                  <div class="json-value">${formatValue(siesa[key], key)}</div>
+                </div>
+              `;
+            }
+            
+            // Botón de entregas que maneja todo el proceso con el NIT correcto
+            html += `
+              <div class="action-buttons">
+                <button class="delivery-btn" 
+                  data-factura="${siesa.factura}"
+                  onclick="procesarEntrega(
+                    '${data.documento}', 
+                    '${siesa.lote || data.lote}', 
+                    '${siesa.referencia}', 
+                    '${siesa.cantidad}', 
+                    '${siesa.factura}', 
+                    '${siesa.nit || qrParts.nit}', 
+                    this
+                  )">
+                  <i class="fas fa-truck"></i> Procesar Entrega
+                </button>
+                <span class="save-success" style="display: none;">
+                  <i class="fas fa-check"></i> Registro guardado
+                </span>
+              </div>
+            `;
+            
+            html += `</div>`;
+          });
+        }
+      }
+      
+      return html;
+    }
+
+    function formatKey(key) {
+      return key
+        .replace(/([A-Z])/g, ' $1')
+        .replace(/^./, str => str.toUpperCase())
+        .replace('columna', '')
+        .trim();
+    }
+
+    function formatValue(value, key = '') {
+      if (value === null || value === undefined) {
+        return '<span class="no-data">N/A</span>';
+      }
+      
+      if (typeof value === 'object') {
+        return '<span class="no-data">[Datos complejos]</span>';
+      }
+      
+      if (typeof value === 'number') {
+        if (key.toLowerCase().includes('valor') || key.toLowerCase().includes('suma')) {
+          return `<span class="numeric-value">${value.toLocaleString('es-CO')}</span>`;
+        }
+        return value.toString();
+      }
+      
+      if (typeof value === 'boolean') {
+        return value ? 'Sí' : 'No';
+      }
+      
+      return value.toString();
+    }
+
+    function showError(barcode, message = "Código no encontrado") {
+      resultsDiv.innerHTML = `
+        <div class="error">
+          <i class="fas fa-times-circle"></i> ${message}: <strong>${barcode}</strong>
+        </div>
+      `;
+    }
+
+    // Detector de eventos para PWA Install
+    let deferredPrompt;
+    
+    window.addEventListener('beforeinstallprompt', (e) => {
+      // Prevenir que Chrome muestre automáticamente el prompt
+      e.preventDefault();
+      // Guardar el evento para usarlo después
+      deferredPrompt = e;
+      // Mostrar el botón de instalación
+      installBtn.style.display = 'block';
+    });
+    
+    installBtn.addEventListener('click', async () => {
+      if (deferredPrompt) {
+        // Mostrar el prompt de instalación
+        deferredPrompt.prompt();
+        // Esperar a que el usuario responda al prompt
+        const choiceResult = await deferredPrompt.userChoice;
+        if (choiceResult.outcome === 'accepted') {
+          console.log('App instalada');
+        } else {
+          console.log('Instalación cancelada');
+        }
+        // Limpiar el prompt guardado
+        deferredPrompt = null;
+        // Ocultar botón
+        installBtn.style.display = 'none';
+      }
+    });
+    
+    // Registrar Service Worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('service-worker.js');
+      });
+    }
+  </script>
+</body>
+</html>
