@@ -376,12 +376,15 @@
     }
     
     .offline-banner {
-      background: var(--warning);
-      color: var(--dark);
+      background: rgba(0, 0, 0, 0.02);
+      color: #1115;
+      padding: 6px;
+      font-size: 14px;
+      font-weight: 400;
+      border-radius: 6px;
       text-align: center;
-      padding: 8px;
-      font-size: 13px;
-      font-weight: 500;
+      max-width: 300px;
+      margin: 0px auto;
     }
     
     .siesa-item {
@@ -884,7 +887,6 @@
   }
 </style>
 
-
 <style>
   /* Estructura principal */
 body {
@@ -971,6 +973,9 @@ footer a:hover {
 
   <!-- Contenido principal -->
   <div id="scanner" style="display: none;">
+    <div id="offline-banner" class="offline-banner" style="display: none;">
+      <i class="fas fa-wifi-slash"></i> No hay conexión a internet
+    </div>
 
     <div class="barcode-input-container">
       <i class="fa-solid fa-qrcode"></i>
@@ -981,7 +986,7 @@ footer a:hover {
     <div class="data-stats" id="data-stats">Cargando datos...</div>
     <div id="results"></div>
 
-<footer>
+    <footer>
     <div class="footer-content">
       <p>Developed by Andrés Mendoza © 2025</p>
       <p>Supported by <a href="https://www.eltemplodelamoda.com/" target="_blank">GrupoTDM</a></p>
@@ -992,6 +997,7 @@ footer a:hover {
       </div>
     </div>
   </footer>
+
 
   </div>
 
@@ -1632,7 +1638,7 @@ footer a:hover {
       }
       
       // Mostrar estado de carga
-      statusDiv.innerHTML = '<i class="fas fa-image"></i> Procesando imagen...';
+      //statusDiv.innerHTML = '<i class="fas fa-image"></i> Procesando imagen...';
       
       const lector = new FileReader();
       lector.onload = function(e) {
@@ -1789,7 +1795,7 @@ footer a:hover {
         const nombreArchivo = `${factura}_${Date.now()}.jpg`.replace(/[^a-zA-Z0-9\-]/g, '');
         
         // Mostrar estado
-        statusDiv.innerHTML = '<i class="fas fa-check-circle"></i> Foto agregada a la cola';
+        //statusDiv.innerHTML = '<i class="fas fa-check-circle"></i> Foto agregada a la cola';
         
         // Crear objeto de trabajo para la cola
         const jobData = {
@@ -1815,7 +1821,7 @@ footer a:hover {
         
         // Actualizar botón de entrega si existe
         if (btnElement) {
-          btnElement.innerHTML = '<i class="fas fa-check-circle"></i> Foto en cola';
+          btnElement.innerHTML = '<i class="fas fa-hourglass-half"></i> Procesando...';
           btnElement.style.backgroundColor = '#4cc9f0';
         }
         
@@ -1935,7 +1941,7 @@ footer a:hover {
         cacheData(database);
 
         statusDiv.className = 'ready';
-        statusDiv.innerHTML = '<i class="fas fa-check"></i> Sistema Listo';
+        statusDiv.innerHTML = '<i class="fas fa-check"></i> SISTEMA LISTO';
         dataStats.innerHTML = `<i class="fas fa-database"></i> ${database.length} registros | ${new Date().toLocaleTimeString()}`;
         resultsDiv.innerHTML = `
           <div class="result-item" style="text-align: center; color: var(--gray);">
@@ -1962,7 +1968,7 @@ footer a:hover {
         database = cachedData.data;
         dataLoaded = true;
         
-        statusDiv.innerHTML = '<i class="fas fa-database"></i> Sistema Listo (DATOS CACHEADOS)';
+        statusDiv.innerHTML = '<i class="fas fa-database"></i> SISTEMA LISTO (DATOS CACHEADOS)';
         dataStats.innerHTML = `${database.length} registros | Última actualización: ${new Date(cachedData.timestamp).toLocaleString()}`;
         resultsDiv.innerHTML = `
           <div class="result-item" style="text-align: center; color: var(--gray);">
@@ -1978,7 +1984,7 @@ footer a:hover {
         hideLoadingScreen();
       } else {
         statusDiv.className = 'error';
-        statusDiv.innerHTML = '<span style="color: var(--danger)">Error al Cargar Datos</span>';
+        statusDiv.innerHTML = '<span style="color: var(--danger)">ERROR AL CARGAR DATOS</span>';
         dataStats.textContent = error.message || 'Error desconocido';
         resultsDiv.innerHTML = `<div class="error"><i class="fas fa-exclamation-circle"></i> No se pudo cargar la base de datos: ${error.message || 'Error desconocido'}</div>`;
         
@@ -2091,7 +2097,7 @@ footer a:hover {
           const searchTime = Date.now() - startTime;
           
           statusDiv.className = 'processed';
-          statusDiv.textContent = `Registro Procesado (${searchTime}ms)`;
+          statusDiv.textContent = `REGISTRO PROCESADO (${searchTime}ms)`;
         } else {
           showError(code, "Formato de código QR no válido. Use formato: DOCUMENTO-NIT");
           playErrorSound();
