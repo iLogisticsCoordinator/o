@@ -899,13 +899,29 @@ body {
   padding: 0;
 }
 
+
+/* Modificaciones para fijar el encabezado */
 #scanner {
   display: flex;
   flex-direction: column;
-  flex: 1;
   height: 100vh;
   max-width: 800px;
   margin: 0 auto;
+  box-shadow: 0 0 20px rgba(0,0,0,0.1);
+  background: var(--card-bg);
+  position: relative;
+  overflow: hidden; /* Importante para contener el scroll */
+}
+
+/* Contenedor fijo para la parte superior */
+.fixed-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--card-bg);
+  width: 100%;
+  padding-top: 10px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
 /* Estilos para el footer */
@@ -973,22 +989,33 @@ footer a:hover {
     <button id="installBtn">Instalar App</button>
   </div>
 
-  <!-- Contenido principal -->
-  <div id="scanner" style="display: none;">
-    <div id="offline-banner" class="offline-banner" style="display: none;">
-      <i class="fas fa-wifi-slash"></i> No hay conexión a internet
-    </div>
+<!-- Modificación para la estructura del contenido principal -->
+<div id="scanner" style="display: none;">
+  <!-- Banner de offline (siempre en la parte superior) -->
+  <div id="offline-banner" class="offline-banner" style="display: none;">
+    <i class="fas fa-wifi-slash"></i> No hay conexión a internet
+  </div>
 
+  <!-- Contenedor de elementos fijos en la parte superior -->
+  <div class="fixed-header">
+    <!-- Barra de búsqueda de código QR -->
     <div class="barcode-input-container">
       <i class="fa-solid fa-qrcode"></i>
       <input type="text" id="barcode" autofocus placeholder="Escanea un código QR">
     </div>
 
+    <!-- Estado del sistema -->
     <div id="status">Iniciando Sistema...</div>
+    
+    <!-- Estadísticas de datos -->
     <div class="data-stats" id="data-stats">Cargando datos...</div>
-    <div id="results"></div>
+  </div>
 
-    <footer>
+  <!-- Área de resultados (con scroll) -->
+  <div id="results"></div>
+
+  <!-- Footer (permanece en la parte inferior) -->
+  <footer>
     <div class="footer-content">
       <p>Developed by Andrés Mendoza © 2025</p>
       <p>Supported by <a href="https://www.eltemplodelamoda.com/" target="_blank">GrupoTDM</a></p>
@@ -999,9 +1026,10 @@ footer a:hover {
       </div>
     </div>
   </footer>
+</div>
 
 
-  </div>
+
 
   <!-- Modal de cámara -->
   <div id="cameraModal" class="camera-modal">
