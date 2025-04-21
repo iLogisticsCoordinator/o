@@ -249,6 +249,7 @@
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
       transition: all 0.3s ease;
       appearance: none;
+      text-align: center;
     }
     
     #barcode::placeholder {
@@ -899,79 +900,16 @@ body {
   padding: 0;
 }
 
-
-/* Modificaciones para fijar el encabezado */
 #scanner {
   display: flex;
   flex-direction: column;
+  flex: 1;
   height: 100vh;
   max-width: 800px;
   margin: 0 auto;
-  box-shadow: 0 0 20px rgba(0,0,0,0.1);
-  background: var(--card-bg);
-  position: relative;
-  overflow: hidden; /* Importante para contener el scroll */
 }
 
-/* Contenedor fijo para la parte superior */
-.fixed-header {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  background: var(--card-bg);
-  width: 100%;
-  padding-top: 10px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-}
 
-/* Estilos para el footer */
-footer {
-  margin-top: auto;
-  padding: 15px;
-  background: var(--card-bg);
-  border-top: 1px solid var(--border-color);
-  text-align: center;
-  font-size: 13px;
-  color: var(--gray);
-}
-
-.footer-content {
-  max-width: 450px;
-  margin: 0 auto;
-}
-
-footer a {
-  color: var(--primary);
-  text-decoration: none;
-  font-weight: 500;
-  transition: color 0.3s ease;
-}
-
-footer a:hover {
-  color: var(--primary-dark);
-  text-decoration: underline;
-}
-
-.social-links {
-  display: flex;
-  justify-content: center;
-  gap: 15px;
-  margin-top: 10px;
-}
-
-.social-links a {
-  color: var(--primary);
-  font-size: 18px;
-  transition: all 0.3s ease;
-}
-
-.social-links a:hover {
-  transform: scale(1.2);
-}
-
-.social-links a:nth-child(1):hover { color: #1877f2; } /* Facebook */
-.social-links a:nth-child(2):hover { color: #e1306c; } /* Instagram */
-.social-links a:nth-child(3):hover { color: #25d366; } /* WhatsApp */
 </style>
 
 </head>
@@ -989,47 +927,31 @@ footer a:hover {
     <button id="installBtn">Instalar App</button>
   </div>
 
-<!-- Modificación para la estructura del contenido principal -->
-<div id="scanner" style="display: none;">
-  <!-- Banner de offline (siempre en la parte superior) -->
-  <div id="offline-banner" class="offline-banner" style="display: none;">
-    <i class="fas fa-wifi-slash"></i> No hay conexión a internet
-  </div>
+  <!-- Contenido principal -->
+  <div id="scanner" style="display: none;">
+    <div id="offline-banner" class="offline-banner" style="display: none;">
+      <i class="fas fa-wifi-slash"></i> No hay conexión a internet
+    </div>
 
-  <!-- Contenedor de elementos fijos en la parte superior -->
-  <div class="fixed-header">
-    <!-- Barra de búsqueda de código QR -->
     <div class="barcode-input-container">
       <i class="fa-solid fa-qrcode"></i>
       <input type="text" id="barcode" autofocus placeholder="Escanea un código QR">
     </div>
 
-    <!-- Estado del sistema -->
     <div id="status">Iniciando Sistema...</div>
-    
-    <!-- Estadísticas de datos -->
     <div class="data-stats" id="data-stats">Cargando datos...</div>
-  </div>
+    <div id="results"></div>
 
-  <!-- Área de resultados (con scroll) -->
-  <div id="results"></div>
-
-  <!-- Footer (permanece en la parte inferior) -->
-  <footer>
+    <footer>
     <div class="footer-content">
-      <p>Developed by Andrés Mendoza © 2025</p>
-      <p>Supported by <a href="https://www.eltemplodelamoda.com/" target="_blank">GrupoTDM</a></p>
-      <div class="social-links">
-        <a href="https://www.facebook.com/templodelamoda/" target="_blank"><i class="fab fa-facebook"></i></a>
-        <a href="https://www.instagram.com/eltemplodelamoda/" target="_blank"><i class="fab fa-instagram"></i></a>
-        <a href="https://wa.me/573176418529" target="_blank"><i class="fab fa-whatsapp"></i></a>
-      </div>
+      <p></p>
+      <p></p>
+      <p></p>
     </div>
   </footer>
-</div>
 
 
-
+  </div>
 
   <!-- Modal de cámara -->
   <div id="cameraModal" class="camera-modal">
@@ -2397,69 +2319,122 @@ statusDiv.innerHTML = `
     }
 
     function handleDataLoadSuccess(serverData) {
-      if (serverData && serverData.success && serverData.data) {
-        database = serverData.data;
-        dataLoaded = true;
-        cacheData(database);
+  if (serverData?.success && serverData?.data) {
+    const database = serverData.data;
+    dataLoaded = true;
 
-        statusDiv.className = 'ready';
-        statusDiv.innerHTML = '<i class="fas fa-check-circle"></i> SISTEMA LISTO';
-        dataStats.innerHTML = `<i class="fas fa-database"></i> ${database.length} registros | ${new Date().toLocaleTimeString()}`;
-        resultsDiv.innerHTML = `
-          <div class="result-item" style="text-align: center; color: var(--gray);">
-            <img src="https://raw.githubusercontent.com/iLogisticsCoordinator/o/main/icons/icon-512.png" alt="PandaDash Logo" class="logo" style="width: 4rem; height: 4rem; margin-bottom: 0.5rem;">
-            <h1>PandaDash</h1>
-            <div class="name">Andrés Mendoza</div>
+    cacheData(database);
+
+    // Actualizar UI de estado
+    statusDiv.className = 'ready';
+    statusDiv.innerHTML = `
+      <i class="fas fa-check-circle"></i> SISTEMA LISTO
+    `;
+    dataStats.innerHTML = `
+      <i class="fas fa-database"></i> ${database.length} registros | ${new Date().toLocaleTimeString()}
+    `;
+
+    // Mostrar contenido principal
+    resultsDiv.innerHTML = `
+      <div class="result-item" style="text-align: center; color: var(--gray);">
+        <img 
+          src="https://raw.githubusercontent.com/iLogisticsCoordinator/o/main/icons/icon-512.png" 
+          alt="PandaDash Logo" 
+          class="logo" 
+          style="width: 4rem; height: 4rem; margin-bottom: 0.15rem;"
+        >
+        <h1 style="margin: 0;">PandaDash</h1>
+        <div style="margin-top: 6px; font-size: 13px; line-height: 1.3;">
+          <p style="margin: 2px 0;">Developed by Andrés Mendoza © 2025</p>
+          <p style="margin: 2px 0;">
+            Supported by 
+            <a href="https://www.eltemplodelamoda.com/" target="_blank" style="color: var(--primary); text-decoration: none; font-weight: 500;">
+              GrupoTDM
+            </a>
+          </p>
+          <div style="display: flex; justify-content: center; gap: 8px; margin-top: 6px;">
+            <a href="https://www.facebook.com/templodelamoda/" target="_blank" style="color: var(--primary);"><i class="fab fa-facebook"></i></a>
+            <a href="https://www.instagram.com/eltemplodelamoda/" target="_blank" style="color: var(--primary);"><i class="fab fa-instagram"></i></a>
+            <a href="https://wa.me/573176418529" target="_blank" style="color: var(--primary);"><i class="fab fa-whatsapp"></i></a>
           </div>
-        `;  
-        
-        // Ocultar pantalla de carga
-        hideLoadingScreen();
-        playSuccessSound();
-      } else {
-        handleDataLoadError(new Error('Formato de datos incorrecto'));
-      }
-    }
+        </div>
+      </div>
+    `;
+
+    hideLoadingScreen();
+    playSuccessSound();
+  } else {
+    handleDataLoadError(new Error('Formato de datos incorrecto'));
+  }
+}
+
+
 
     function handleDataLoadError(error) {
-      console.error("Error al cargar datos:", error);
-      
-      // Verificar si hay datos en caché
-      const cachedData = getCachedData();
-      if (cachedData) {
-        database = cachedData.data;
-        dataLoaded = true;
-        
-        statusDiv.innerHTML = '<i class="fas fa-database"></i> SISTEMA LISTO (DATOS CACHEADOS)';
-        dataStats.innerHTML = `${database.length} registros | Última actualización: ${new Date(cachedData.timestamp).toLocaleString()}`;
-        resultsDiv.innerHTML = `
-          <div class="result-item" style="text-align: center; color: var(--gray);">
-            <img src="https://raw.githubusercontent.com/iLogisticsCoordinator/o/main/icons/icon-512.png" alt="PandaDash Logo" class="logo" style="width: 4rem; height: 4rem; margin-bottom: 0.5rem;">
-            <h1>PandaDash</h1>
-            <div class="name">Andrés Mendoza</div>
+  console.error("Error al cargar datos:", error);
+  
+  // Verificar si hay datos en caché
+  const cachedData = getCachedData();
+  if (cachedData) {
+    database = cachedData.data;
+    dataLoaded = true;
+    
+    statusDiv.innerHTML = '<i class="fas fa-database"></i> SISTEMA LISTO (DATOS CACHEADOS)';
+    dataStats.innerHTML = `${database.length} registros | Última actualización: ${new Date(cachedData.timestamp).toLocaleString()}`;
+    
+    resultsDiv.innerHTML = `
+      <div class="result-item" style="text-align: center; color: var(--gray);">
+        <img 
+          src="https://raw.githubusercontent.com/iLogisticsCoordinator/o/main/icons/icon-512.png" 
+          alt="PandaDash Logo" 
+          class="logo" 
+          style="width: 4rem; height: 4rem; margin-bottom: 0.15rem;"
+        >
+        <h1 style="margin: 0;">PandaDash</h1>
+        <div style="margin-top: 6px; font-size: 13px; line-height: 1.3;">
+          <p style="margin: 2px 0;">Developed by Andrés Mendoza © 2025</p>
+          <p style="margin: 2px 0;">
+            Supported by 
+            <a href="https://www.eltemplodelamoda.com/" target="_blank" style="color: var(--primary); text-decoration: none; font-weight: 500;">
+              GrupoTDM
+            </a>
+          </p>
+          <div style="display: flex; justify-content: center; gap: 8px; margin-top: 6px;">
+            <a href="https://www.facebook.com/templodelamoda/" target="_blank" style="color: var(--primary);"><i class="fab fa-facebook"></i></a>
+            <a href="https://www.instagram.com/eltemplodelamoda/" target="_blank" style="color: var(--primary);"><i class="fab fa-instagram"></i></a>
+            <a href="https://wa.me/573176418529" target="_blank" style="color: var(--primary);"><i class="fab fa-whatsapp"></i></a>
           </div>
-        `;
-        
-        offlineBanner.style.display = 'block';
-        
-        // Ocultar pantalla de carga ya que tenemos datos en caché
-        hideLoadingScreen();
-      } else {
-        statusDiv.className = 'error';
-        statusDiv.innerHTML = '<span style="color: var(--danger)">ERROR AL CARGAR DATOS</span>';
-        dataStats.textContent = error.message || 'Error desconocido';
-        resultsDiv.innerHTML = `<div class="error"><i class="fas fa-exclamation-circle"></i> No se pudo cargar la base de datos: ${error.message || 'Error desconocido'}</div>`;
-        
-        // Mostrar mensaje de error en la pantalla de carga pero no ocultarla
-        const loadingName = document.querySelector('#loadingScreen .name');
-        if (loadingName) {
-          loadingName.innerHTML = 'Error al cargar datos. <br>Comprueba tu conexión.';
-          loadingName.style.color = '#f72585';
-        }
-        
-        playErrorSound();
-      }
+        </div>
+      </div>
+    `;
+    
+    offlineBanner.style.display = 'block';
+
+    // Ocultar pantalla de carga ya que tenemos datos en caché
+    hideLoadingScreen();
+  } else {
+    statusDiv.className = 'error';
+    statusDiv.innerHTML = '<span style="color: var(--danger)">ERROR AL CARGAR DATOS</span>';
+    dataStats.textContent = error.message || 'Error desconocido';
+    
+    resultsDiv.innerHTML = `
+      <div class="error">
+        <i class="fas fa-exclamation-circle"></i> 
+        No se pudo cargar la base de datos: ${error.message || 'Error desconocido'}
+      </div>
+    `;
+    
+    // Mostrar mensaje de error en la pantalla de carga pero no ocultarla
+    const loadingName = document.querySelector('#loadingScreen .name');
+    if (loadingName) {
+      loadingName.innerHTML = 'Error al cargar datos. <br>Comprueba tu conexión.';
+      loadingName.style.color = '#f72585';
     }
+
+    playErrorSound();
+  }
+}
+
 
     // Función para ocultar la pantalla de carga
     function hideLoadingScreen() {
