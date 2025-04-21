@@ -2319,12 +2319,11 @@ statusDiv.innerHTML = `
     }
 
     function handleDataLoadSuccess(serverData) {
-  if (serverData?.success && serverData?.data) {
-    const database = serverData.data;
+  if (serverData && serverData.success && serverData.data) {
+    database = serverData.data;  // Aquí es importante usar la variable global 'database', no redeclararla
     dataLoaded = true;
-
     cacheData(database);
-
+    
     // Actualizar UI de estado
     statusDiv.className = 'ready';
     statusDiv.innerHTML = `
@@ -2333,7 +2332,7 @@ statusDiv.innerHTML = `
     dataStats.innerHTML = `
       <i class="fas fa-database"></i> ${database.length} registros | ${new Date().toLocaleTimeString()}
     `;
-
+    
     // Mostrar contenido principal
     resultsDiv.innerHTML = `
       <div class="result-item" style="text-align: center; color: var(--gray);">
@@ -2360,14 +2359,13 @@ statusDiv.innerHTML = `
         </div>
       </div>
     `;
-
+    
     hideLoadingScreen();
     playSuccessSound();
   } else {
     handleDataLoadError(new Error('Formato de datos incorrecto'));
   }
 }
-
 
 
     function handleDataLoadError(error) {
@@ -2409,20 +2407,14 @@ statusDiv.innerHTML = `
     `;
     
     offlineBanner.style.display = 'block';
-
+    
     // Ocultar pantalla de carga ya que tenemos datos en caché
     hideLoadingScreen();
   } else {
     statusDiv.className = 'error';
     statusDiv.innerHTML = '<span style="color: var(--danger)">ERROR AL CARGAR DATOS</span>';
     dataStats.textContent = error.message || 'Error desconocido';
-    
-    resultsDiv.innerHTML = `
-      <div class="error">
-        <i class="fas fa-exclamation-circle"></i> 
-        No se pudo cargar la base de datos: ${error.message || 'Error desconocido'}
-      </div>
-    `;
+    resultsDiv.innerHTML = `<div class="error"><i class="fas fa-exclamation-circle"></i> No se pudo cargar la base de datos: ${error.message || 'Error desconocido'}</div>`;
     
     // Mostrar mensaje de error en la pantalla de carga pero no ocultarla
     const loadingName = document.querySelector('#loadingScreen .name');
@@ -2430,11 +2422,10 @@ statusDiv.innerHTML = `
       loadingName.innerHTML = 'Error al cargar datos. <br>Comprueba tu conexión.';
       loadingName.style.color = '#f72585';
     }
-
+    
     playErrorSound();
   }
 }
-
 
     // Función para ocultar la pantalla de carga
     function hideLoadingScreen() {
@@ -2694,11 +2685,11 @@ statusDiv.innerHTML = `
 <!-- Reemplaza el código existente en la sección que verifica el estado de confirmación -->
 
 // Verifica el estado de confirmación
-if (siesa.confirmacion && siesa.confirmacion.trim() === "ENTREGADO") {
+if (siesa.confirmacion && siesa.confirmacion.trim() === "ENTREGADO") { 
   // Si ya está entregado, mostrar mensaje sin botón
   html += `
     <div class="action-buttons">
-      <div style="background-color: #28a745; color: white; text-align: center; padding: 12px; border-radius: 8px; font-weight: 500;">
+      <div style="background-color: #28a745; color: white; text-align: center; padding: 12px 20px; border-radius: 8px; font-weight: 500; height: 48px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
         <i class="fas fa-check-circle"></i> ENTREGA CONFIRMADA
       </div>
     </div>
@@ -2708,12 +2699,12 @@ if (siesa.confirmacion && siesa.confirmacion.trim() === "ENTREGADO") {
   const tieneFactura = siesa.factura && siesa.factura.trim() !== "";
   
   if (tieneFactura) {
-    // Si tiene factura, mostrar botón para asentar - NUEVO CÓDIGO AQUÍ
+    // Si tiene factura, mostrar botón para asentar
     html += `
       <div class="action-buttons">
         <button class="delivery-btn" 
           data-factura="${siesa.factura}"
-          style="background-color: #f8961e;"
+          style="background-color: #f8961e; height: 48px; padding: 12px 20px; border-radius: 8px; font-weight: 500; display: inline-flex; align-items: center; justify-content: center; gap: 8px;"
           onclick="asentarFactura(
             '${data.documento}', 
             '${siesa.lote || data.lote}', 
@@ -2731,7 +2722,7 @@ if (siesa.confirmacion && siesa.confirmacion.trim() === "ENTREGADO") {
     // Si no tiene factura, mostrar solo mensaje (no botón)
     html += `
       <div class="action-buttons">
-        <div style="background-color: #6c757d; color: white; text-align: center; padding: 12px; border-radius: 8px; font-weight: 500;">
+        <div style="background-color: #6c757d; color: white; text-align: center; padding: 12px 20px; border-radius: 8px; font-weight: 500; height: 48px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
           <i class="fas fa-clock"></i> PENDIENTE FACTURA
         </div>
       </div>
@@ -2743,6 +2734,7 @@ if (siesa.confirmacion && siesa.confirmacion.trim() === "ENTREGADO") {
     <div class="action-buttons">
       <button class="delivery-btn" 
         data-factura="${siesa.factura}"
+        style="height: 48px; padding: 12px 20px; border-radius: 8px; font-weight: 500; display: inline-flex; align-items: center; justify-content: center; gap: 8px;"
         onclick="procesarEntrega(
           '${data.documento}', 
           '${siesa.lote || data.lote}', 
@@ -2757,6 +2749,7 @@ if (siesa.confirmacion && siesa.confirmacion.trim() === "ENTREGADO") {
     </div>
   `;
 }
+
             
             html += `</div>`;
           });
