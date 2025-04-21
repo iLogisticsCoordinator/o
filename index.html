@@ -1032,400 +1032,116 @@ footer a:hover {
   </div>
 
 <script>
- // Implementación mejorada del efecto "Pull to Refresh"
-class PullToRefresh {
-  constructor(options) {
-    this.container = options.container || document.body;
-    this.onRefresh = options.onRefresh || (() => {});
-    this.distThreshold = options.threshold || 60; // Distancia mínima para activar
-    this.maxPullDist = options.maxDist || 80; // Distancia máxima de arrastre
-    this.loadingText = options.loadingText || 'Actualizando...';
-    this.pullText = options.pullText || 'Desliza para actualizar';
-    this.releaseText = options.releaseText || 'Suelta para actualizar';
-    this.headerHeight = options.headerHeight || 50; // Altura aproximada del banner fijo
-    
-    this.distResisted = 0; // Distancia resistida actual
-    this.state = 'pending'; // pending, pulling, releasing, refreshing
-    this.pullStartY = null;
-    this.pullMoveY = null;
-    this.dist = 0;
-    this.lastY = 0;
-    this.rafID = null;
-    
-    this.setupDOM();
-    this.setupEvents();
-  }
-  
-  setupDOM() {
-    // Crear el indicador de refresh
-    this.refreshIndicator = document.createElement('div');
-    this.refreshIndicator.className = 'pull-refresh-indicator';
-    this.refreshIndicator.innerHTML = `
-      <div class="pull-refresh-spinner">
-        <div></div><div></div><div></div>
-      </div>
-      <div class="pull-refresh-text">${this.pullText}</div>
-    `;
-    
-    // Agregar estilos necesarios
-    const style = document.createElement('style');
-    style.textContent = `
-      .pull-refresh-indicator {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        padding: 10px;
-        transform: translateY(-100%);
-        z-index: 10;
-        visibility: hidden;
-        pointer-events: none;
-        transition: transform 0.3s, opacity 0.3s;
-        background: rgba(255, 255, 255, 0.8);
-        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-      }
-      
-      .pull-refresh-spinner {
-        display: none;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 5px;
-      }
-      
-      .pull-refresh-spinner div {
-        width: 8px;
-        height: 8px;
-        background-color: #4361ee;
-        border-radius: 50%;
-        margin: 0 3px;
-        animation: pullRefreshSpinner 1.4s infinite ease-in-out both;
-      }
-      
-      .pull-refresh-spinner div:nth-child(1) {
-        animation-delay: -0.32s;
-      }
-      
-      .pull-refresh-spinner div:nth-child(2) {
-        animation-delay: -0.16s;
-      }
-      
-      @keyframes pullRefreshSpinner {
-        0%, 80%, 100% {
-          transform: scale(0);
-        }
-        40% {
-          transform: scale(1);
-        }
-      }
-      
-      .pull-refresh-text {
-        color: #555;
-        font-size: 13px;
-        text-align: center;
-        font-weight: 500;
-      }
-      
-      .pull-refresh-active .pull-refresh-indicator {
-        visibility: visible;
-      }
-      
-      .pull-refresh-refreshing .pull-refresh-spinner {
-        display: flex;
-      }
-    `;
-    
-    document.head.appendChild(style);
-    this.container.prepend(this.refreshIndicator);
-  }
-  
-  setupEvents() {
-    // Touch events
-    this.container.addEventListener('touchstart', this.onTouchStart.bind(this), { passive: true });
-    this.container.addEventListener('touchmove', this.onTouchMove.bind(this), { passive: false });
-    this.container.addEventListener('touchend', this.onTouchEnd.bind(this), { passive: true });
-    
-    // Mouse events (para pruebas en desktop)
-    this.container.addEventListener('mousedown', this.onMouseDown.bind(this));
-    this.container.addEventListener('mousemove', this.onMouseMove.bind(this));
-    this.container.addEventListener('mouseup', this.onMouseUp.bind(this));
-    
-    // Para detener la animación si se pierde el foco o en scroll
-    window.addEventListener('blur', this.reset.bind(this));
-    document.addEventListener('scroll', () => {
-      if (this.state !== 'refreshing') {
-        this.reset();
-      }
-    });
-  }
-  
-  // MODIFICACIÓN CLAVE: Verificar si estamos en la parte superior antes de activar
-  isAtTop() {
-    // Solo activar pull-to-refresh si estamos en la parte superior de la página
-    // Con un pequeño margen para facilitar la activación
-    return window.scrollY <= 10;
-  }
-  
-  onTouchStart(e) {
-    // Solo activar si el scroll está en la parte superior y no estamos refrescando
-    if (!this.isAtTop() || this.state === 'refreshing') return;
-    
-    this.pullStartY = e.touches[0].screenY;
-    this.state = 'pending';
-  }
-  
-  onTouchMove(e) {
-    if (!this.pullStartY || this.state === 'refreshing') return;
-    
-    // Verificar nuevamente si estamos en la parte superior
-    if (this.isAtTop()) {
-      this.pullMoveY = e.touches[0].screenY;
-      this.dist = this.pullMoveY - this.pullStartY;
-      
-      if (this.dist > 0) {
-        e.preventDefault(); // Prevenir scroll hacia abajo
-        
-        this.state = 'pulling';
-        this.container.classList.add('pull-refresh-active');
-        
-        // Aplicar resistencia (reduce la distancia a medida que el usuario arrastra)
-        this.distResisted = Math.min(this.maxPullDist, this.dist * 0.5);
-        
-        // Actualizar el texto y la posición del indicador
-        this.refreshIndicator.style.transform = `translateY(${this.distResisted - 100}%)`;
-        
-        if (this.distResisted >= this.distThreshold) {
-          this.refreshIndicator.querySelector('.pull-refresh-text').textContent = this.releaseText;
-        } else {
-          this.refreshIndicator.querySelector('.pull-refresh-text').textContent = this.pullText;
-        }
-        
-        this.update();
-      }
-    }
-  }
-  
-  onTouchEnd() {
-    if (this.state !== 'pulling') return;
-    
-    this.container.classList.remove('pull-refresh-active');
-    
-    if (this.distResisted >= this.distThreshold) {
-      this.doRefresh();
-    } else {
-      this.reset();
-    }
-  }
-  
-  // Soporte para mouse (pruebas en escritorio)
-  onMouseDown(e) {
-    // Solo activar si el scroll está en la parte superior
-    if (!this.isAtTop() || this.state === 'refreshing') return;
-    
-    this.pullStartY = e.screenY;
-    this.state = 'pending';
-    this.isDragging = true;
-  }
-  
-  onMouseMove(e) {
-    if (!this.isDragging || !this.pullStartY || this.state === 'refreshing') return;
-    
-    if (this.isAtTop()) {
-      this.pullMoveY = e.screenY;
-      this.dist = this.pullMoveY - this.pullStartY;
-      
-      if (this.dist > 0) {
-        e.preventDefault(); // Prevenir scroll hacia abajo
-        
-        this.state = 'pulling';
-        this.container.classList.add('pull-refresh-active');
-        
-        // Aplicar resistencia
-        this.distResisted = Math.min(this.maxPullDist, this.dist * 0.5);
-        
-        // Actualizar el texto y la posición del indicador
-        this.refreshIndicator.style.transform = `translateY(${this.distResisted - 100}%)`;
-        
-        if (this.distResisted >= this.distThreshold) {
-          this.refreshIndicator.querySelector('.pull-refresh-text').textContent = this.releaseText;
-        } else {
-          this.refreshIndicator.querySelector('.pull-refresh-text').textContent = this.pullText;
-        }
-        
-        this.update();
-      }
-    }
-  }
-  
-  onMouseUp() {
-    this.isDragging = false;
-    if (this.state !== 'pulling') return;
-    
-    this.container.classList.remove('pull-refresh-active');
-    
-    if (this.distResisted >= this.distThreshold) {
-      this.doRefresh();
-    } else {
-      this.reset();
-    }
-  }
-  
-  doRefresh() {
-    this.state = 'refreshing';
-    this.container.classList.add('pull-refresh-refreshing');
-    
-    // Mostrar el spinner y actualizar texto
-    this.refreshIndicator.querySelector('.pull-refresh-spinner').style.display = 'flex';
-    this.refreshIndicator.querySelector('.pull-refresh-text').textContent = this.loadingText;
-    
-    // Posicionar el indicador visible
-    this.refreshIndicator.style.transform = 'translateY(0)';
-    
-    // Llamar al callback de actualización
-    this.onRefresh()
-      .then(() => {
-        // Esperar un momento para mostrar el indicador completo
-        setTimeout(() => this.reset(), 500);
-      })
-      .catch(() => {
-        // En caso de error, también restablecer
-        setTimeout(() => this.reset(), 500);
-      });
-  }
-  
-  reset() {
-    this.state = 'pending';
-    this.pullStartY = null;
-    this.pullMoveY = null;
-    this.isDragging = false;
-    this.container.classList.remove('pull-refresh-active', 'pull-refresh-refreshing');
-    this.refreshIndicator.style.transform = 'translateY(-100%)';
-    
-    setTimeout(() => {
-      // Restablecer texto después de la animación
-      this.refreshIndicator.querySelector('.pull-refresh-text').textContent = this.pullText;
-      this.refreshIndicator.querySelector('.pull-refresh-spinner').style.display = 'none';
-    }, 300);
-    
-    if (this.rafID) {
-      window.cancelAnimationFrame(this.rafID);
-      this.rafID = null;
-    }
-  }
-  
-  update() {
-    if (this.rafID) window.cancelAnimationFrame(this.rafID);
-    this.rafID = window.requestAnimationFrame(this.update.bind(this));
-  }
-}
+ 
 
-// Código para inicializar el Pull-to-Refresh y conectarlo con la actualización de datos
-function setupPullToRefresh() {
-  // Inicializar pull-to-refresh cuando el documento esté completamente cargado
-  const pullToRefresh = new PullToRefresh({
-    container: document.getElementById('scanner'),
-    threshold: 60, // Distancia mínima para activar el refresh
-    maxDist: 90, // Distancia máxima de arrastre
-    pullText: 'Desliza hacia abajo para actualizar',
-    releaseText: 'Suelta para actualizar los datos',
-    loadingText: 'Cargando datos del servidor...',
-    headerHeight: 120, // Altura aproximada del banner fijo + barra de búsqueda
-    onRefresh: () => {
-      // Devolver una Promise para manejar la finalización
-      return new Promise((resolve, reject) => {
-        // Actualizar el estado
-        statusDiv.className = 'loading';
-        statusDiv.innerHTML = '<i class="fas fa-sync fa-spin"></i> ACTUALIZANDO DATOS...';
-        dataStats.innerHTML = '<i class="fas fa-server"></i> Conectando con el servidor...';
-        
-        // Llamar a la función de carga de datos
-        fetch(`${API_URL_GET}?nocache=${new Date().getTime()}`)
-          .then(response => {
-            if (!response.ok) {
-              throw new Error(`Error HTTP: ${response.status}`);
-            }
-            return response.json();
-          })
-          .then(serverData => {
-            if (serverData && serverData.success && serverData.data) {
-              database = serverData.data;
-              dataLoaded = true;
-              cacheData(database);
-
-              statusDiv.className = 'ready';
-              statusDiv.innerHTML = '<i class="fas fa-check-circle"></i> DATOS ACTUALIZADOS';
-              dataStats.innerHTML = `<i class="fas fa-database"></i> ${database.length} registros | ${new Date().toLocaleTimeString()}`;
-              
-              // Si hay un código QR procesado actualmente, volver a procesar para mostrar datos actualizados
-              if (currentQRParts) {
-                processQRCodeParts(currentQRParts);
-              } else {
-                resultsDiv.innerHTML = `
-                  <div class="result-item" style="text-align: center; color: var(--gray);">
-                    <img src="https://raw.githubusercontent.com/iLogisticsCoordinator/o/main/icons/icon-512.png" alt="PandaDash Logo" class="logo" style="width: 4rem; height: 4rem; margin-bottom: 0.5rem;">
-                    <h1>PandaDash</h1>
-                    <div class="name">Andrés Mendoza</div>
-                  </div>
-                `;
-              }
-              
-              // Reproducir sonido de éxito
-              playSuccessSound();
-              
-              // Mostrar notificación de actualización exitosa
-              mostrarNotificacion(
-                'success',
-                'Datos actualizados',
-                `Se han cargado ${database.length} registros del servidor.`
-              );
-              
-              resolve();
-            } else {
-              throw new Error('Formato de datos incorrecto');
-            }
-          })
-          .catch(error => {
-            console.error("Error al actualizar datos:", error);
-            
-            statusDiv.className = 'error';
-            statusDiv.innerHTML = '<span style="color: var(--danger)">ERROR AL ACTUALIZAR</span>';
-            
-            // Mostrar notificación de error
-            mostrarNotificacion(
-              'error',
-              'Error de actualización',
-              error.message || 'No se pudieron actualizar los datos'
-            );
-            
-            playErrorSound();
-            reject(error);
-          });
-      });
+// Pull-to-Refresh extremadamente simplificado, con dos dedos, sin banners ni notificaciones
+document.addEventListener('DOMContentLoaded', () => {
+  // Referencias a elementos clave
+  const statusDiv = document.getElementById('status');
+  const dataStats = document.getElementById('data-stats');
+  const resultsDiv = document.getElementById('results');
+  
+  // Variables de control
+  let startY = 0;
+  let isPulling = false;
+  
+  // Manejador para touchstart (inicio del gesto)
+  document.addEventListener('touchstart', function(e) {
+    // Solo activar si hay dos o más dedos tocando la pantalla
+    if (e.touches.length >= 2 && window.scrollY < 10) {
+      startY = e.touches[0].clientY;
+      isPulling = true;
+      e.preventDefault(); // Prevenir comportamiento por defecto
     }
+  }, { passive: false });
+  
+  // Manejador para touchmove (movimiento durante el gesto)
+  document.addEventListener('touchmove', function(e) {
+    // Verificar si estamos en un gesto válido y hay dos dedos
+    if (!isPulling || e.touches.length < 2) return;
+    
+    // Calcular la distancia desplazada
+    const currentY = e.touches[0].clientY;
+    const pullDistance = currentY - startY;
+    
+    // Si hay un movimiento hacia abajo de al menos 20px, activar actualización
+    if (pullDistance > 20) {
+      // Desactivar el gesto para evitar múltiples actualizaciones
+      isPulling = false;
+      
+      // Iniciar la actualización inmediatamente
+      refreshData();
+      
+      // Prevenir comportamiento predeterminado
+      e.preventDefault();
+    }
+  }, { passive: false });
+  
+  // Manejador para touchend (fin del gesto)
+  document.addEventListener('touchend', function() {
+    isPulling = false;
   });
   
-  console.log("Pull-to-refresh inicializado");
-  
-  // Opcional: Mostrar un consejo al usuario sobre esta función
-  setTimeout(() => {
-    mostrarNotificacion(
-      'info',
-      'Consejo',
-      'Desliza hacia abajo desde la parte superior para actualizar los datos',
-      8000
-    );
-  }, 5000);
-}
-
-// Inicializar la función de pull-to-refresh cuando el documento esté listo
-document.addEventListener('DOMContentLoaded', function() {
-  // Llamar después de un ligero retraso para asegurar que otros elementos estén inicializados
-  setTimeout(setupPullToRefresh, 1000);
+  // Función para refrescar los datos
+  function refreshData() {
+    // Actualizar el estado para mostrar que estamos cargando
+    statusDiv.className = 'loading';
+    statusDiv.innerHTML = '<i class="fas fa-sync fa-spin"></i> ACTUALIZANDO...';
+    dataStats.innerHTML = '<i class="fas fa-server"></i> Conectando...';
+    
+    // Llamar a la API para obtener datos frescos
+    fetch(`${API_URL_GET}?nocache=${new Date().getTime()}`)
+      .then(response => {
+        if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+        return response.json();
+      })
+      .then(serverData => {
+        if (serverData && serverData.success && serverData.data) {
+          // Actualizar datos globales
+          database = serverData.data;
+          dataLoaded = true;
+          cacheData(database);
+          
+          // Actualizar interfaz
+          statusDiv.className = 'ready';
+          statusDiv.innerHTML = '<i class="fas fa-check-circle"></i> DATOS ACTUALIZADOS';
+          dataStats.innerHTML = `<i class="fas fa-database"></i> ${database.length} registros | ${new Date().toLocaleTimeString()}`;
+          
+          // Re-procesar datos actuales si hay un QR activo
+          if (currentQRParts) {
+            processQRCodeParts(currentQRParts);
+          } else {
+            resultsDiv.innerHTML = `
+              <div class="result-item" style="text-align: center; color: var(--gray);">
+                <img src="https://raw.githubusercontent.com/iLogisticsCoordinator/o/main/icons/icon-512.png" alt="PandaDash Logo" class="logo" style="width: 4rem; height: 4rem; margin-bottom: 0.5rem;">
+                <h1>PandaDash</h1>
+                <div class="name">Andrés Mendoza</div>
+              </div>
+            `;
+          }
+          
+          // Efecto sonoro de éxito
+          if (typeof playSuccessSound === 'function') {
+            playSuccessSound();
+          }
+        } else {
+          throw new Error('Datos incorrectos');
+        }
+      })
+      .catch(error => {
+        console.error("Error:", error);
+        statusDiv.className = 'error';
+        statusDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> ERROR';
+        
+        // Efecto sonoro de error
+        if (typeof playErrorSound === 'function') {
+          playErrorSound();
+        }
+      });
+  }
 });
+
+
 </script>
 
 <script>
@@ -1491,11 +1207,11 @@ function asentarFactura(documento, lote, referencia, cantidad, factura, nit, btn
       reproducirSonidoExito();
       
       // Mostrar notificación temporal
-      mostrarNotificacion(
+      /*mostrarNotificacion(
         'success',
         `Factura "${factura}" asentada correctamente.`,
         data.message
-      );
+      );*/
     } else {
       // Operación fallida pero respuesta recibida
       if (btnElement) {
