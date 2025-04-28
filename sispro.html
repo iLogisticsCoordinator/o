@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Procesador de Archivos de Traslado</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
@@ -788,7 +788,7 @@
             });
             
             // Configurar eventos para actualización en tiempo real
-            document.querySelectorAll('#complementarForm input, #complementarForm select').forEach(input => {
+            document.querySelectorAll('#linea, #referencia, #tipo, #pvp, #prenda, #genero, .anexo-documento, .anexo-tipo, .anexo-cantidad').forEach(input => {
                 input.addEventListener('input', updateJsonPreview);
                 input.addEventListener('change', updateJsonPreview);
             });
