@@ -132,9 +132,15 @@
             color: var(--text-color);
             border: 1px solid var(--border-color);
         }
-        
+
         .btn-toggle:hover {
             background-color: var(--light-bg);
+        }
+
+        .btn-toggle[aria-expanded="true"] {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
         }
         
         .json-preview {
@@ -317,7 +323,7 @@
         }
         
         .autocomplete-suggestions {
-            position: absolute;
+            //position: absolute;
             z-index: 1000;
             width: 100%;
             max-height: 200px;
@@ -371,15 +377,6 @@
             padding: 8px 20px !important;
         }
         
-        /* Efecto de hover para las filas de la tabla */
-        .table-hover tbody tr {
-            transition: background-color 0.2s;
-        }
-        
-        .table-hover tbody tr:hover {
-            background-color: rgba(52, 152, 219, 0.05);
-        }
-        
         /* Estilo para los iconos */
         .bi {
             font-size: 1.1em;
@@ -405,6 +402,10 @@
                 width: 100%;
             }
         }
+
+
+
+        
     </style>
 </head>
 <body>
@@ -457,12 +458,50 @@
                     <button class="btn btn-toggle" data-bs-toggle="collapse" href="#jsonPreviewSection">
                         <i class="bi bi-code-square"></i> Vista previa JSON
                     </button>
+                    <button class="btn btn-toggle" data-bs-toggle="collapse" href="#anexosSection">
+                        <i class="bi bi-paperclip"></i> Adjuntar Anexos
+                    </button>
                 </div>
 
                 <!-- Vista previa JSON (plegable) -->
-                <div id="jsonPreviewSection" class="collapse show mb-4">
+                <div id="jsonPreviewSection" class="collapse mb-4">
                     <div class="json-preview" id="complementarOutput"></div>
                 </div>
+
+                <!-- Sección de anexos mejorada (plegable) -->
+                <!-- <div id="anexosSection" class="collapse show mb-4"> visible -->
+                <div id="anexosSection" class="collapse mb-4">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-paperclip"></i> ANEXOS</span>
+                            <button id="addAnexoBtn" class="btn btn-sm btn-success">
+                                <i class="bi bi-plus-circle"></i> Agregar Anexo
+                            </button>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-hover compact-table mb-0" id="anexosTable">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th style="width: 45%;">DOCUMENTO</th>
+                                            <th style="width: 30%;">TIPO DE ANEXO</th>
+                                            <th style="width: 15%;">CANTIDAD</th>
+                                            <th style="width: 10%;" class="text-center">ACCIÓN</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="anexosContainer">
+                                        <!-- Anexos serán insertados aquí dinámicamente -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="card-footer bg-light">
+                                <small class="text-muted">Total de anexos: <span id="totalAnexos">0</span></small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
 
                 <!-- Formulario en dos columnas -->
                 <div class="row">
@@ -554,34 +593,7 @@
                         </div>
                     </div>
                 </div>
-                
-                <!-- Sección de anexos en formato tabla -->
-                <div class="form-section">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <div class="form-section-title">
-                            <i class="bi bi-paperclip"></i> ANEXOS
-                        </div>
-                        <button id="addAnexoBtn" class="btn btn-sm btn-success">
-                            <i class="bi bi-plus-circle"></i> Agregar Anexo
-                        </button>
-                    </div>
-                    
-                    <div class="table-responsive">
-                        <table class="table table-bordered table-hover compact-table" id="anexosTable">
-                            <thead>
-                                <tr>
-                                    <th style="width: 45%;">DOCUMENTO</th>
-                                    <th style="width: 30%;">TIPO DE ANEXO</th>
-                                    <th style="width: 15%;">CANTIDAD</th>
-                                    <th style="width: 10%;" class="text-center">ACCIÓN</th>
-                                </tr>
-                            </thead>
-                            <tbody id="anexosContainer">
-                                <!-- Anexos serán insertados aquí dinámicamente -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+
             </div>
         </div>
     </div>
@@ -1484,6 +1496,7 @@
             }
             
             // Función para enviar los datos al servidor
+            // Función para enviar los datos al servidor
             function enviarDatosAlServidor() {
                 // Verificar que exista el JSON complementado
                 if (!transformedDataWithExtras) {
@@ -1496,62 +1509,48 @@
                     return;
                 }
                 
-                // Mostrar confirmación antes de enviar
+                // Mostrar spinner directamente sin confirmación
                 Toast.fire({
-                    title: '¿Guardar datos?',
-                    text: '¿Está seguro que desea guardar esta información en Google Sheets?',
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonText: 'Sí, guardar',
-                    cancelButtonText: 'Cancelar',
-                    reverseButtons: true
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        // Primero asegurarse de que el JSON está actualizado
-                        updateJsonPreview();
-                        
-                        // Mostrar spinner
-                        Toast.fire({
-                            title: 'Guardando datos...',
-                            html: '<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div><p class="mt-3">Por favor espere...</p>',
-                            showConfirmButton: false,
-                            allowOutsideClick: false,
-                            didOpen: () => {
-                                Swal.showLoading();
-                            }
-                        });
-                        
-                        // Realizar la petición fetch para enviar los datos
-                        fetch(SCRIPT_URL, {
-                            method: 'POST',
-                            mode: 'no-cors',
-                            cache: 'no-cache',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            redirect: 'follow',
-                            body: JSON.stringify(transformedDataWithExtras)
-                        })
-                        .then(() => {
-                            Toast.fire({
-                                icon: 'success',
-                                title: '¡Éxito!',
-                                text: 'Los datos se han guardado correctamente en Google Sheets',
-                                confirmButtonText: 'Entendido'
-                            });
-                        })
-                        .catch(error => {
-                            Toast.fire({
-                                icon: 'error',
-                                title: 'Error',
-                                text: 'Ocurrió un error al enviar los datos: ' + error.message,
-                                confirmButtonText: 'Entendido'
-                            });
-                            console.error('Error:', error);
-                        });
+                    title: 'Guardando datos...',
+                    //html: '<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div><p class="mt-3">Por favor espere...</p>',
+                    showConfirmButton: false,
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
                     }
                 });
+                
+                // Realizar la petición fetch para enviar los datos
+                fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    cache: 'no-cache',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    redirect: 'follow',
+                    body: JSON.stringify(transformedDataWithExtras)
+                })
+                .then(() => {
+                    Toast.fire({
+                        icon: 'success',
+                        title: '¡Éxito!',
+                        text: 'Los datos se han guardado correctamente en Google Sheets',
+                        confirmButtonText: 'Entendido'
+                    });
+                })
+                .catch(error => {
+                    Toast.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Ocurrió un error al enviar los datos: ' + error.message,
+                        confirmButtonText: 'Entendido'
+                    });
+                    console.error('Error:', error);
+                });
             }
+
+            
         });
     </script>
 </body>
