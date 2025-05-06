@@ -1529,8 +1529,8 @@ function getUniqueSizesAndColors(jsonData) {
     };
 }
             
-            // Función para agregar un nuevo anexo
-           function addAnexo() {
+// Función para agregar un nuevo anexo
+function addAnexo() {
     const id = nextAnexoId++;
     const refProvValue = document.getElementById('refprov').value || '';
     
@@ -1548,96 +1548,46 @@ function getUniqueSizesAndColors(jsonData) {
     // Agregar al contenedor
     anexosContainer.appendChild(anexoRow);
 
-    // Obtener datos actuales del JSON
-    const jsonData = transformedDataWithExtras || createTransformedJSON(parsedData);
+    // Obtener tallas y colores de los datos originales (parsedData)
+    // Esto asegura que siempre tengamos los datos completos independientemente de transformedDataWithExtras
+    const tallasUnicas = [];
+    const coloresUnicos = [];
     
-    // Llenar select de tallas con valores únicos del JSON
+    if (parsedData && parsedData.productos) {
+        const tallasSet = new Set();
+        const coloresSet = new Set();
+        
+        parsedData.productos.forEach(producto => {
+            if (producto.talla) tallasSet.add(producto.talla);
+            if (producto.color) {
+                // Extraer solo la parte del color (sin el código numérico si existe)
+                const color = producto.color.replace(/^\d+\s*/, '');
+                coloresSet.add(color);
+            }
+        });
+        
+        tallasUnicas.push(...tallasSet);
+        coloresUnicos.push(...coloresSet);
+    }
+    
+    // Llenar select de tallas
     const tallaSelect = anexoRow.querySelector('.anexo-talla');
-    const tallasUnicas = [...new Set(jsonData.HR.map(item => item.talla))].filter(Boolean).sort();
-    tallasUnicas.forEach(talla => {
+    tallasUnicas.sort().forEach(talla => {
         const option = document.createElement('option');
         option.value = talla;
         option.textContent = talla;
         tallaSelect.appendChild(option);
     });
     
-    // Llenar select de colores con valores únicos del JSON
+    // Llenar select de colores
     const colorSelect = anexoRow.querySelector('.anexo-color');
-    const coloresUnicos = [...new Set(jsonData.HR.map(item => item.color))].filter(Boolean).sort();
-    coloresUnicos.forEach(color => {
+    coloresUnicos.sort().forEach(color => {
         const option = document.createElement('option');
         option.value = color;
         option.textContent = color;
         colorSelect.appendChild(option);
     });
 
-    // Configurar el estado inicial del checkbox de descontar
-    const descontarCheckbox = anexoRow.querySelector('.anexo-descontar');
-    descontarCheckbox.checked = false;  // Por defecto desmarcado
-    descontarCheckbox.disabled = true;  // Por defecto deshabilitado
-
-    // Configurar todos los eventos del anexo
-    const setupAnexoEvents = (row) => {
-        // Actualizar disponibilidad al cambiar talla/color
-        const updateDisponibilidad = () => {
-            const talla = row.querySelector('.anexo-talla').value;
-            const color = row.querySelector('.anexo-color').value;
-            const cantidadInput = row.querySelector('.anexo-cantidad');
-            
-            if (talla && color) {
-                const item = jsonData.HR.find(i => i.talla === talla && i.color === color);
-                if (item) {
-                    cantidadInput.max = item.cantidad;
-                    cantidadInput.title = `Disponible: ${item.cantidad} unidades`;
-                    
-                    // Ajustar cantidad si excede el disponible
-                    if (parseInt(cantidadInput.value) > item.cantidad) {
-                        cantidadInput.value = item.cantidad;
-                    }
-                }
-            }
-        };
-        
-        // Eventos para talla y color
-        row.querySelector('.anexo-talla').addEventListener('change', function() {
-            updateDisponibilidad();
-            updateJsonPreview();
-        });
-        
-        row.querySelector('.anexo-color').addEventListener('change', function() {
-            updateDisponibilidad();
-            updateJsonPreview();
-        });
-        
-        // Evento para tipo de anexo
-        row.querySelector('.anexo-tipo').addEventListener('change', function() {
-            const descontar = row.querySelector('.anexo-descontar');
-            
-            // Solo COBRO puede tener descuento
-            if (this.value === 'COBRO') {
-                descontar.checked = true;
-                descontar.disabled = false; // Habilitar para permitir cambiar (si es necesario)
-            } else {
-                // Para todos los demás tipos (PROMO, MUESTRA, PENDIENTES, SIN CONFECCIONAR)
-                descontar.checked = false;
-                descontar.disabled = true; // Deshabilitar el checkbox
-            }
-            
-            updateJsonPreview();
-        });
-        
-        // Eventos para cantidad y descontar
-        row.querySelector('.anexo-cantidad').addEventListener('change', updateJsonPreview);
-        row.querySelector('.anexo-descontar').addEventListener('change', updateJsonPreview);
-        
-        // Evento para eliminar anexo
-        row.querySelector('.btn-remove').addEventListener('click', function() {
-            row.remove();
-            updateTotalAnexos();
-            updateJsonPreview();
-        });
-    };
-    
     // Configurar eventos para esta fila
     setupAnexoEvents(anexoRow);
     
@@ -1645,7 +1595,6 @@ function getUniqueSizesAndColors(jsonData) {
     updateTotalAnexos();
     updateJsonPreview();
     
-    // Retornar la fila creada por si se necesita referencia
     return anexoRow;
 }
 
@@ -1685,9 +1634,9 @@ function setupAnexoEvents(anexoRow) {
             documentoInput.readOnly = false;
             documentoInput.value = '';
         } 
-        // Si es COBRO, activar descuento automáticamente
+        // Si es COBRO, NO activar descuento automáticamente
         else if (this.value === 'COBRO') {
-            descontarCheckbox.checked = true;
+            // Se eliminó la línea: descontarCheckbox.checked = true;
             documentoInput.readOnly = true;
             documentoInput.value = document.getElementById('refprov').value || '';
         }
@@ -1805,6 +1754,17 @@ function resetApplicationState() {
     // Ocultar resultados y mostrar sección de carga
     resultContainer.style.display = 'none';
     collapseUpload.show();
+    
+    // Colapsar las secciones de JSON y Anexos
+    const jsonPreviewSection = bootstrap.Collapse.getInstance(document.getElementById('jsonPreviewSection'));
+    const anexosSection = bootstrap.Collapse.getInstance(document.getElementById('anexosSection'));
+    
+    if (jsonPreviewSection) {
+        jsonPreviewSection.hide();
+    }
+    if (anexosSection) {
+        anexosSection.hide();
+    }
     
     // Limpiar todos los campos del formulario
     document.getElementById('linea').value = '';
