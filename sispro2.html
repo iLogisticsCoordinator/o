@@ -483,7 +483,9 @@ body {
     border-right: none;
     border-radius: 6px 0 0 6px;
     font-size: 0.875rem;
-    min-width: 60px;
+    max-width: 25px;
+    align-items: center;
+    display: flex;
 }
 
 #bolsas {
@@ -495,10 +497,7 @@ body {
     text-align: right;
 }
 
-/* Validación */
-#bolsas:invalid {
-    border-color: var(--danger-color);
-}
+
 
 #bolsas:invalid:focus {
     box-shadow: 0 0 0 0.25rem rgba(231, 76, 60, 0.25);
@@ -736,8 +735,8 @@ body {
         <div class="bolsas-wrapper">
             <label for="bolsas" class="bolsas-label required-field">BOLSAS</label>
             <div class="bolsas-container">
-                <span class="bolsas-prefix">Cantidad</span>
-                <input type="number" id="bolsas" class="form-control" min="1" value="1" required>
+                <span class="bolsas-prefix">#</span>
+                <input type="number" id="bolsas" class="form-control" min="1" value="0" required>
             </div>
         </div>
     </div>
