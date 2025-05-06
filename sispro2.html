@@ -1,0 +1,2083 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Procesador de Archivos de Traslado</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+
+:root {
+    --primary-color: #3498db;
+    --secondary-color: #2c3e50;
+    --success-color: #2ecc71;
+    --danger-color: #e74c3c;
+    --light-bg: #f8f9fa;
+    --border-color: #dee2e6;
+    --text-color: #333;
+    --text-light: #6c757d;
+}
+
+/* Estilos para la tabla de anexos mejorada */
+#anexosTable th {
+    white-space: nowrap;
+}
+
+#anexosTable .form-switch {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+}
+
+.form-switch {
+    padding-left: 0em;
+}
+
+#anexosTable .form-check-input {
+    margin: 0;
+    cursor: pointer;
+}
+
+/* Estilos para selects pequeños */
+.form-select-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    border-radius: 0.2rem;
+}
+
+/* Estilos para inputs pequeños */
+.form-control-sm {
+    min-height: calc(1.5em + 0.5rem + 2px);
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    border-radius: 0.2rem;
+}
+
+.table-hover>tbody>tr:hover>* {
+    --bs-table-color-state: var(--bs-table-hover-color);
+    --bs-table-bg-state: #fff;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: var(--text-color);
+    line-height: 1.6;
+}
+
+.main-container {
+    max-width: auto;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.card {
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    margin-bottom: 25px;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+.card-header {
+    background-color: var(--secondary-color);
+    color: white;
+    padding: 15px 20px;
+    font-weight: 600;
+    border-bottom: none;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.upload-container {
+    border: 2px dashed var(--border-color);
+    border-radius: 8px;
+    padding: 30px 20px;
+    text-align: center;
+    transition: all 0.3s ease;
+    background-color: white;
+    margin-bottom: 20px;
+}
+
+.upload-container:hover {
+    border-color: var(--primary-color);
+    background-color: rgba(52, 152, 219, 0.05);
+}
+
+.btn {
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-primary:hover {
+    background-color: #2980b9;
+    border-color: #2980b9;
+}
+
+.btn-success {
+    background-color: var(--success-color);
+    border-color: var(--success-color);
+}
+
+.btn-success:hover {
+    background-color: #27ae60;
+    border-color: #27ae60;
+}
+
+.btn-outline-secondary {
+    border-color: var(--border-color);
+}
+
+.btn-outline-secondary:hover {
+    background-color: var(--light-bg);
+}
+
+.btn-outline-danger {
+    color: var(--danger-color);
+}
+
+.btn-outline-danger:hover {
+    background-color: var(--danger-color);
+    color: white;
+}
+
+.btn-sm {
+    padding: 5px 10px;
+    font-size: 12px;
+}
+
+.btn-toggle {
+    background-color: white;
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+}
+
+.btn-toggle:hover {
+    background-color: var(--light-bg);
+}
+
+.btn-toggle[aria-expanded="true"] {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.json-preview {
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    padding: 15px;
+    max-height: 400px;
+    overflow-y: auto;
+    font-family: 'Fira Code', monospace, 'Courier New', Courier;
+    font-size: 13px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    border: 1px solid var(--border-color);
+    background-color: #fcfcfc;
+}
+
+.compact-table {
+    font-size: 13px;
+    margin-bottom: 0;
+}
+
+.compact-table th {
+    background-color: var(--light-bg);
+    font-weight: 600;
+    color: var(--secondary-color);
+}
+
+.compact-table th, 
+.compact-table td {
+    padding: 10px 12px;
+    vertical-align: middle;
+}
+
+.compact-table tr:last-child td {
+    border-bottom: none;
+}
+
+.actions-bar {
+    background-color: white;
+    padding: 12px 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    border: 1px solid var(--border-color);
+}
+
+.form-section {
+    margin-bottom: 25px;
+}
+
+.form-section-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--secondary-color);
+    margin-bottom: 15px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.form-group {
+    margin-bottom: 18px;
+}
+
+.form-group label {
+    font-weight: 500;
+    font-size: 14px;
+    margin-bottom: 5px;
+    color: var(--secondary-color);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.form-control, 
+.form-select {
+    padding: 9px 12px;
+    font-size: 14px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-control:focus, 
+.form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.25rem rgba(52, 152, 219, 0.25);
+}
+
+.is-invalid {
+    border-color: var(--danger-color) !important;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23e74c3c'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23e74c3c' stroke='none'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right calc(0.375em + 0.1875rem) center;
+    background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+}
+
+.is-invalid:focus {
+    box-shadow: 0 0 0 0.25rem rgba(231, 76, 60, 0.25);
+}
+
+.invalid-feedback {
+    font-size: 12px;
+    color: var(--danger-color);
+    margin-top: 4px;
+}
+
+.file-info {
+    font-size: 14px;
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: center;
+}
+
+.toggle-icon {
+    transition: transform 0.3s ease;
+}
+
+.collapsed .toggle-icon {
+    transform: rotate(-90deg);
+}
+
+.spinner-container {
+    display: none;
+    text-align: center;
+    padding: 20px;
+}
+
+.spinner-border {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-width: 0.25em;
+}
+
+.required-field::after {
+    content: "*";
+    color: var(--danger-color);
+    margin-left: 4px;
+}
+
+/* Estilos para el autocompletado */
+.autocomplete-wrapper {
+    position: relative;
+}
+
+.autocomplete-suggestions {
+    z-index: 1000;
+    width: 100%;
+    max-height: 200px;
+    overflow-y: auto;
+    background: white;
+    border: 1px solid var(--border-color);
+    border-top: none;
+    border-radius: 0 0 6px 6px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.autocomplete-item {
+    padding: 8px 12px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border-color);
+    transition: background-color 0.2s;
+}
+
+.autocomplete-item:hover {
+    background-color: var(--light-bg);
+}
+
+.autocomplete-item strong {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+/* Estilos para SweetAlert personalizados */
+.swal2-popup {
+    border-radius: 10px !important;
+    padding: 25px !important;
+}
+
+.swal2-title {
+    font-size: 20px !important;
+    color: var(--secondary-color) !important;
+}
+
+.swal2-content {
+    font-size: 15px !important;
+}
+
+.swal2-confirm {
+    background-color: var(--primary-color) !important;
+    border-radius: 6px !important;
+    padding: 8px 20px !important;
+}
+
+.swal2-cancel {
+    border-radius: 6px !important;
+    padding: 8px 20px !important;
+}
+
+/* Estilo para los iconos */
+.bi {
+    font-size: 1.1em;
+}
+
+
+
+/* Estilos perfeccionados para PVP y BOLSAS */
+.pvp-bolsas-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    align-items: flex-end;
+}
+
+.pvp-wrapper, .bolsas-wrapper {
+    flex: 1;
+    min-width: 160px;
+}
+
+.pvp-container, .bolsas-container {
+    display: flex;
+    align-items: center;
+    height: 38px; /* Altura fija para perfecta alineación */
+}
+
+.pvp-label, .bolsas-label {
+    display: block;
+    font-weight: 500;
+    font-size: 14px;
+    margin-bottom: 5px;
+    color: var(--secondary-color);
+}
+
+.required-field::after {
+    content: "*";
+    color: var(--danger-color);
+    margin-left: 4px;
+}
+
+/* Estilo PVP mejorado */
+.pvp-container {
+    display: flex;
+}
+
+.pvp-prefix, .pvp-input-wrapper, .pvp-suffix {
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.pvp-prefix {
+    padding: 0.375rem 0.5rem;
+    background-color: var(--light-bg);
+    border: 1px solid var(--border-color);
+    border-right: none;
+    border-radius: 6px 0 0 6px;
+    font-size: 0.875rem;
+}
+
+.pvp-input-wrapper {
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    width: 70px; /* Ancho fijo para el input */
+}
+
+#pvp {
+    border: none;
+    width: 100%;
+    height: 100%;
+    padding: 0.375rem 0.5rem;
+    text-align: right;
+}
+
+.pvp-suffix {
+    padding: 0.375rem 0.5rem;
+    background-color: var(--light-bg);
+    border: 1px solid var(--border-color);
+    border-left: none;
+    border-radius: 0 6px 6px 0;
+    font-size: 0.875rem;
+    white-space: nowrap;
+}
+
+/* Estilo BOLSAS mejorado */
+.bolsas-container {
+    display: flex;
+}
+
+.bolsas-prefix {
+    padding: 0.375rem 0.75rem;
+    background-color: var(--light-bg);
+    border: 1px solid var(--border-color);
+    border-right: none;
+    border-radius: 6px 0 0 6px;
+    font-size: 0.875rem;
+    min-width: 60px;
+}
+
+#bolsas {
+    border: 1px solid var(--border-color);
+    border-left: none;
+    border-radius: 0 6px 6px 0;
+    padding: 0.39rem 0.75rem;
+    width: 70px;
+    text-align: right;
+}
+
+/* Validación */
+#bolsas:invalid {
+    border-color: var(--danger-color);
+}
+
+#bolsas:invalid:focus {
+    box-shadow: 0 0 0 0.25rem rgba(231, 76, 60, 0.25);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .pvp-wrapper, .bolsas-wrapper {
+        min-width: 100%;
+    }
+    
+    .pvp-bolsas-group {
+        gap: 1rem;
+    }
+    
+    .pvp-input-wrapper {
+        width: 100%;
+    }
+    
+    #bolsas {
+        width: 100%;
+    }
+}
+        
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- Card para subir archivo (plegable) -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#uploadSection">
+                <span><i class="bi bi-file-earmark-excel"></i> Subir archivo Excel</span>
+                <i class="toggle-icon bi bi-chevron-down"></i>
+            </div>
+            <div class="collapse show" id="uploadSection">
+                <div class="card-body">
+                    <div id="uploadContainer" class="upload-container">
+                        <p>Arrastra y suelta aquí tu archivo Excel o</p>
+                        <input type="file" id="fileInput" accept=".xls,.xlsx" style="display: none;">
+                        <button id="browseButton" class="btn btn-primary">
+                            <i class="bi bi-folder2-open"></i> Seleccionar archivo
+                        </button>
+                        <div id="fileName" class="file-info">
+                            <span id="fileStatusText">No se ha seleccionado ningún archivo</span>
+                            <button id="clearFileBtn" class="btn btn-sm btn-outline-danger" style="display: none;">
+                                <i class="bi bi-x-circle"></i> Cambiar archivo
+                            </button>
+                        </div>
+                    </div>
+                    <div id="spinner" class="spinner-container">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
+                        <p class="mt-3 text-muted">Procesando archivo, por favor espere...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección de resultados (inicialmente oculta) -->
+        <div id="resultContainer" class="card" style="display: none;">
+            <div class="card-header">
+                <i class="bi bi-file-code"></i> Complementar información
+            </div>
+            <div class="card-body">
+                <!-- Barra de acciones -->
+                <div class="actions-bar">
+                    <button id="descargarComplementado" class="btn btn-success">
+                        <i class="bi bi-download"></i> Descargar JSON
+                    </button>
+                    <button id="enviarAlServidor" class="btn btn-primary">
+                        <i class="bi bi-save"></i> Guardar en Sheets
+                    </button>
+                    <button class="btn btn-toggle" data-bs-toggle="collapse" href="#jsonPreviewSection">
+                        <i class="bi bi-code-square"></i> Vista previa JSON
+                    </button>
+                    <button class="btn btn-toggle" data-bs-toggle="collapse" href="#anexosSection">
+                        <i class="bi bi-paperclip"></i> Adjuntar Anexos
+                    </button>
+                </div>
+
+                <!-- Vista previa JSON (plegable) -->
+                <div id="jsonPreviewSection" class="collapse mb-4">
+                    <div class="json-preview" id="complementarOutput"></div>
+                </div>
+
+                <!-- Sección de anexos mejorada (plegable) -->
+                <div id="anexosSection" class="collapse mb-4">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-paperclip"></i> ANEXOS</span>
+                            <button id="addAnexoBtn" class="btn btn-sm btn-success">
+                                <i class="bi bi-plus-circle"></i> Agregar Anexo
+                            </button>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-hover compact-table mb-0" id="anexosTable">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th style="width: 20%;">REFERENCIA</th>
+                                            <th style="width: 15%;">TALLA</th>
+                                            <th style="width: 15%;">COLOR</th>
+                                            <th style="width: 15%;">TIPO</th>
+                                            <th style="width: 10%;">CANTIDAD</th>
+                                            <th style="width: 10%;">DESCONTAR</th>
+                                            <th style="width: 10%;" class="text-center">ACCIÓN</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="anexosContainer">
+                                        <!-- Anexos serán insertados aquí dinámicamente -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="card-footer bg-light">
+                                <small class="text-muted">Total de anexos: <span id="totalAnexos">0</span></small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+
+                <!-- Formulario en dos columnas -->
+                <div class="row">
+                    <!-- Columna izquierda -->
+                    <div class="col-md-6">
+                        <div class="form-section">
+                            <div class="form-section-title">
+                                <i class="bi bi-card-text"></i> Información básica
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="linea" class="required-field">LINEA:</label>
+                                <select id="linea" class="form-select" required>
+                                    <option value="">Seleccione...</option>
+                                    <option value="FABIAN MARIN FLOREZ">FABIAN MARIN FLOREZ</option>
+                                    <option value="CESAR AUGUSTO LOPEZ GIRALDO">CESAR AUGUSTO LOPEZ GIRALDO</option>
+                                    <option value="KELLY GIOVANA ZULUAGA HOYOS">KELLY GIOVANA ZULUAGA HOYOS</option>
+                                    <option value="MARYI ANDREA GONZALEZ SILVA">MARYI ANDREA GONZALEZ SILVA</option>
+                                    <option value="JOHAN STEPHANIE ESPÍNOSA RAMIREZ">JOHAN STEPHANIE ESPÍNOSA RAMIREZ</option>
+                                    <option value="SANCHEZ LOPEZ YULIETH">SANCHEZ LOPEZ YULIETH</option>
+                                    <option value="JUAN ESTEBAN ZULUAGA HOYOS">JUAN ESTEBAN ZULUAGA HOYOS</option>
+                                </select>
+                                <div class="invalid-feedback">Por favor seleccione una línea</div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="auditor" class="required-field">AUDITOR:</label>
+                                <select id="auditor" class="form-select" required>
+                                    <option value="">Seleccione...</option>
+                                    <option value="GLORICED QUIÑONEZ BOJORJE">GLORICED QUIÑONEZ BOJORJE</option>
+                                    <option value="MAYRA ALEJANDRA GOMEZ OSORIO">MAYRA ALEJANDRA GOMEZ OSORIO</option>
+                                    <option value="MARYURI GARCIA RENTERIA">MARYURI GARCIA RENTERIA</option>
+                                    <option value="GREIZY JULIETH ESCOBAR SABOGAL">GREIZY JULIETH ESCOBAR SABOGAL</option>
+                                    <option value="ANA GABRIELA GUZMAN BETANCOURT">ANA GABRIELA GUZMAN BETANCOURT</option>
+                                    <option value="YULI ANGELY MUÑOZ MANCGABAJOY">YULI ANGELY MUÑOZ MANCGABAJOY</option>
+                                    <option value="JOHANA LISETH DAZA ERASO">JOHANA LISETH DAZA ERASO</option>
+                                    <option value="BRESLEE DANIELA USMA CEPEDA">BRESLEE DANIELA USMA CEPEDA</option>
+                                    <option value="MAYERLY DEL MAR MORALES QUIROGA">MAYERLY DEL MAR MORALES QUIROGA</option>
+                                    <option value="DIANA PAOLA HENAO HERRERA">DIANA PAOLA HENAO HERRERA</option>
+                                </select>
+                                <div class="invalid-feedback">Por favor seleccione un auditor</div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="refprov" class="required-field">REFPROV:</label>
+                                <div class="input-group">
+                                    <input type="text" id="refprov" class="form-control" readonly required>
+                                    <button type="button" id="copyRefprov" class="btn btn-outline-secondary" title="Copiar al portapapeles">
+                                        <i class="bi bi-clipboard"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="referencia" class="required-field">REFERENCIA:</label>
+                                <input type="text" id="referencia" class="form-control" required>
+                                <div class="invalid-feedback">Por favor ingrese una referencia</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Columna derecha -->
+                    <div class="col-md-6">
+                        <div class="form-section">
+                            <div class="form-section-title">
+                                <i class="bi bi-tags"></i> Detalles del producto
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="tipo" class="required-field">TIPO:</label>
+                                <select id="tipo" class="form-select" required>
+                                    <option value="">Seleccione...</option>
+                                    <option value="FULL" selected>FULL</option>
+                                    <option value="DEVOLUCIÓN">DEVOLUCIÓN</option>
+                                </select>
+                                <div class="invalid-feedback">Por favor seleccione un tipo</div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="prenda" class="required-field">PRENDA:</label>
+                                <input type="text" id="prenda" class="form-control" required>
+                                <div class="invalid-feedback">Por favor ingrese una prenda</div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="genero" class="required-field">GÉNERO:</label>
+                                <select id="genero" class="form-select" required>
+                                    <option value="">Seleccione...</option>
+                                    <option value="DAMA">DAMA</option>
+                                    <option value="HOMBRE">HOMBRE</option>
+                                    <option value="NIÑO">NIÑO</option>
+                                    <option value="NIÑA">NIÑA</option>
+                                    <option value="HOGAR">HOGAR</option>
+                                </select>
+                                <div class="invalid-feedback">Por favor seleccione un género</div>
+                            </div>
+                            
+<div class="form-group">
+    <div class="pvp-bolsas-group">
+        <!-- Campo PVP -->
+        <div class="pvp-wrapper">
+            <label for="pvp" class="pvp-label required-field">PVP</label>
+            <div class="pvp-container">
+                <span class="pvp-prefix">$</span>
+                <div class="pvp-input-wrapper">
+                    <input type="number" id="pvp" class="form-control" min="1" max="999" required>
+                </div>
+                <span class="pvp-suffix">.900</span>
+            </div>
+        </div>
+        
+        <!-- Campo BOLSAS -->
+        <div class="bolsas-wrapper">
+            <label for="bolsas" class="bolsas-label required-field">BOLSAS</label>
+            <div class="bolsas-container">
+                <span class="bolsas-prefix">Cantidad</span>
+                <input type="number" id="bolsas" class="form-control" min="1" value="1" required>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    
+    <!-- Template para nuevos anexos (en formato fila de tabla) -->
+    <template id="anexoTemplate">
+        <tr class="anexo-item" data-id="{id}">
+            <td>
+                <input type="text" class="anexo-documento form-control form-control-sm" placeholder="Ingrese documento..." value="{refProv}">
+            </td>
+            <td>
+                <select class="anexo-talla form-select form-select-sm">
+                    <option value="">Seleccione talla...</option>
+                    <!-- Opciones de talla se llenarán dinámicamente -->
+                </select>
+            </td>
+            <td>
+                <select class="anexo-color form-select form-select-sm">
+                    <option value="">Seleccione color...</option>
+                    <!-- Opciones de color se llenarán dinámicamente -->
+                </select>
+            </td>
+            <td>
+                <select class="anexo-tipo form-select form-select-sm">
+                    <option value="">Seleccione...</option>
+                    <option value="PROMO">PROMO</option>
+                    <option value="MUESTRA">MUESTRA</option>
+                    <option value="COBRO">COBRO</option>
+                    <option value="PENDIENTES">PENDIENTES</option>
+                    <option value="SIN CONFECCIONAR">SIN CONFECCIONAR</option>
+                </select>
+            </td>
+            <td>
+                <input type="number" class="anexo-cantidad form-control form-control-sm" min="0" value="0">
+            </td>
+            <td class="text-center">
+                <div class="form-check form-switch">
+                    <input class="form-check-input anexo-descontar" type="checkbox" id="descontar-{id}">
+                    <label class="form-check-label" for="descontar-{id}"></label>
+                </div>
+            </td>
+            <td class="text-center">
+                <button type="button" class="btn btn-sm btn-outline-danger btn-remove" title="Eliminar anexo">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </td>
+        </tr>
+    </template>
+    
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // URLs de APIs
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwQEs7rWXUezxQsDkjkjn798LlDcLHtTO-E0IKjIj3s-EZ2XonU0f0PjFEKwahaLiRDGg/exec';
+        const URL_JSON_EXTERNO = 'https://script.google.com/macros/s/AKfycbxdqCfmuMYqfWZ_P3cH6RBxjhgEwripTl3pucoaxgUz3iV9IwU0AJRGIP6ksMQG5eik/exec';
+        
+        // Variables globales
+        let parsedData = null;
+        let transformedDataWithExtras = null;
+        let nextAnexoId = 1;
+        let refProvsHistoricos = [];
+        let promociones = [];
+        
+        // Configuración global de SweetAlert
+        const Toast = Swal.mixin({
+            toast: false,
+            position: 'center',
+            showConfirmButton: true,
+            timerProgressBar: false,
+            customClass: {
+                confirmButton: 'btn btn-primary',
+                cancelButton: 'btn btn-secondary'
+            },
+            buttonsStyling: false
+        });
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Inicializar componentes de Bootstrap
+            const collapseUpload = new bootstrap.Collapse(document.getElementById('uploadSection'), { toggle: false });
+            const collapseJson = new bootstrap.Collapse(document.getElementById('jsonPreviewSection'), { toggle: false });
+            
+            // Referencias a elementos del DOM
+            const fileInput = document.getElementById('fileInput');
+            const browseButton = document.getElementById('browseButton');
+            const uploadContainer = document.getElementById('uploadContainer');
+            const fileStatusText = document.getElementById('fileStatusText');
+            const clearFileBtn = document.getElementById('clearFileBtn');
+            const resultContainer = document.getElementById('resultContainer');
+            const spinner = document.getElementById('spinner');
+            const anexosContainer = document.getElementById('anexosContainer');
+            const addAnexoBtn = document.getElementById('addAnexoBtn');
+            const anexoTemplate = document.getElementById('anexoTemplate');
+            const copyRefprovBtn = document.getElementById('copyRefprov');
+            const complementarOutput = document.getElementById('complementarOutput');
+            const descargarComplementadoBtn = document.getElementById('descargarComplementado');
+            const enviarAlServidorBtn = document.getElementById('enviarAlServidor');
+            
+            // Evento para mostrar diálogo de selección de archivo
+            browseButton.addEventListener('click', function() {
+                fileInput.click();
+            });
+            
+            // Evento para limpiar archivo seleccionado
+            /*clearFileBtn.addEventListener('click', function() {
+                fileInput.value = '';
+                fileStatusText.textContent = 'No se ha seleccionado ningún archivo';
+                clearFileBtn.style.display = 'none';
+                resultContainer.style.display = 'none';
+                collapseUpload.show();
+            });*/
+
+            clearFileBtn.addEventListener('click', function() {
+    resetApplicationState();
+});
+            
+            // Eventos para arrastrar y soltar archivos
+            uploadContainer.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                uploadContainer.classList.add('border-primary');
+                uploadContainer.style.backgroundColor = 'rgba(52, 152, 219, 0.05)';
+            });
+            
+            uploadContainer.addEventListener('dragleave', function() {
+                uploadContainer.classList.remove('border-primary');
+                uploadContainer.style.backgroundColor = 'white';
+            });
+            
+            uploadContainer.addEventListener('drop', function(e) {
+                e.preventDefault();
+                uploadContainer.classList.remove('border-primary');
+                uploadContainer.style.backgroundColor = 'white';
+                
+                if (e.dataTransfer.files.length) {
+                    handleFile(e.dataTransfer.files[0]);
+                }
+            });
+            
+            // Evento para selección de archivo mediante el input
+            fileInput.addEventListener('change', function(e) {
+                if (e.target.files.length) {
+                    handleFile(e.target.files[0]);
+                }
+            });
+            
+            // Función para copiar REFPROV al portapapeles
+            copyRefprovBtn.addEventListener('click', function() {
+                const refprovInput = document.getElementById('refprov');
+                navigator.clipboard.writeText(refprovInput.value).then(function() {
+                    const originalHTML = copyRefprovBtn.innerHTML;
+                    copyRefprovBtn.innerHTML = '<i class="bi bi-check"></i> Copiado';
+                    copyRefprovBtn.classList.add('btn-success');
+                    copyRefprovBtn.classList.remove('btn-outline-secondary');
+                    
+                    setTimeout(function() {
+                        copyRefprovBtn.innerHTML = originalHTML;
+                        copyRefprovBtn.classList.remove('btn-success');
+                        copyRefprovBtn.classList.add('btn-outline-secondary');
+                    }, 2000);
+                }).catch(function() {
+                    Toast.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'No se pudo copiar al portapapeles',
+                        confirmButtonText: 'Entendido'
+                    });
+                });
+            });
+            
+            // Función para agregar un nuevo anexo
+            addAnexoBtn.addEventListener('click', function() {
+                addAnexo();
+            });
+            
+            // Cargar datos remotos y configurar eventos
+            cargarDatosExternos();
+            
+            // Eventos para botones de acciones con validación
+            descargarComplementadoBtn.addEventListener('click', function() {
+                limpiarErrores();
+                
+                if (!validarFormulario()) {
+                    return;
+                }
+                
+                if (!transformedDataWithExtras) {
+                    Toast.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'No hay datos para descargar. Asegúrese de subir un archivo primero.',
+                        confirmButtonText: 'Entendido'
+                    });
+                    return;
+                }
+                
+                const jsonString = JSON.stringify(transformedDataWithExtras, null, 2);
+                const blob = new Blob([jsonString], { type: 'application/json' });
+                saveAs(blob, 'datos_traslado_complementados.json');
+                
+                Toast.fire({
+                    icon: 'success',
+                    title: 'Descarga exitosa',
+                    text: 'El archivo JSON se ha generado correctamente',
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+            });
+            
+            enviarAlServidorBtn.addEventListener('click', function() {
+                limpiarErrores();
+                
+                if (!validarFormulario()) {
+                    return;
+                }
+                
+                enviarDatosAlServidor();
+            });
+            
+            // Configurar eventos para actualización en tiempo real
+            document.querySelectorAll('#linea, #auditor, #referencia, #tipo, #pvp, #prenda, #genero, #bolsas, .anexo-documento, .anexo-tipo, .anexo-cantidad').forEach(input => {
+                input.addEventListener('input', updateJsonPreview);
+                input.addEventListener('change', updateJsonPreview);
+            });
+            
+            // Configurar eventos para validación en tiempo real
+            document.querySelectorAll('#complementarForm input[required], #complementarForm select[required]').forEach(input => {
+                input.addEventListener('blur', function() {
+                    if (this.value.trim() === '') {
+                        mostrarError(this, 'Este campo es obligatorio');
+                    } else {
+                        this.classList.remove('is-invalid');
+                    }
+                    
+                    // Validación especial para PVP
+                    if (this.id === 'pvp') {
+                        const pvp = parseFloat(this.value);
+                        if (isNaN(pvp)) {
+                            mostrarError(this, 'El PVP debe ser un número');
+                        } else if (pvp < 1 || pvp > 999) {
+                            mostrarError(this, 'El PVP debe estar entre 1 y 999');
+                        } else {
+                            this.classList.remove('is-invalid');
+                        }
+                    }
+                });
+            });
+            
+            // Función para validar el formulario completo
+            function validarFormulario() {
+                const camposObligatorios = [
+                    {id: 'linea', mensaje: 'Por favor seleccione una línea'},
+                    {id: 'auditor', mensaje: 'Por favor seleccione un auditor'},  // Nueva validación
+                    {id: 'referencia', mensaje: 'Por favor ingrese una referencia'},
+                    {id: 'pvp', mensaje: 'Por favor ingrese un PVP válido (1-999)'},
+                    {id: 'prenda', mensaje: 'Por favor ingrese una prenda'},
+                    {id: 'genero', mensaje: 'Por favor seleccione un género'},
+                    {id: 'tipo', mensaje: 'Por favor seleccione un tipo'},
+                    {id: 'bolsas', mensaje: 'Por favor ingrese un número de bolsas válido (mínimo 1)'}
+                ];
+
+                let valido = true;
+                
+                camposObligatorios.forEach(campo => {
+                    const elemento = document.getElementById(campo.id);
+                    const valor = elemento.value.trim();
+                    
+                    if (!valor) {
+                        mostrarError(elemento, campo.mensaje);
+                        valido = false;
+                    } else if (campo.id === 'pvp') {
+                        const pvp = parseFloat(valor);
+                        if (isNaN(pvp)) {
+                            mostrarError(elemento, 'El PVP debe ser un número');
+                            valido = false;
+                        } else if (pvp < 1 || pvp > 999) {
+                            mostrarError(elemento, 'El PVP debe estar entre 1 y 999');
+                            valido = false;
+                        }
+                    }
+                });
+
+                return valido;
+            }
+            
+            // Función para mostrar error en un campo
+            function mostrarError(elemento, mensaje) {
+                elemento.classList.add('is-invalid');
+                const feedback = elemento.nextElementSibling;
+                if (feedback && feedback.classList.contains('invalid-feedback')) {
+                    feedback.textContent = mensaje;
+                }
+                
+                // Mostrar Toast solo para el primer error encontrado
+                if (!elemento.dataset.errorMostrado) {
+                    Toast.fire({
+                        icon: 'error',
+                        title: 'Error de validación',
+                        text: mensaje,
+                        confirmButtonText: 'Entendido'
+                    });
+                    elemento.dataset.errorMostrado = true;
+                    
+                    // Eliminar el flag después de un tiempo
+                    setTimeout(() => {
+                        delete elemento.dataset.errorMostrado;
+                    }, 3000);
+                }
+            }
+            
+            // Función para limpiar errores de validación
+            function limpiarErrores() {
+                document.querySelectorAll('.is-invalid').forEach(el => {
+                    el.classList.remove('is-invalid');
+                });
+            }
+            
+            // Manejar el archivo seleccionado
+            function handleFile(file) {
+                if (!file.name.endsWith('.xls') && !file.name.endsWith('.xlsx')) {
+                    Toast.fire({
+                        icon: 'error',
+                        title: 'Formato incorrecto',
+                        text: 'Por favor selecciona un archivo Excel (.xls o .xlsx)',
+                        confirmButtonText: 'Entendido'
+                    });
+                    return;
+                }
+
+                    // Resetear estado antes de procesar nuevo archivo
+    resetApplicationState();
+                
+                fileStatusText.textContent = `Archivo seleccionado: ${file.name}`;
+                clearFileBtn.style.display = 'inline-block';
+                spinner.style.display = 'block';
+                
+                // Procesar el archivo
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const data = new Uint8Array(e.target.result);
+                        processExcelFile(data);
+                    } catch (error) {
+                        spinner.style.display = 'none';
+                        Toast.fire({
+                            icon: 'error',
+                            title: 'Error al procesar',
+                            text: 'Error al procesar el archivo: ' + error.message,
+                            confirmButtonText: 'Entendido'
+                        });
+                    }
+                };
+                reader.onerror = function() {
+                    spinner.style.display = 'none';
+                    Toast.fire({
+                        icon: 'error',
+                        title: 'Error de lectura',
+                        text: 'Error al leer el archivo',
+                        confirmButtonText: 'Entendido'
+                    });
+                };
+                reader.readAsArrayBuffer(file);
+            }
+            
+            // Procesar el archivo Excel
+            function processExcelFile(data) {
+                try {
+                    // Leer el archivo con SheetJS
+                    const workbook = XLSX.read(data, {
+                        cellStyles: true,
+                        cellFormulas: true,
+                        cellDates: true,
+                        cellNF: true,
+                        sheetStubs: true
+                    });
+                    
+                    // Obtener la primera hoja
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    
+                    // Convertir a formato de filas para preservar estructura
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: null });
+                    
+                    // Extraer información según posiciones conocidas
+                    parsedData = extractDataFromSheet(jsonData);
+                    
+                    // Inicializar formulario y mostrar resultado
+                    if (initFormWithData()) {
+                        updateJsonPreview();
+                        
+                        spinner.style.display = 'none';
+                        resultContainer.style.display = 'block';
+                        collapseUpload.hide();
+                        
+                        Toast.fire({
+                            icon: 'success',
+                            title: 'Archivo procesado',
+                            text: 'Archivo procesado correctamente',
+                            showConfirmButton: false,
+                            timer: 1500
+                        });
+                    } else {
+                        spinner.style.display = 'none';
+                    }
+                } catch (error) {
+                    spinner.style.display = 'none';
+                    Toast.fire({
+                        icon: 'error',
+                        title: 'Error al procesar',
+                        text: 'Error al procesar el archivo: ' + error.message,
+                        confirmButtonText: 'Entendido'
+                    });
+                    console.error(error);
+                }
+            }
+            
+            // Extraer datos del Excel según las posiciones conocidas
+            function extractDataFromSheet(jsonData) {
+                const data = {
+                    informacionGeneral: {},
+                    productos: []
+                };
+                
+                // Información general (cabecera y datos principales)
+                for (let i = 0; i < jsonData.length; i++) {
+                    const row = jsonData[i];
+                    if (!row) continue;
+                    
+                    // Número de traslado
+                    if (row.includes("MOVIMIENTO DE TRASLADO No :")) {
+                        const index = row.indexOf("MOVIMIENTO DE TRASLADO No :");
+                        for (let k = 1; k <= 6; k++) {
+                            if (index + k < row.length && row[index + k] && row[index + k].toString().trim() !== "") {
+                                data.informacionGeneral.numeroTraslado = row[index + k];
+                                break;
+                            }
+                        }
+                    }
+                    
+                    // Empresa
+                    if (row[0] && typeof row[0] === 'string' && row[0].includes("TEXTILES")) {
+                        data.informacionGeneral.empresa = row[0];
+                    }
+                    
+                    // NIT
+                    if (row.includes("Nit:")) {
+                        const index = row.indexOf("Nit:");
+                        if (index + 1 < row.length) {
+                            data.informacionGeneral.nit = row[index + 1];
+                        }
+                    }
+                    
+                    // Fecha impresión
+                    if (row.includes("Impreso :")) {
+                        const index = row.indexOf("Impreso :");
+                        if (index + 1 < row.length) {
+                            data.informacionGeneral.fechaImpresion = row[index + 1];
+                        }
+                    }
+                    
+                    // Concepto
+                    if (row.includes("Concepto :")) {
+                        const index = row.indexOf("Concepto :");
+                        for (let k = 1; k <= 3; k++) {
+                            if (index + k < row.length && row[index + k] && row[index + k].toString().trim() !== "") {
+                                data.informacionGeneral.concepto = row[index + k];
+                                break;
+                            }
+                        }
+                    }
+                    
+                    // Bodega salida
+                    if (row.includes("Bodega") && row.includes("Salida :")) {
+                        const index = row.indexOf("Salida :");
+                        if (index + 2 < row.length) {
+                            data.informacionGeneral.bodegaSalida = {
+                                codigo: row[index + 1],
+                                numero: row[index + 2],
+                                descripcion: row[index + 3] || ""
+                            };
+                        }
+                    }
+                    
+                    // Fecha Salida
+                    if (row.includes("Fecha Salida :")) {
+                        const index = row.indexOf("Fecha Salida :");
+                        for (let k = 1; k <= 3; k++) {
+                            if (index + k < row.length && row[index + k] && row[index + k].toString().trim() !== "") {
+                                data.informacionGeneral.fechaSalida = row[index + k];
+                                break;
+                            }
+                        }
+                    }
+                    
+                    // Auditoria
+                    if (row.includes("Orden Servicio :")) {
+                        const osIndex = row.indexOf("Orden Servicio :");
+                        
+                        // Extraer valor de Orden Servicio
+                        for (let k = 1; k <= 3; k++) {
+                            if (osIndex + k < row.length && row[osIndex + k] && row[osIndex + k].toString().trim() !== "") {
+                                data.informacionGeneral.ordenServicio = row[osIndex + k];
+                                break;
+                            }
+                        }
+                        
+                        // Buscar auditoría
+                        let foundAuditoria = false;
+                        for (let j = 0; j < row.length - 1; j++) {
+                            const currentVal = row[j];
+                            const nextVal = row[j+1];
+                            
+                            if (currentVal && 
+                                /^\d+$/.test(currentVal.toString().trim()) && 
+                                nextVal && 
+                                /[A-Za-z]/.test(nextVal.toString())) {
+                                
+                                data.informacionGeneral.auditoria = {
+                                    codigo: currentVal,
+                                    nombre: nextVal
+                                };
+                                foundAuditoria = true;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    // Información del pie de página
+                    if (row.includes("Elaboro")) {
+                        const elaboroIndex = row.indexOf("Elaboro");
+                        if (i + 1 < jsonData.length && jsonData[i + 1][elaboroIndex]) {
+                            data.informacionGeneral.elaboradoPor = jsonData[i + 1][elaboroIndex];
+                        }
+                    }
+                    
+                    // Total de cantidades
+                    if (row.length > 6 && !row[0] && !row[1] && row[6] && typeof row[6] === 'number' && row[8]) {
+                        data.informacionGeneral.totalCantidad = row[6];
+                        data.informacionGeneral.totalValor = row[8];
+                    }
+                    
+                    // Buscar la línea de encabezado de productos
+                    if (row[0] === "Referencia" && row.includes("Articulo") && row.includes("Talla")) {
+                        // Encontramos el encabezado de la tabla de productos
+                        let j = i + 1;
+                        
+                        // Recorrer las filas siguientes para capturar productos
+                        while (j < jsonData.length && jsonData[j]) {
+                            const productoRow = jsonData[j];
+                            
+                            // Verificar si es una fila de producto válida
+                            if (productoRow[0] && productoRow[1] && (productoRow[6] || productoRow[7])) {
+                                data.productos.push({
+                                    referencia: productoRow[0],
+                                    articulo: productoRow[1] || "",
+                                    op: productoRow[3] || "",
+                                    talla: productoRow[4] || "",
+                                    color: productoRow[5] || "",
+                                    cantidad: productoRow[6] || 0,
+                                    valorUnitario: productoRow[7] || 0,
+                                    subTotal: productoRow[9] || 0
+                                });
+                            } else if (!productoRow[0] && !productoRow[1] && !productoRow[3] && 
+                                     !productoRow[4] && !productoRow[5] && !productoRow[6]) {
+                                // Si llegamos a una fila completamente vacía, asumimos que es el fin de la tabla
+                                break;
+                            }
+                            
+                            j++;
+                        }
+                    }
+                }
+                
+                return data;
+            }
+            
+            // Función para crear el JSON transformado con la estructura solicitada
+            function createTransformedJSON(originalData) {
+                // Formatear la fecha para mostrar solo DD/MM/YYYY
+                let fechaFormateada = null;
+                if (originalData.informacionGeneral.fechaSalida) {
+                    // Si la fecha tiene formato "DD/MM/YYYY HH:MM:SS", extraer solo la parte de la fecha
+                    fechaFormateada = originalData.informacionGeneral.fechaSalida.split(' ')[0];
+                }
+                
+                // Crear la estructura base del nuevo JSON
+                const transformedData = {
+                    "A": originalData.productos.length > 0 ? originalData.productos[0].op : null,
+                    "FECHA": fechaFormateada,
+                    "TALLER": originalData.informacionGeneral.bodegaSalida?.descripcion || null,
+                    "LINEA": null,
+                    "AUDITOR": originalData.informacionGeneral.auditoria?.nombre || null,
+                    "ESCANER": originalData.informacionGeneral.elaboradoPor || null,
+                    "LOTE": originalData.productos.length > 0 ? originalData.productos[0].op : null,
+                    "REFPROV": originalData.productos.length > 0 ? originalData.productos[0].referencia : null,
+                    "DESCRIPCIÓN": originalData.productos.length > 0 ? originalData.productos[0].articulo : null,
+                    "CANTIDAD": originalData.informacionGeneral.totalCantidad || 0, 
+                    "REFERENCIA": null,
+                    "TIPO": null,
+                    "PVP": null,
+                    "PRENDA": null,
+                    "GENERO": null,
+                    "PROVEEDOR": originalData.informacionGeneral.empresa || null,
+                    "ANEXOS": [],
+                    "HR": []
+                };
+                
+                // Añadir los elementos al arreglo HR basados en los productos
+                if (originalData.productos && originalData.productos.length > 0) {
+                    originalData.productos.forEach(producto => {
+                        // Extraer el código del color (los dígitos al inicio del color)
+                        let codigoColor = null;
+                        let colorSinCodigo = producto.color || null;
+                        
+                        if (producto.color) {
+                            // Usar una expresión regular para extraer los números al inicio
+                            const match = producto.color.match(/^(\d+)\s+(.*)/);
+                            if (match && match[1] && match[2]) {
+                                codigoColor = match[1];
+                                colorSinCodigo = match[2]; // Solo la parte textual del color
+                            }
+                        }
+                        
+                        transformedData.HR.push({
+                            "codigo": codigoColor,
+                            "color": colorSinCodigo,
+                            "talla": producto.talla || null,
+                            "cantidad": producto.cantidad || 0
+                        });
+                    });
+                }
+                
+                return transformedData;
+            }
+            
+            // Función para crear JSON transformado con campos editables y anexos
+            function createTransformedJSONWithExtras(originalData, extraData = {}) {
+                // Crear la estructura base usando el JSON transformado original
+                const baseData = createTransformedJSON(originalData);
+
+                // Convertir explícitamente el valor "A" a string si existe
+                if (baseData.A !== null && baseData.A !== undefined) {
+                    baseData.A = String(baseData.A);
+                }
+                
+                // Generar la descripción concatenada (PRENDA + GENERO + REFPROV)
+                const prenda = extraData.prenda || "";
+                const genero = extraData.genero || "";
+                const refprov = baseData.REFPROV || "";
+                
+                // Construir la descripción concatenada - solo si hay al menos un valor
+                let descripcionConcatenada = null;
+                if (prenda || genero || refprov) {
+                    descripcionConcatenada = [prenda, genero, refprov].filter(Boolean).join(" ");
+                }
+                
+                // Recolectar todos los anexos
+                const anexos = [];
+                
+                // Copia de los datos HR para descontar unidades si es necesario
+                let hrData = JSON.parse(JSON.stringify(baseData.HR));
+                
+                // Obtener todas las entradas de anexos
+                const anexoItems = document.querySelectorAll('.anexo-item');
+                anexoItems.forEach(item => {
+                    const documento = item.querySelector('.anexo-documento').value;
+                    const talla = item.querySelector('.anexo-talla').value;
+                    const color = item.querySelector('.anexo-color').value;
+                    const tipo = item.querySelector('.anexo-tipo').value;
+                    const cantidad = item.querySelector('.anexo-cantidad').value;
+                    const descontar = item.querySelector('.anexo-descontar').checked;
+                    
+                    if (tipo) { // Solo añadir si tiene tipo seleccionado
+                        anexos.push({
+                            "DOCUMENTO": documento || baseData.A,
+                            "TALLA": talla || null,
+                            "COLOR": color || null,
+                            "TIPO": tipo,
+                            "CANTIDAD": cantidad !== "" ? Number(cantidad) : 0,
+                            "DESCONTAR": descontar
+                        });
+                        
+                        // Descontar unidades si está marcado
+                        if (descontar && talla && color && cantidad) {
+                            const itemHR = hrData.find(item => 
+                                item.talla === talla && item.color === color
+                            );
+                            
+                            if (itemHR) {
+                                itemHR.cantidad = Math.max(0, itemHR.cantidad - Number(cantidad));
+                            }
+                        }
+                    }
+                });
+                
+                // Modificar el arreglo HR para que los valores sean directos sin nombres de propiedad
+                const hrSimplificado = hrData.map(item => [
+                    item.codigo || null,
+                    item.color || null,
+                    item.talla || null,
+                    item.cantidad || 0
+                ]);
+                
+                // Actualizar los campos con los valores extra proporcionados
+                const transformedData = {
+                    ...baseData,
+                    "LINEA": extraData.linea || baseData.LINEA,
+                    "AUDITOR": extraData.auditor || baseData.AUDITOR,
+                    "REFERENCIA": extraData.referencia || baseData.REFERENCIA,
+                    "TIPO": extraData.tipo || baseData.TIPO,
+                    "PVP": extraData.pvp ? `$ ${extraData.pvp}.900` : baseData.PVP,
+                    "BOLSAS": extraData.bolsas || 0,  // Nuevo campo
+                    "PRENDA": extraData.prenda || baseData.PRENDA,
+                    "GENERO": extraData.genero || baseData.GENERO,
+                    "PROVEEDOR": baseData.PROVEEDOR,
+                    "DESCRIPCIÓN": descripcionConcatenada || baseData.DESCRIPCIÓN,
+                    "ANEXOS": anexos,
+                    "HR": hrSimplificado
+                };
+                
+                return transformedData;
+            }
+            
+            // Función para inicializar el formulario con los datos disponibles
+            function initFormWithData() {
+                // Limpiar los anexos existentes
+                anexosContainer.innerHTML = '';
+                nextAnexoId = 1;
+                
+                if (!parsedData || !parsedData.productos || parsedData.productos.length === 0) {
+                    Toast.fire({
+                        icon: 'error',
+                        title: 'Datos insuficientes',
+                        text: 'No hay datos para complementar. Por favor, procesa un archivo primero.',
+                        confirmButtonText: 'Entendido'
+                    });
+                    return false;
+                }
+                
+                // Establecer REFPROV (no editable)
+                const refProvValue = parsedData.productos[0].referencia || '';
+                document.getElementById('refprov').value = refProvValue;
+                
+                // Buscar y establecer REFERENCIA automáticamente
+                const referenciaEncontrada = buscarReferencia(refProvValue);
+                const referenciaInput = document.getElementById('referencia');
+                
+                // Si se encuentra la referencia en los históricos, usarla
+                // Si no, usar el mismo valor de REFPROV como valor predeterminado
+                referenciaInput.value = referenciaEncontrada || refProvValue;
+                
+                // Establecer PRENDA con la primera palabra de DESCRIPCIÓN
+                const descripcion = parsedData.productos[0].articulo || '';
+                const primeraPalabra = descripcion.split(' ')[0] || '';
+                document.getElementById('prenda').value = primeraPalabra;
+                
+                // Establecer TIPO como "FULL" por defecto
+                document.getElementById('tipo').value = 'FULL';
+                
+                // Añadir un anexo por defecto
+                addAnexo();
+                
+                return true;
+            }
+
+
+function getUniqueSizesAndColors(jsonData) {
+    if (!jsonData || !jsonData.HR) return { sizes: [], colors: [] };
+    
+    const sizes = new Set();
+    const colors = new Set();
+    
+    jsonData.HR.forEach(item => {
+        if (item.talla) sizes.add(item.talla);
+        if (item.color) colors.add(item.color);
+    });
+    
+    return {
+        sizes: Array.from(sizes).sort(),
+        colors: Array.from(colors).sort()
+    };
+}
+            
+            // Función para agregar un nuevo anexo
+           function addAnexo() {
+    const id = nextAnexoId++;
+    const refProvValue = document.getElementById('refprov').value || '';
+    
+    // Clonar el template con los valores actuales
+    const template = anexoTemplate.innerHTML
+        .replace(/{id}/g, id)
+        .replace(/{refProv}/g, refProvValue);
+    
+    // Crear la fila del anexo
+    const anexoRow = document.createElement('tr');
+    anexoRow.innerHTML = template;
+    anexoRow.classList.add('anexo-item');
+    anexoRow.dataset.id = id;
+    
+    // Agregar al contenedor
+    anexosContainer.appendChild(anexoRow);
+
+    // Obtener datos actuales del JSON
+    const jsonData = transformedDataWithExtras || createTransformedJSON(parsedData);
+    
+    // Llenar select de tallas con valores únicos del JSON
+    const tallaSelect = anexoRow.querySelector('.anexo-talla');
+    const tallasUnicas = [...new Set(jsonData.HR.map(item => item.talla))].filter(Boolean).sort();
+    tallasUnicas.forEach(talla => {
+        const option = document.createElement('option');
+        option.value = talla;
+        option.textContent = talla;
+        tallaSelect.appendChild(option);
+    });
+    
+    // Llenar select de colores con valores únicos del JSON
+    const colorSelect = anexoRow.querySelector('.anexo-color');
+    const coloresUnicos = [...new Set(jsonData.HR.map(item => item.color))].filter(Boolean).sort();
+    coloresUnicos.forEach(color => {
+        const option = document.createElement('option');
+        option.value = color;
+        option.textContent = color;
+        colorSelect.appendChild(option);
+    });
+
+    // Configurar el estado inicial del checkbox de descontar
+    const descontarCheckbox = anexoRow.querySelector('.anexo-descontar');
+    descontarCheckbox.checked = false;  // Por defecto desmarcado
+    descontarCheckbox.disabled = true;  // Por defecto deshabilitado
+
+    // Configurar todos los eventos del anexo
+    const setupAnexoEvents = (row) => {
+        // Actualizar disponibilidad al cambiar talla/color
+        const updateDisponibilidad = () => {
+            const talla = row.querySelector('.anexo-talla').value;
+            const color = row.querySelector('.anexo-color').value;
+            const cantidadInput = row.querySelector('.anexo-cantidad');
+            
+            if (talla && color) {
+                const item = jsonData.HR.find(i => i.talla === talla && i.color === color);
+                if (item) {
+                    cantidadInput.max = item.cantidad;
+                    cantidadInput.title = `Disponible: ${item.cantidad} unidades`;
+                    
+                    // Ajustar cantidad si excede el disponible
+                    if (parseInt(cantidadInput.value) > item.cantidad) {
+                        cantidadInput.value = item.cantidad;
+                    }
+                }
+            }
+        };
+        
+        // Eventos para talla y color
+        row.querySelector('.anexo-talla').addEventListener('change', function() {
+            updateDisponibilidad();
+            updateJsonPreview();
+        });
+        
+        row.querySelector('.anexo-color').addEventListener('change', function() {
+            updateDisponibilidad();
+            updateJsonPreview();
+        });
+        
+        // Evento para tipo de anexo
+        row.querySelector('.anexo-tipo').addEventListener('change', function() {
+            const descontar = row.querySelector('.anexo-descontar');
+            
+            // Solo COBRO puede tener descuento
+            if (this.value === 'COBRO') {
+                descontar.checked = true;
+                descontar.disabled = false; // Habilitar para permitir cambiar (si es necesario)
+            } else {
+                // Para todos los demás tipos (PROMO, MUESTRA, PENDIENTES, SIN CONFECCIONAR)
+                descontar.checked = false;
+                descontar.disabled = true; // Deshabilitar el checkbox
+            }
+            
+            updateJsonPreview();
+        });
+        
+        // Eventos para cantidad y descontar
+        row.querySelector('.anexo-cantidad').addEventListener('change', updateJsonPreview);
+        row.querySelector('.anexo-descontar').addEventListener('change', updateJsonPreview);
+        
+        // Evento para eliminar anexo
+        row.querySelector('.btn-remove').addEventListener('click', function() {
+            row.remove();
+            updateTotalAnexos();
+            updateJsonPreview();
+        });
+    };
+    
+    // Configurar eventos para esta fila
+    setupAnexoEvents(anexoRow);
+    
+    // Actualizar contador y vista previa
+    updateTotalAnexos();
+    updateJsonPreview();
+    
+    // Retornar la fila creada por si se necesita referencia
+    return anexoRow;
+}
+
+function fillSizesAndColors(anexoRow) {
+    const jsonData = transformedDataWithExtras || createTransformedJSON(parsedData);
+    const { sizes, colors } = getUniqueSizesAndColors(jsonData);
+    
+    // Llenar select de tallas
+    const tallaSelect = anexoRow.querySelector('.anexo-talla');
+    sizes.forEach(size => {
+        const option = document.createElement('option');
+        option.value = size;
+        option.textContent = size;
+        tallaSelect.appendChild(option);
+    });
+    
+    // Llenar select de colores
+    const colorSelect = anexoRow.querySelector('.anexo-color');
+    colors.forEach(color => {
+        const option = document.createElement('option');
+        option.value = color;
+        option.textContent = color;
+        colorSelect.appendChild(option);
+    });
+}
+
+function setupAnexoEvents(anexoRow) {
+    const tipoSelect = anexoRow.querySelector('.anexo-tipo');
+    const documentoInput = anexoRow.querySelector('.anexo-documento');
+    const descontarCheckbox = anexoRow.querySelector('.anexo-descontar');
+    
+    // Evento para cambio de tipo
+    tipoSelect.addEventListener('change', function() {
+        // Si es PROMO, mostrar opciones del JSON externo
+        if (this.value === 'PROMO') {
+            setupPromoAutocomplete(documentoInput);
+            documentoInput.readOnly = false;
+            documentoInput.value = '';
+        } 
+        // Si es COBRO, activar descuento automáticamente
+        else if (this.value === 'COBRO') {
+            descontarCheckbox.checked = true;
+            documentoInput.readOnly = true;
+            documentoInput.value = document.getElementById('refprov').value || '';
+        }
+        // Para otros tipos, usar REFPROV
+        else {
+            documentoInput.readOnly = true;
+            documentoInput.value = document.getElementById('refprov').value || '';
+        }
+        
+        updateJsonPreview();
+    });
+    
+    // Eventos para talla y color
+    anexoRow.querySelector('.anexo-talla').addEventListener('change', function() {
+        updateMaxAvailable(anexoRow);
+        updateJsonPreview();
+    });
+    
+    anexoRow.querySelector('.anexo-color').addEventListener('change', function() {
+        updateMaxAvailable(anexoRow);
+        updateJsonPreview();
+    });
+    
+    // Eventos para cantidad y descuento
+    anexoRow.querySelector('.anexo-cantidad').addEventListener('change', updateJsonPreview);
+    descontarCheckbox.addEventListener('change', updateJsonPreview);
+    
+    // Evento para eliminar
+    anexoRow.querySelector('.btn-remove').addEventListener('click', function() {
+        anexoRow.remove();
+        updateTotalAnexos();
+        updateJsonPreview();
+    });
+}
+
+function setupPromoAutocomplete(inputElement) {
+    // Limpiar autocompletados anteriores
+    const existingWrapper = inputElement.closest('.autocomplete-wrapper');
+    if (existingWrapper) {
+        const parent = existingWrapper.parentNode;
+        parent.replaceChild(inputElement, existingWrapper);
+    }
+    
+    // Crear contenedor para autocompletado
+    const wrapper = document.createElement('div');
+    wrapper.className = 'autocomplete-wrapper position-relative';
+    
+    // Reemplazar el input original
+    const parent = inputElement.parentNode;
+    parent.replaceChild(wrapper, inputElement);
+    wrapper.appendChild(inputElement);
+    
+    // Crear div para sugerencias
+    const suggestionsDiv = document.createElement('div');
+    suggestionsDiv.className = 'autocomplete-suggestions';
+    suggestionsDiv.style.display = 'none';
+    wrapper.appendChild(suggestionsDiv);
+    
+    // Mostrar sugerencias
+    function showSuggestions(value) {
+        suggestionsDiv.innerHTML = '';
+        
+        if (!value || value.length < 2) {
+            suggestionsDiv.style.display = 'none';
+            return;
+        }
+        
+        const matches = promociones.filter(item => 
+            item.toLowerCase().includes(value.toLowerCase())
+        );
+        
+        if (matches.length === 0) {
+            suggestionsDiv.style.display = 'none';
+            return;
+        }
+        
+        matches.forEach(item => {
+            const suggestion = document.createElement('div');
+            suggestion.className = 'autocomplete-item';
+            suggestion.innerHTML = item.replace(
+                new RegExp('(' + value + ')', 'gi'), 
+                '<strong>$1</strong>'
+            );
+            
+            suggestion.addEventListener('click', () => {
+                inputElement.value = item;
+                suggestionsDiv.style.display = 'none';
+                updateJsonPreview();
+            });
+            
+            suggestionsDiv.appendChild(suggestion);
+        });
+        
+        suggestionsDiv.style.display = 'block';
+    }
+    
+    // Eventos del input
+    inputElement.addEventListener('input', () => showSuggestions(inputElement.value.trim()));
+    inputElement.addEventListener('focus', () => showSuggestions(inputElement.value.trim()));
+    
+    // Cerrar al hacer clic fuera
+    document.addEventListener('click', (e) => {
+        if (!wrapper.contains(e.target)) {
+            suggestionsDiv.style.display = 'none';
+        }
+    });
+}
+
+function resetApplicationState() {
+    // Limpiar el input de archivo
+    fileInput.value = '';
+    fileStatusText.textContent = 'No se ha seleccionado ningún archivo';
+    clearFileBtn.style.display = 'none';
+    
+    // Ocultar resultados y mostrar sección de carga
+    resultContainer.style.display = 'none';
+    collapseUpload.show();
+    
+    // Limpiar todos los campos del formulario
+    document.getElementById('linea').value = '';
+    document.getElementById('auditor').value = '';
+    document.getElementById('refprov').value = '';
+    document.getElementById('referencia').value = '';
+    document.getElementById('tipo').value = 'FULL';
+    document.getElementById('prenda').value = '';
+    document.getElementById('genero').value = '';
+    document.getElementById('pvp').value = '';
+    document.getElementById('bolsas').value = '';
+    
+    // Limpiar anexos
+    anexosContainer.innerHTML = '';
+    nextAnexoId = 1;
+    document.getElementById('totalAnexos').textContent = '0';
+    
+    // Limpiar vista previa JSON
+    complementarOutput.textContent = '';
+    
+    // Resetear variables globales
+    parsedData = null;
+    transformedDataWithExtras = null;
+    
+    // Limpiar errores de validación
+    limpiarErrores();
+}
+
+function updateMaxAvailable(anexoRow) {
+    const talla = anexoRow.querySelector('.anexo-talla').value;
+    const color = anexoRow.querySelector('.anexo-color').value;
+    const cantidadInput = anexoRow.querySelector('.anexo-cantidad');
+    
+    if (!talla || !color) {
+        cantidadInput.max = '';
+        cantidadInput.title = 'Seleccione talla y color primero';
+        return;
+    }
+    
+    const jsonData = transformedDataWithExtras || createTransformedJSON(parsedData);
+    const item = jsonData.HR.find(item => 
+        item.talla === talla && item.color === color
+    );
+    
+    if (item) {
+        const maxAvailable = item.cantidad;
+        cantidadInput.max = maxAvailable;
+        cantidadInput.title = `Máximo disponible: ${maxAvailable}`;
+        
+        // Ajustar valor si excede el máximo
+        if (parseInt(cantidadInput.value) > maxAvailable) {
+            cantidadInput.value = maxAvailable;
+        }
+    } else {
+        cantidadInput.max = '';
+        cantidadInput.title = 'No hay disponibilidad para esta combinación';
+        cantidadInput.value = '0';
+    }
+}
+
+function updateTotalAnexos() {
+    const total = document.querySelectorAll('.anexo-item').length;
+    document.getElementById('totalAnexos').textContent = total;
+}
+            
+            // Función para configurar el autocompletado
+            function setupAutocomplete(inputElement, dataSource) {
+                // Crear contenedor para el autocompletado
+                const wrapper = document.createElement('div');
+                wrapper.className = 'autocomplete-wrapper position-relative';
+                
+                // Reemplazar el input original con el wrapper
+                const parent = inputElement.parentNode;
+                parent.replaceChild(wrapper, inputElement);
+                wrapper.appendChild(inputElement);
+                
+                // Crear el div para las sugerencias
+                const suggestionsDiv = document.createElement('div');
+                suggestionsDiv.className = 'autocomplete-suggestions';
+                suggestionsDiv.style.display = 'none';
+                wrapper.appendChild(suggestionsDiv);
+                
+                // Función para mostrar sugerencias filtradas
+                function showSuggestions(value) {
+                    // Limpiar div de sugerencias
+                    suggestionsDiv.innerHTML = '';
+                    
+                    if (!value || value.length < 2) {
+                        suggestionsDiv.style.display = 'none';
+                        return;
+                    }
+                    
+                    // Filtrar promociones que coincidan
+                    const matches = dataSource.filter(item => 
+                        item.toLowerCase().includes(value.toLowerCase())
+                    );
+                    
+                    if (matches.length === 0) {
+                        suggestionsDiv.style.display = 'none';
+                        return;
+                    }
+                    
+                    // Mostrar coincidencias
+                    matches.forEach(item => {
+                        const suggestion = document.createElement('div');
+                        suggestion.className = 'autocomplete-item';
+                        
+                        // Resaltar la parte coincidente
+                        const regex = new RegExp('(' + value + ')', 'gi');
+                        suggestion.innerHTML = item.replace(regex, '<strong>$1</strong>');
+                        
+                        // Establecer el valor al hacer clic
+                        suggestion.addEventListener('click', () => {
+                            inputElement.value = item;
+                            suggestionsDiv.style.display = 'none';
+                            inputElement.dispatchEvent(new Event('change'));
+                        });
+                        
+                        suggestionsDiv.appendChild(suggestion);
+                    });
+                    
+                    suggestionsDiv.style.display = 'block';
+                }
+                
+                // Eventos del input
+                inputElement.addEventListener('input', () => {
+                    showSuggestions(inputElement.value.trim());
+                });
+                
+                inputElement.addEventListener('focus', () => {
+                    if (inputElement.value.trim().length >= 2) {
+                        showSuggestions(inputElement.value.trim());
+                    }
+                });
+                
+                // Cerrar sugerencias al hacer clic fuera
+                document.addEventListener('click', (e) => {
+                    if (!wrapper.contains(e.target)) {
+                        suggestionsDiv.style.display = 'none';
+                    }
+                });
+            }
+            
+            // Función para obtener los valores del formulario
+            function getFormValues() {
+                return {
+                    linea: document.getElementById('linea').value,
+                    auditor: document.getElementById('auditor').value,  // Nueva línea
+                    referencia: document.getElementById('referencia').value,
+                    tipo: document.getElementById('tipo').value,
+                    pvp: document.getElementById('pvp').value,
+                    prenda: document.getElementById('prenda').value,
+                    genero: document.getElementById('genero').value,
+                    bolsas: document.getElementById('bolsas').value || 0  // Nuevo campo
+                };
+            }
+            
+            // Función para actualizar la vista previa del JSON en tiempo real
+            function updateJsonPreview() {
+                if (!parsedData) return;
+                
+                try {
+                    const formValues = getFormValues();
+                    transformedDataWithExtras = createTransformedJSONWithExtras(parsedData, formValues);
+                    complementarOutput.textContent = JSON.stringify(transformedDataWithExtras, null, 2);
+                } catch (error) {
+                    console.error("Error al actualizar JSON:", error);
+                }
+            }
+            
+            // Función para cargar datos externos
+            async function cargarDatosExternos() {
+                try {
+                    const respuesta = await fetch(URL_JSON_EXTERNO);
+                    const datos = await respuesta.json();
+                    
+                    // Guardar los datos en variables globales
+                    if (datos.historicos && Array.isArray(datos.historicos)) {
+                        refProvsHistoricos = datos.historicos;
+                    }
+                    
+                    if (datos.promos && Array.isArray(datos.promos)) {
+                        promociones = datos.promos;
+                    }
+                    
+                    console.log('Datos externos cargados correctamente');
+                    
+                    return true;
+                } catch (error) {
+                    console.error('Error al cargar datos externos:', error);
+                    Toast.fire({
+                        icon: 'error',
+                        title: 'Error al cargar datos',
+                        text: 'Error al cargar datos de referencia y promociones.',
+                        confirmButtonText: 'Entendido'
+                    });
+                    return false;
+                }
+            }
+            
+            // Función para buscar referencia basada en REFPROV
+            function buscarReferencia(refprov) {
+                if (!refprov || !refProvsHistoricos || !refProvsHistoricos.length) return '';
+                
+                // Buscar el REFPROV en el array de históricos
+                const encontrado = refProvsHistoricos.find(item => 
+                    item.RefProv && item.RefProv.toString().trim().toUpperCase() === refprov.toString().trim().toUpperCase()
+                );
+                
+                // Devolver la referencia si se encontró, o cadena vacía si no
+                return encontrado ? encontrado.Referencia : '';
+            }
+            
+            // Función para enviar los datos al servidor
+            // Función para enviar los datos al servidor
+            function enviarDatosAlServidor() {
+                // Verificar que exista el JSON complementado
+                if (!transformedDataWithExtras) {
+                    Toast.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'No hay datos para enviar. Asegúrese de subir un archivo primero.',
+                        confirmButtonText: 'Entendido'
+                    });
+                    return;
+                }
+                
+                // Mostrar spinner directamente sin confirmación
+                Toast.fire({
+                    title: 'Guardando datos...',
+                    //html: '<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div><p class="mt-3">Por favor espere...</p>',
+                    showConfirmButton: false,
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+                
+                // Realizar la petición fetch para enviar los datos
+                fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    cache: 'no-cache',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    redirect: 'follow',
+                    body: JSON.stringify(transformedDataWithExtras)
+                })
+                .then(() => {
+                    Toast.fire({
+                        icon: 'success',
+                        title: '¡Éxito!',
+                        text: 'Los datos se han guardado correctamente en Google Sheets',
+                        confirmButtonText: 'Entendido'
+                    });
+                            // Resetear el estado después de guardar
+        resetApplicationState();
+                })
+                .catch(error => {
+                    Toast.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Ocurrió un error al enviar los datos: ' + error.message,
+                        confirmButtonText: 'Entendido'
+                    });
+                    console.error('Error:', error);
+                });
+            }
+
+            
+        });
+    </script>
+</body>
+</html>
