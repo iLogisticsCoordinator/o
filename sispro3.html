@@ -10,6 +10,51 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
+        
+<!-- Agrega estos estilos CSS en tu sección <style> -->
+.json-preview {
+    background-color: #282c34; /* Fondo oscuro para mejor contraste */
+    border-radius: var(--radius-md);
+    padding: 1rem;
+    max-height: 400px;
+    overflow-y: auto;
+    font-family: 'Fira Code', 'Courier New', monospace;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    white-space: pre;
+    border: 1px solid #3a4049;
+    box-shadow: var(--shadow-sm) inset;
+    color: #abb2bf; /* Color base del texto */
+    tab-size: 2;
+    position: relative;
+}
+
+/* Colores para la sintaxis JSON */
+.json-preview .token.key { color: #e06c75; } /* Claves */
+.json-preview .token.string { color: #98c379; } /* Strings */
+.json-preview .token.number { color: #d19a66; } /* Números */
+.json-preview .token.boolean { color: #56b6c2; } /* Booleanos */
+.json-preview .token.null { color: #56b6c2; } /* Null */
+.json-preview .token.punctuation { color: #abb2bf; } /* Puntuación */
+.json-preview .token.operator { color: #56b6c2; } /* Operadores */
+
+/* Scrollbar personalizada */
+.json-preview::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+.json-preview::-webkit-scrollbar-track {
+    background: #2c313a;
+    border-radius: 4px;
+}
+.json-preview::-webkit-scrollbar-thumb {
+    background: #4b5362;
+    border-radius: 4px;
+}
+.json-preview::-webkit-scrollbar-thumb:hover {
+    background: #5c6677;
+}
+        
 /* Variables de color modernizadas con paleta más profesional */
 :root {
     --primary-color: #2563eb;         /* Azul más rico para acciones primarias */
@@ -2053,7 +2098,7 @@ function updateTotalAnexos() {
             }
             
             // Función para actualizar la vista previa del JSON en tiempo real
-            function updateJsonPreview() {
+            /*function updateJsonPreview() {
                 if (!parsedData) return;
                 
                 try {
@@ -2063,7 +2108,26 @@ function updateTotalAnexos() {
                 } catch (error) {
                     console.error("Error al actualizar JSON:", error);
                 }
-            }
+            }*/
+
+function updateJsonPreview() {
+    if (!parsedData) return;
+    
+    try {
+        const formValues = getFormValues();
+        transformedDataWithExtras = createTransformedJSONWithExtras(parsedData, formValues);
+        
+        // Formatear el JSON con colores de sintaxis
+        const jsonString = JSON.stringify(transformedDataWithExtras, null, 2);
+        const highlighted = Prism.highlight(jsonString, Prism.languages.json, 'json');
+        
+        // Actualizar el contenido con el HTML resaltado
+        complementarOutput.innerHTML = highlighted;
+    } catch (error) {
+        console.error("Error al actualizar JSON:", error);
+        complementarOutput.textContent = "Error al generar la vista previa: " + error.message;
+    }
+}
             
             // Función para cargar datos externos
             async function cargarDatosExternos() {
