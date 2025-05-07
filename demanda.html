@@ -1,0 +1,1445 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Distribución | Premium</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        /* Sistema de diseño moderno */
+        :root {
+            /* Colores principales */
+            --color-primary: #0061f2;
+            --color-primary-light: #0061f21a;
+            --color-primary-dark: #0045af;
+            --color-secondary: #6e4ff6;
+            --color-secondary-light: #6e4ff61a;
+            
+            /* Colores de acento */
+            --color-success: #00ac69;
+            --color-success-light: #00ac691a;
+            --color-danger: #e81500;
+            --color-danger-light: #e815001a;
+            --color-warning: #f4a100;
+            --color-warning-light: #f4a1001a;
+            --color-info: #00cfd5;
+            --color-info-light: #00cfd51a;
+            
+            /* Colores de fondo y texto */
+            --color-bg-primary: #f2f6fc;
+            --color-bg-secondary: #ffffff;
+            --color-bg-tertiary: #e5eaf4;
+            --color-text-primary: #1f2d41;
+            --color-text-secondary: #4a5568;
+            --color-text-muted: #69707a;
+            --color-border: #e3e6ec;
+            
+            /* Sombras */
+            --shadow-sm: 0 .125rem .25rem rgba(31, 45, 65, .1);
+            --shadow-md: 0 .25rem .5rem rgba(31, 45, 65, .15);
+            --shadow-lg: 0 .5rem 1rem rgba(31, 45, 65, .15);
+            --shadow-xl: 0 1rem 1.75rem rgba(31, 45, 65, .175);
+            
+            /* Bordes */
+            --radius-sm: 0.25rem;
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
+            --radius-xl: 1rem;
+            
+            /* Tipografía */
+            --font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            --font-size-xs: 0.75rem;
+            --font-size-sm: 0.875rem;
+            --font-size-md: 1rem;
+            --font-size-lg: 1.125rem;
+            --font-size-xl: 1.25rem;
+            --font-size-2xl: 1.5rem;
+            --font-size-3xl: 1.875rem;
+            
+            /* Espaciado */
+            --spacing-1: 0.25rem;
+            --spacing-2: 0.5rem;
+            --spacing-3: 0.75rem;
+            --spacing-4: 1rem;
+            --spacing-5: 1.5rem;
+            --spacing-6: 2rem;
+            
+            /* Transiciones */
+            --transition-fast: 150ms ease;
+            --transition-normal: 250ms ease;
+            --transition-slow: 350ms ease;
+        }
+        
+        /* Estilos base */
+        body {
+            font-family: var(--font-family);
+            font-size: var(--font-size-md);
+            color: var(--color-text-primary);
+            background-color: var(--color-bg-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        
+        /* Layout principal */
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        .app-header {
+            background-color: var(--color-bg-secondary);
+            box-shadow: var(--shadow-md);
+            position: sticky;
+            top: 0;
+            z-index: 1030;
+            padding: var(--spacing-3) var(--spacing-4);
+        }
+        
+        .app-content {
+            flex: 1;
+            padding: var(--spacing-5) var(--spacing-4);
+            max-width: 1800px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        
+        /* Tipografía */
+        h1, h2, h3, h4, h5, h6 {
+            font-weight: 600;
+            color: var(--color-text-primary);
+            margin-bottom: var(--spacing-4);
+        }
+        
+        h1 {
+            font-size: var(--font-size-3xl);
+            font-weight: 700;
+        }
+        
+        h5 {
+            font-size: var(--font-size-lg);
+            margin-bottom: 0;
+        }
+        
+        .text-muted {
+            color: var(--color-text-muted) !important;
+        }
+        
+        /* Componentes */
+        .card {
+            background-color: var(--color-bg-secondary);
+            border: none;
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-md);
+            transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+            margin-bottom: var(--spacing-5);
+            overflow: hidden;
+        }
+        
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .card-header {
+            background-color: transparent;
+            border-bottom: 1px solid var(--color-border);
+            padding: var(--spacing-4) var(--spacing-5);
+        }
+        
+        .card-header-gradient {
+            background: linear-gradient(to right, var(--color-primary), var(--color-secondary));
+            color: white;
+            border-bottom: none;
+        }
+        
+        .card-body {
+            padding: var(--spacing-5);
+        }
+        
+        .card-body.p-0 {
+            padding: 0;
+        }
+        
+        /* Botones */
+        .btn {
+            font-weight: 500;
+            padding: 0.6rem 1rem;
+            border-radius: var(--radius-md);
+            transition: all var(--transition-normal);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-2);
+            box-shadow: var(--shadow-sm);
+            border: none;
+            height: 38px;
+            font-size: 0.9rem;
+        }
+        
+        .btn-sm {
+            padding: 0.4rem 0.7rem;
+            font-size: 0.85rem;
+            height: 32px;
+        }
+        
+        .btn-primary {
+            background-color: var(--color-primary);
+            color: white;
+        }
+        
+        .btn-primary:hover, .btn-primary:focus {
+            background-color: var(--color-primary-dark);
+            box-shadow: 0 0 0 0.2rem var(--color-primary-light);
+        }
+        
+        .btn-success {
+            background-color: var(--color-success);
+            color: white;
+        }
+        
+        .btn-success:hover, .btn-success:focus {
+            background-color: #009059;
+            box-shadow: 0 0 0 0.2rem var(--color-success-light);
+        }
+        
+        .btn-light {
+            background-color: white;
+            color: var(--color-text-primary);
+            border: 1px solid var(--color-border);
+        }
+        
+        .btn-light:hover, .btn-light:focus {
+            background-color: var(--color-bg-tertiary);
+            color: var(--color-primary);
+            box-shadow: 0 0 0 0.2rem rgba(0, 97, 242, 0.1);
+        }
+        
+        .btn-icon {
+            width: 38px;
+            height: 38px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+        
+        .btn-icon.btn-sm {
+            width: 32px;
+            height: 32px;
+        }
+        
+        /* Tabla premium */
+        .table-container {
+            border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+            overflow: hidden;
+            background-color: white;
+        }
+        
+        .table-responsive {
+            overflow-x: auto;
+        }
+        
+        .premium-table {
+            margin-bottom: 0;
+        }
+        
+        .premium-table thead th {
+            background: linear-gradient(to bottom, #ffffff, var(--color-bg-tertiary));
+            font-weight: 600;
+            color: var(--color-text-primary);
+            font-size: var(--font-size-sm);
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+            border-bottom: 2px solid var(--color-border);
+            padding: var(--spacing-3) var(--spacing-4);
+            vertical-align: middle;
+            white-space: nowrap;
+        }
+        
+        .premium-table tbody td {
+            padding: var(--spacing-3) var(--spacing-4);
+            vertical-align: middle;
+            border-color: var(--color-border);
+            font-size: var(--font-size-sm);
+            color: var(--color-text-secondary);
+        }
+        
+        .premium-table tbody tr:hover td {
+            background-color: var(--color-primary-light);
+        }
+        
+        /* Estilos de hover para celdas */
+        .premium-table tbody tr:hover td {
+            background-color: var(--color-primary-light);
+        }
+        
+        .sticky-header {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            box-shadow: 0 2px 5px -2px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Personalización DataTables */
+        .dataTables_wrapper .row {
+            margin: 0;
+            padding: var(--spacing-4) var(--spacing-5);
+        }
+        
+        .dataTables_wrapper .dataTables_length select,
+        .dataTables_wrapper .dataTables_filter input {
+            padding: var(--spacing-2) var(--spacing-3);
+            font-size: var(--font-size-sm);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--color-border);
+            box-shadow: var(--shadow-sm);
+            background-color: white;
+        }
+        
+        .dataTables_wrapper .dataTables_filter input:focus {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 0.2rem var(--color-primary-light);
+            outline: none;
+        }
+        
+        .dataTables_wrapper .dataTables_paginate .paginate_button {
+            border-radius: var(--radius-md);
+            padding: var(--spacing-2) var(--spacing-3);
+            margin: 0 var(--spacing-1);
+        }
+        
+        .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+            background: var(--color-primary);
+            border-color: var(--color-primary);
+            color: white !important;
+        }
+        
+        .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+            background: var(--color-primary-light);
+            border-color: var(--color-primary);
+            color: var(--color-primary) !important;
+        }
+        
+        /* Animaciones y efectos */
+        @keyframes shimmer {
+            0% {
+                background-position: -1000px 0;
+            }
+            100% {
+                background-position: 1000px 0;
+            }
+        }
+        
+        .shimmer {
+            animation: shimmer 2.5s infinite linear;
+            background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0) 100%);
+            background-size: 1000px 100%;
+        }
+        
+        /* Estado de carga */
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            border-radius: var(--radius-xl);
+        }
+        
+        .spinner-border {
+            color: var(--color-primary);
+            width: 2.5rem;
+            height: 2.5rem;
+        }
+        
+        .btn .spinner-border {
+            width: 1rem;
+            height: 1rem;
+            vertical-align: -0.125em;
+        }
+        
+        /* Badges de estado */
+        .badge {
+            padding: var(--spacing-1) var(--spacing-2);
+            font-weight: 500;
+            font-size: var(--font-size-xs);
+            border-radius: var(--radius-sm);
+        }
+        
+        .badge-primary {
+            background-color: var(--color-primary-light);
+            color: var(--color-primary-dark);
+        }
+        
+        .badge-success {
+            background-color: var(--color-success-light);
+            color: var(--color-success);
+        }
+        
+        /* Estilos para SweetAlert */
+        .swal2-popup {
+            font-family: var(--font-family);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-xl);
+            padding: var(--spacing-5) !important;
+        }
+        
+        .swal2-title {
+            font-size: var(--font-size-xl) !important;
+            font-weight: 600 !important;
+            color: var(--color-text-primary) !important;
+        }
+        
+        .swal2-html-container {
+            font-size: var(--font-size-md) !important;
+            color: var(--color-text-secondary) !important;
+        }
+        
+        .swal2-confirm {
+            background-color: var(--color-primary) !important;
+            border-radius: var(--radius-md) !important;
+            font-weight: 500 !important;
+            box-shadow: var(--shadow-sm) !important;
+        }
+        
+        /* Sección de estadísticas */
+        .stats-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-4);
+            margin-bottom: var(--spacing-5);
+        }
+        
+        .stat-card {
+            background-color: var(--color-bg-secondary);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            padding: var(--spacing-4);
+            flex: 1;
+            min-width: 200px;
+            display: flex;
+            flex-direction: column;
+            transition: all var(--transition-normal);
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .stat-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-3);
+        }
+        
+        .stat-card-title {
+            font-size: var(--font-size-sm);
+            color: var(--color-text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 0;
+        }
+        
+        .stat-card-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: var(--font-size-lg);
+        }
+        
+        .stat-card-value {
+            font-size: var(--font-size-2xl);
+            font-weight: 700;
+            margin: 0;
+        }
+        
+        .stat-card-footer {
+            margin-top: auto;
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-2);
+            font-size: var(--font-size-xs);
+            color: var(--color-text-muted);
+        }
+        
+        .stat-card-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 2px;
+            padding: 2px 6px;
+            border-radius: 12px;
+            font-weight: 500;
+        }
+        
+        .stat-card-badge.positive {
+            background-color: var(--color-success-light);
+            color: var(--color-success);
+        }
+        
+        .stat-card-badge.negative {
+            background-color: var(--color-danger-light);
+            color: var(--color-danger);
+        }
+        
+        /* Barra de filtros */
+        .filters-bar {
+            background-color: var(--color-bg-secondary);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-3) var(--spacing-4);
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: var(--spacing-3);
+            margin-bottom: var(--spacing-5);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .filters-title {
+            font-size: var(--font-size-sm);
+            font-weight: 600;
+            color: var(--color-text-muted);
+            margin-right: var(--spacing-2);
+        }
+        
+        .filter-item {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .filter-item label {
+            font-size: var(--font-size-xs);
+            font-weight: 500;
+            color: var(--color-text-muted);
+            margin-bottom: var(--spacing-1);
+            display: block;
+        }
+        
+        .form-select, .form-control {
+            font-size: var(--font-size-sm);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--color-border);
+            padding: var(--spacing-2) var(--spacing-3);
+            box-shadow: var(--shadow-sm);
+            transition: all var(--transition-normal);
+        }
+        
+        .form-select:focus, .form-control:focus {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 0.2rem var(--color-primary-light);
+        }
+        
+        .filter-actions {
+            display: flex;
+            gap: var(--spacing-2);
+            margin-left: auto;
+        }
+        
+        /* Diseño responsive */
+        @media (max-width: 992px) {
+            .app-content {
+                padding: var(--spacing-4) var(--spacing-3);
+            }
+            
+            .card-header {
+                padding: var(--spacing-3) var(--spacing-4);
+            }
+            
+            .card-body {
+                padding: var(--spacing-4);
+            }
+            
+            .stats-row {
+                gap: var(--spacing-3);
+            }
+            
+            .stat-card {
+                flex: 1 1 calc(50% - var(--spacing-3));
+            }
+        }
+        
+        @media (max-width: 768px) {
+            h1 {
+                font-size: var(--font-size-2xl);
+            }
+            
+            .stats-row {
+                flex-direction: column;
+            }
+            
+            .stat-card {
+                width: 100%;
+            }
+            
+            .card-header .d-flex {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: var(--spacing-3);
+            }
+            
+            .card-header .d-flex > div {
+                width: 100%;
+            }
+            
+            .filters-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .filter-actions {
+                width: 100%;
+                margin-left: 0;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <div class="container-fluid">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center gap-3">
+                        <i class="bi bi-grid-3x3-gap-fill text-primary fs-4"></i>
+                        <h5>Dashboard de Distribución</h5>
+                    </div>
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="text-muted d-none d-md-inline">Última actualización: <span id="last-update">07/05/2025</span></span>
+                        <button id="refresh-btn" class="btn btn-light btn-sm">
+                            <i class="bi bi-arrow-repeat"></i>
+                            <span class="d-none d-md-inline">Actualizar Datos</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+        
+        <main class="app-content">
+            <h1>Distribución de Productos</h1>
+            
+            <!-- Sección de estadísticas -->
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <h6 class="stat-card-title">Total Registros</h6>
+                        <div class="stat-card-icon" style="background-color: var(--color-primary-light); color: var(--color-primary);">
+                            <i class="bi bi-files"></i>
+                        </div>
+                    </div>
+                    <p class="stat-card-value" id="total-records">0</p>
+                    <div class="stat-card-footer">
+                        <span id="records-change" class="stat-card-badge positive">
+                            <i class="bi bi-arrow-up-short"></i>0%
+                        </span>
+                        <span>vs semana anterior</span>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <h6 class="stat-card-title">Distribución Templo</h6>
+                        <div class="stat-card-icon" style="background-color: var(--color-success-light); color: var(--color-success);">
+                            <i class="bi bi-box-seam"></i>
+                        </div>
+                    </div>
+                    <p class="stat-card-value" id="total-templo">0</p>
+                    <div class="stat-card-footer">
+                        <span class="text-muted" id="templo-percent">0% del total</span>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <h6 class="stat-card-title">Distribución Shopping</h6>
+                        <div class="stat-card-icon" style="background-color: var(--color-info-light); color: var(--color-info);">
+                            <i class="bi bi-shop"></i>
+                        </div>
+                    </div>
+                    <p class="stat-card-value" id="total-shopping">0</p>
+                    <div class="stat-card-footer">
+                        <span class="text-muted" id="shopping-percent">0% del total</span>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <h6 class="stat-card-title">Referencias Únicas</h6>
+                        <div class="stat-card-icon" style="background-color: var(--color-secondary-light); color: var(--color-secondary);">
+                            <i class="bi bi-tags"></i>
+                        </div>
+                    </div>
+                    <p class="stat-card-value" id="unique-refs">0</p>
+                    <div class="stat-card-footer">
+                        <span class="text-muted">De <span id="total-refs">0</span> registradas</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Barra de filtros -->
+            <div class="filters-bar">
+                <span class="filters-title"><i class="bi bi-funnel me-1"></i> Filtros</span>
+                
+                <div class="filter-item">
+                    <label for="date-filter">Fecha</label>
+                    <select id="date-filter" class="form-select">
+                        <option value="all">Todas las fechas</option>
+                        <option value="today">Hoy</option>
+                        <option value="week">Esta semana</option>
+                        <option value="month">Este mes</option>
+                    </select>
+                </div>
+                
+                <div class="filter-item">
+                    <label for="location-filter">Planta</label>
+                    <select id="location-filter" class="form-select">
+                        <option value="all">Todas</option>
+                    </select>
+                </div>
+                
+                <div class="filter-item">
+                    <label for="product-filter">Tipo</label>
+                    <select id="product-filter" class="form-select">
+                        <option value="all">Todos</option>
+                    </select>
+                </div>
+                
+                <div class="filter-actions">
+                    <button id="apply-filters" class="btn btn-primary btn-sm">
+                        <i class="bi bi-check-lg"></i> Aplicar
+                    </button>
+                    <button id="reset-filters" class="btn btn-light btn-sm">
+                        <i class="bi bi-arrow-counterclockwise"></i> Limpiar
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Tabla principal -->
+            <div class="card" id="data-card">
+                <div class="card-header card-header-gradient">
+                    <div class="d-flex justify-content-between align-items-center w-100">
+                        <h5 class="text-white mb-0"><i class="bi bi-table me-2"></i>Productos y Distribuciones</h5>
+                        <div>
+                            <button id="export-excel" class="btn btn-sm btn-success me-2">
+                                <i class="bi bi-file-excel"></i> Exportar a Excel
+                            </button>
+                            <button id="toggle-columns" class="btn btn-sm btn-light">
+                                <i class="bi bi-columns-gap"></i> Columnas
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0 position-relative">
+                    <div class="loading-overlay" id="loading-overlay">
+                        <div class="text-center">
+                            <div class="spinner-border" role="status"></div>
+                            <div class="mt-3 text-muted">Cargando datos...</div>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <div class="table-responsive" style="max-height: 65vh;">
+                            <table id="distribution-table" class="table premium-table table-hover mb-0">
+                                <thead class="sticky-header">
+                                    <tr>
+                                        <th>OP</th>
+                                        <th>Fecha</th>
+                                        <th>Planta</th>
+                                        <th>Gestor</th>
+                                        <th>Auditor</th>
+                                        <th>Escáner</th>
+                                        <th>Lote</th>
+                                        <th>REF.PROV</th>
+                                        <th>Descripción</th>
+                                        <th>Cantidad</th>
+                                        <th>Referencia</th>
+                                        <th>Tipo</th>
+                                        <th>PVP</th>
+                                        <th>TP</th>
+                                        <th>Género</th>
+                                        <th>Proveedor</th>
+                                        <th>Color</th>
+                                        <th>Talla</th>
+                                        <th>Templo</th>
+                                        <th>Shopping</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal para selección de columnas -->
+    <div class="modal fade" id="columns-modal" tabindex="-1" aria-labelledby="columnsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="columnsModalLabel">Configuración de columnas</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row" id="columns-container">
+                        <!-- Contenido generado dinámicamente -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="save-columns">Aplicar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <!-- SheetJS (xlsx) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- FileSaver para guardar el archivo -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    
+
+    <script>
+        // Configuración de Toast
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer)
+                toast.addEventListener('mouseleave', Swal.resumeTimer)
+            }
+        });
+        
+            const API_URL = (async () => {
+      const apiKey = 'AIzaSyAn6o3jTwxe2ahhT-Aj03BWAS2ccE3NlE4';
+      const fetchSheet = async (id, range) => {
+        const url = `https://sheets.googleapis.com/v4/spreadsheets/${id}/values/${range}?key=${apiKey}`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`Error al obtener ${range}`);
+        return (await res.json()).values || [];
+      };
+      const parseJSON = str => {
+        try { return str ? JSON.parse(str) : null; } catch { return null; }
+      };
+
+      const [main, comp] = await Promise.all([
+        fetchSheet('133NiyjNApZGkEFs4jUvpJ9So-cSEzRVeW2FblwOCrjI', 'DATA2!A2:S'),
+        fetchSheet('1d5dCCCgiWXfM6vHu3zGGKlvK2EycJtT7Uk4JqUjDOfE', 'DATA!C2:C')
+      ]);
+
+      const compParsed = comp.map(r => parseJSON(r[0]));
+      return main.map(row => {
+        const doc = row[0]?.toString();
+        const compMatch = compParsed.find(c => c?.Documento === doc);
+        return {
+          A: row[0], FECHA: row[1], TALLER: row[2], LINEA: row[3],
+          AUDITOR: row[4], ESCANER: row[5], LOTE: row[6], REFPROV: row[7],
+          DESCRIPCIÓN: row[8], CANTIDAD: row[9], REFERENCIA: row[10],
+          TIPO: row[11], PVP: row[12], PRENDA: row[13], GENERO: row[14],
+          PROVEEDOR: row[15], ANEXOS: parseJSON(row[16]), HR: parseJSON(row[17]),
+          Clientes: compMatch ? compMatch.Clientes : null
+        };
+      });
+    })();
+
+        // URL de la API
+        /*const API_URL = "https://script.google.com/macros/s/AKfycbxvAb-hl2No_otFOvqSdFIgrDg1RU0Jh2JHB2kYyqksYi_to9gspsps3bbHLLj87JbG/exec";*/
+
+        
+        // Datos almacenados para exportación
+        let allData = [];
+        let processedRows = [];
+        let dataTable;
+        let columnsVisibility = {};
+        
+        // Opciones para filtros
+        let plantasOptions = [];
+        let tiposOptions = [];
+        
+        $(document).ready(function() {
+            // Inicializar la configuración de columnas
+            initColumnConfig();
+            
+            // Cargar datos iniciales
+            loadData();
+            
+            // Configurar eventos
+            $('#refresh-btn').click(loadData);
+            $('#export-excel').click(exportToExcel);
+            $('#toggle-columns').click(showColumnsModal);
+            $('#save-columns').click(saveColumnsConfig);
+            $('#apply-filters').click(applyFilters);
+            $('#reset-filters').click(resetFilters);
+            
+            // Actualizar la última fecha
+            updateLastUpdateDate();
+        });
+        
+        function initColumnConfig() {
+            const columns = [
+                { name: 'OP', visible: true },
+                { name: 'Fecha', visible: true },
+                { name: 'Planta', visible: true },
+                { name: 'Gestor', visible: true },
+                { name: 'Auditor', visible: true },
+                { name: 'Escáner', visible: false },
+                { name: 'Lote', visible: false },
+                { name: 'REF.PROV', visible: true },
+                { name: 'Descripción', visible: true },
+                { name: 'Cantidad', visible: true },
+                { name: 'Referencia', visible: true },
+                { name: 'Tipo', visible: true },
+                { name: 'PVP', visible: true },
+                { name: 'TP', visible: true },
+                { name: 'Género', visible: true },
+                { name: 'Proveedor', visible: false },
+                { name: 'Color', visible: true },
+                { name: 'Talla', visible: true },
+                { name: 'Templo', visible: true },
+                { name: 'Shopping', visible: true }
+            ];
+            
+            // Inicializar objeto de visibilidad
+            columns.forEach((col, index) => {
+                columnsVisibility[index] = col.visible;
+            });
+            
+            // Llenar contenedor del modal
+            const $columnsContainer = $('#columns-container');
+            columns.forEach((col, index) => {
+                const $columnCheck = $(`
+                    <div class="col-md-6 mb-2">
+                        <div class="form-check">
+                            <input class="form-check-input column-toggle" type="checkbox" value="${index}" id="col-${index}" ${col.visible ? 'checked' : ''}>
+                            <label class="form-check-label" for="col-${index}">${col.name}</label>
+                        </div>
+                    </div>
+                `);
+                $columnsContainer.append($columnCheck);
+            });
+        }
+        
+        function showColumnsModal() {
+            const modal = new bootstrap.Modal(document.getElementById('columns-modal'));
+            modal.show();
+        }
+        
+        function saveColumnsConfig() {
+            $('.column-toggle').each(function() {
+                const colIndex = parseInt($(this).val());
+                columnsVisibility[colIndex] = $(this).prop('checked');
+            });
+            
+            // Aplicar visibilidad a la tabla
+            if (dataTable) {
+                Object.keys(columnsVisibility).forEach(index => {
+                    dataTable.column(parseInt(index)).visible(columnsVisibility[index]);
+                });
+                
+                // Cerrar modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('columns-modal'));
+                modal.hide();
+                
+                // Notificar
+                Toast.fire({
+                    icon: 'success',
+                    title: 'Configuración de columnas guardada'
+                });
+            }
+        }
+        
+        function updateLastUpdateDate() {
+            const now = new Date();
+            const dateStr = now.toLocaleDateString() + ' ' + now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            $('#last-update').text(dateStr);
+        }
+        
+function loadData() {
+  $('#refresh-btn').prop('disabled', true);
+  $('#refresh-btn').html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> <span class="d-none d-md-inline">Cargando...</span>');
+  $('#export-excel').prop('disabled', true);
+  $('#loading-overlay').show();
+
+  API_URL.then(function(data) {
+    allData = data;
+    processData(data);
+    updateStats(data);
+    updateFilters(data);
+    $('#export-excel').prop('disabled', false);
+
+    Toast.fire({
+      icon: 'success',
+      title: 'Datos cargados correctamente'
+    });
+  }).catch(function(error) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Error al cargar datos',
+      text: error.message || 'No se pudo conectar con el servidor',
+      confirmButtonText: 'Entendido',
+      confirmButtonColor: 'var(--color-primary)'
+    });
+    console.error(error);
+  }).finally(function() {
+    $('#refresh-btn').prop('disabled', false);
+    $('#refresh-btn').html('<i class="bi bi-arrow-repeat"></i> <span class="d-none d-md-inline">Actualizar Datos</span>');
+    $('#loading-overlay').hide();
+    updateLastUpdateDate();
+  });
+}
+
+        
+        function processData(data) {
+            // Limpiar datos procesados
+            processedRows = [];
+            
+            data.forEach(item => {
+                if (item.Clientes) {
+                    // Procesar distribuciones de Templo
+                    if (item.Clientes.Templo && item.Clientes.Templo.distribucion) {
+                        item.Clientes.Templo.distribucion.forEach(dist => {
+                            const temploQty = dist.cantidad;
+                            const shoppingQty = findShoppingQuantity(item, dist.codigo, dist.talla);
+                            const rubenQty = findRubenQuantity(item, dist.codigo, dist.talla);
+                            
+                            const rowData = createRowData(item, dist.color, dist.talla, temploQty, shoppingQty, rubenQty);
+                            processedRows.push(rowData);
+                        });
+                    }
+                    
+                    // Procesar distribuciones de Shopping (por si hay tallas/colores no presentes en Templo)
+                    if (item.Clientes.Shopping && item.Clientes.Shopping.distribucion) {
+                        item.Clientes.Shopping.distribucion.forEach(dist => {
+                            // Verificar si ya se procesó esta combinación color/talla
+                            const exists = item.Clientes.Templo && item.Clientes.Templo.distribucion.some(d => 
+                                d.codigo === dist.codigo && d.talla === dist.talla);
+                            
+                            if (!exists) {
+                                const shoppingQty = dist.cantidad;
+                                const temploQty = 0;
+                                const rubenQty = findRubenQuantity(item, dist.codigo, dist.talla);
+                                
+                                const rowData = createRowData(item, dist.color, dist.talla, temploQty, shoppingQty, rubenQty);
+                                processedRows.push(rowData);
+                            }
+                        });
+                    }
+                    
+                    // Procesar distribuciones de Rubén (si existen y no están ya procesadas)
+                    if (item.Clientes.Ruben && item.Clientes.Ruben.distribucion) {
+                        item.Clientes.Ruben.distribucion.forEach(dist => {
+                            // Verificar si ya se procesó esta combinación color/talla
+                            const exists = (item.Clientes.Templo && item.Clientes.Templo.distribucion.some(d => 
+                                d.codigo === dist.codigo && d.talla === dist.talla)) || 
+                                (item.Clientes.Shopping && item.Clientes.Shopping.distribucion.some(d => 
+                                d.codigo === dist.codigo && d.talla === dist.talla));
+                            
+                            if (!exists) {
+                                const rubenQty = dist.cantidad;
+                                const temploQty = 0;
+                                const shoppingQty = 0;
+                                
+                                const rowData = createRowData(item, dist.color, dist.talla, temploQty, shoppingQty, rubenQty);
+                                processedRows.push(rowData);
+                            }
+                        });
+                    }
+                }
+            });
+            
+            // Renderizar tabla
+            renderTable(processedRows);
+        }
+        
+        function updateStats(data) {
+            let totalTemplo = 0;
+            let totalShopping = 0;
+            let uniqueRefs = new Set();
+            let totalRefs = 0;
+            
+            // Calcular estadísticas
+            processedRows.forEach(row => {
+                totalTemplo += parseInt(row.Templo) || 0;
+                totalShopping += parseInt(row.Shopping) || 0;
+                uniqueRefs.add(row.RefProv);
+                totalRefs++;
+            });
+            
+            // Actualizar UI
+            $('#total-records').text(processedRows.length);
+            $('#total-templo').text(totalTemplo);
+            $('#total-shopping').text(totalShopping);
+            $('#unique-refs').text(uniqueRefs.size);
+            $('#total-refs').text(totalRefs);
+            
+            // Calcular porcentajes
+            const total = totalTemplo + totalShopping;
+            if (total > 0) {
+                $('#templo-percent').text(Math.round((totalTemplo / total) * 100) + '% del total');
+                $('#shopping-percent').text(Math.round((totalShopping / total) * 100) + '% del total');
+            }
+            
+            // Cambio simulado para el badge
+            const randomChange = Math.floor(Math.random() * 20) - 10; // -10 a +10
+            const changeElement = $('#records-change');
+            
+            if (randomChange >= 0) {
+                changeElement.html(`<i class="bi bi-arrow-up-short"></i>+${randomChange}%`);
+                changeElement.removeClass('negative').addClass('positive');
+            } else {
+                changeElement.html(`<i class="bi bi-arrow-down-short"></i>${randomChange}%`);
+                changeElement.removeClass('positive').addClass('negative');
+            }
+        }
+        
+        function updateFilters(data) {
+            // Extraer opciones únicas para los filtros
+            plantasOptions = [...new Set(processedRows.map(row => row.Planta).filter(Boolean))];
+            tiposOptions = [...new Set(processedRows.map(row => row.Tipo).filter(Boolean))];
+            
+            // Actualizar selectores
+            const $locationFilter = $('#location-filter');
+            const $productFilter = $('#product-filter');
+            
+            // Preservar selecciones actuales
+            const currentLocation = $locationFilter.val();
+            const currentProduct = $productFilter.val();
+            
+            // Limpiar opciones existentes excepto la primera
+            $locationFilter.find('option:not(:first)').remove();
+            $productFilter.find('option:not(:first)').remove();
+            
+            // Añadir nuevas opciones
+            plantasOptions.forEach(planta => {
+                $locationFilter.append(`<option value="${planta}">${planta}</option>`);
+            });
+            
+            tiposOptions.forEach(tipo => {
+                $productFilter.append(`<option value="${tipo}">${tipo}</option>`);
+            });
+            
+            // Restaurar selecciones si existían
+            if (currentLocation && plantasOptions.includes(currentLocation)) {
+                $locationFilter.val(currentLocation);
+            }
+            
+            if (currentProduct && tiposOptions.includes(currentProduct)) {
+                $productFilter.val(currentProduct);
+            }
+        }
+        
+        function renderTable(rows) {
+            // Destruir tabla existente si ya fue inicializada
+            if (dataTable) {
+                dataTable.destroy();
+            }
+            
+            // Limpiar tbody
+            const $tbody = $('#distribution-table tbody');
+            $tbody.empty();
+            
+            // Añadir filas
+            rows.forEach(rowData => {
+                addTableRowFromData(rowData, $tbody);
+            });
+            
+            // Inicializar DataTables
+            dataTable = $('#distribution-table').DataTable({
+                scrollX: true,
+                scrollY: "65vh",
+                scrollCollapse: true,
+                paging: true,
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
+                },
+                pageLength: 25,
+                lengthMenu: [10, 25, 50, 100],
+                order: [[0, 'desc'], [1, 'desc']],
+                drawCallback: function() {
+                    
+                    // Aplicar configuración de visibilidad de columnas
+                    if (columnsVisibility) {
+                        Object.keys(columnsVisibility).forEach(index => {
+                            dataTable.column(parseInt(index)).visible(columnsVisibility[index]);
+                        });
+                    }
+                },
+                initComplete: function() {
+                    // Añadir clases de estilo al wrapper
+                    $('.dataTables_wrapper').addClass('pt-0');
+                }
+            });
+        }
+        
+        // Crea un objeto con los datos de la fila para exportar
+        function createRowData(item, color, talla, temploQty, shoppingQty, rubenQty) {
+            return {
+                OP: item.A || '',
+                Fecha: item.FECHA || '',
+                Planta: item.TALLER || '',
+                Gestor: item.LINEA || '',
+                Auditor: item.AUDITOR || '',
+                Escaner: item.ESCANER || '',
+                Lote: item.LOTE || '',
+                RefProv: item.REFPROV || '',
+                Descripcion: item.DESCRIPCIÓN || '',
+                Cantidad: item.CANTIDAD || '',
+                Referencia: item.REFERENCIA || '',
+                Tipo: item.TIPO || '',
+                PVP: item.PVP || '',
+                TP: item.PRENDA || '',
+                Genero: item.GENERO || '',
+                Proveedor: item.PROVEEDOR || '',
+                Color: color || '',
+                Talla: talla || '',
+                Templo: temploQty || 0,
+                Shopping: shoppingQty || 0
+            };
+        }
+        
+        // Agrega una fila a la tabla a partir de un objeto de datos
+        function addTableRowFromData(rowData, $tbody) {
+            const                 $row = $(`
+                <tr>
+                    <td>${rowData.OP}</td>
+                    <td>${rowData.Fecha}</td>
+                    <td>${rowData.Planta}</td>
+                    <td>${rowData.Gestor}</td>
+                    <td>${rowData.Auditor}</td>
+                    <td>${rowData.Escaner}</td>
+                    <td>${rowData.Lote}</td>
+                    <td>${rowData.RefProv}</td>
+                    <td>${rowData.Descripcion}</td>
+                    <td>${rowData.Cantidad}</td>
+                    <td>${rowData.Referencia}</td>
+                    <td>${rowData.Tipo}</td>
+                    <td>${rowData.PVP}</td>
+                    <td>${rowData.TP}</td>
+                    <td>${rowData.Genero}</td>
+                    <td>${rowData.Proveedor}</td>
+                    <td>${rowData.Color}</td>
+                    <td>${rowData.Talla}</td>
+                    <td>${rowData.Templo}</td>
+                    <td>${rowData.Shopping}</td>
+                </tr>
+            `);
+            
+            $tbody.append($row);
+        }
+        
+        function findShoppingQuantity(item, codigo, talla) {
+            if (item.Clientes && item.Clientes.Shopping && item.Clientes.Shopping.distribucion) {
+                const dist = item.Clientes.Shopping.distribucion.find(d => 
+                    d.codigo === codigo && d.talla === talla);
+                return dist ? dist.cantidad : 0;
+            }
+            return 0;
+        }
+        
+        function findRubenQuantity(item, codigo, talla) {
+            if (item.Clientes && item.Clientes.Ruben && item.Clientes.Ruben.distribucion) {
+                const dist = item.Clientes.Ruben.distribucion.find(d => 
+                    d.codigo === codigo && d.talla === talla);
+                return dist ? dist.cantidad : 0;
+            }
+            return 0;
+        }
+        
+        function applyFilters() {
+            const dateFilter = $('#date-filter').val();
+            const locationFilter = $('#location-filter').val();
+            const productFilter = $('#product-filter').val();
+            
+            let filteredRows = [...processedRows];
+            
+            // Filtrar por fecha
+            if (dateFilter !== 'all') {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                const weekStart = new Date(today);
+                weekStart.setDate(today.getDate() - today.getDay());
+                
+                const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+                
+                filteredRows = filteredRows.filter(row => {
+                    if (!row.Fecha) return false;
+                    
+                    const rowDate = parseDate(row.Fecha);
+                    if (!rowDate) return false;
+                    
+                    if (dateFilter === 'today') {
+                        return isSameDay(rowDate, today);
+                    } else if (dateFilter === 'week') {
+                        return rowDate >= weekStart;
+                    } else if (dateFilter === 'month') {
+                        return rowDate >= monthStart;
+                    }
+                    return true;
+                });
+            }
+            
+            // Filtrar por planta
+            if (locationFilter !== 'all') {
+                filteredRows = filteredRows.filter(row => row.Planta === locationFilter);
+            }
+            
+            // Filtrar por tipo
+            if (productFilter !== 'all') {
+                filteredRows = filteredRows.filter(row => row.Tipo === productFilter);
+            }
+            
+            // Renderizar tabla filtrada
+            renderTable(filteredRows);
+            
+            // Mostrar mensaje de filtros aplicados
+            Toast.fire({
+                icon: 'info',
+                title: `Mostrando ${filteredRows.length} de ${processedRows.length} registros`
+            });
+        }
+        
+        function resetFilters() {
+            $('#date-filter').val('all');
+            $('#location-filter').val('all');
+            $('#product-filter').val('all');
+            
+            // Renderizar todos los datos
+            renderTable(processedRows);
+            
+            // Notificar
+            Toast.fire({
+                icon: 'success',
+                title: 'Filtros restablecidos'
+            });
+        }
+        
+        // Helpers para manejo de fechas
+        function parseDate(dateStr) {
+            if (!dateStr) return null;
+            
+            // Detectar formato (DD/MM/YYYY o YYYY-MM-DD)
+            let parts;
+            if (dateStr.includes('/')) {
+                parts = dateStr.split('/');
+                return new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+            } else if (dateStr.includes('-')) {
+                parts = dateStr.split('-');
+                return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+            }
+            
+            return null;
+        }
+        
+        function isSameDay(date1, date2) {
+            return date1.getDate() === date2.getDate() &&
+                date1.getMonth() === date2.getMonth() &&
+                date1.getFullYear() === date2.getFullYear();
+        }
+        
+        // Función para exportar los datos a Excel
+        function exportToExcel() {
+            if (!processedRows || processedRows.length === 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'No hay datos',
+                    text: 'No hay datos disponibles para exportar',
+                    confirmButtonText: 'Entendido',
+                    confirmButtonColor: 'var(--color-primary)'
+                });
+                return;
+            }
+            
+            // Mostrar notificación de procesamiento
+            Toast.fire({
+                icon: 'info',
+                title: 'Generando archivo Excel...'
+            });
+            
+            // Si hay un filtro aplicado, exportar solo los datos filtrados
+            let dataToExport = processedRows;
+            
+            if (dataTable) {
+                const indexes = dataTable.rows({ search: 'applied' }).indexes();
+                if (indexes.length < processedRows.length) {
+                    dataToExport = [];
+                    indexes.each(idx => {
+                        dataToExport.push(processedRows[idx]);
+                    });
+                }
+            }
+            
+            try {
+                // Crear una hoja de trabajo
+                const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+                
+                // Aplicar estilos (cabeceras en negrita)
+                const range = XLSX.utils.decode_range(worksheet['!ref']);
+                for (let col = range.s.c; col <= range.e.c; col++) {
+                    const cellRef = XLSX.utils.encode_cell({ r: 0, c: col });
+                    if (worksheet[cellRef]) {
+                        worksheet[cellRef].s = { font: { bold: true } };
+                    }
+                }
+                
+                // Crear un libro de trabajo y añadir la hoja
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, "Distribución");
+                
+                // Generar el archivo Excel
+                const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+                
+                // Obtener la fecha actual para el nombre del archivo
+                const now = new Date();
+                const dateStr = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}`;
+                const timeStr = `${now.getHours().toString().padStart(2, '0')}-${now.getMinutes().toString().padStart(2, '0')}`;
+                
+                // Guardar como archivo Excel
+                const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+                saveAs(blob, `Distribucion_Productos_${dateStr}_${timeStr}.xlsx`);
+                
+                // Notificar éxito
+                Toast.fire({
+                    icon: 'success',
+                    title: `Excel exportado con éxito (${dataToExport.length} registros)`
+                });
+            } catch (error) {
+                console.error("Error al exportar a Excel:", error);
+                
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error al exportar',
+                    text: 'Ocurrió un error al generar el archivo Excel',
+                    confirmButtonText: 'Entendido',
+                    confirmButtonColor: 'var(--color-primary)'
+                });
+            }
+        }
+    </script>
