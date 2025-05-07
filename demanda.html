@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualizador de Distribuciones</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        .table-responsive {
+            overflow-x: auto;
+        }
+        .table th {
+            white-space: nowrap;
+            position: relative;
+            background-color: #f8f9fa;
+        }
+        .table td {
+            vertical-align: middle;
+        }
+        .highlight {
+            background-color: #fffde7 !important;
+        }
+        .fixed-column {
+            position: sticky;
+            left: 0;
+            z-index: 1;
+            background-color: white;
+        }
+        .second-fixed {
+            position: sticky;
+            left: 150px;
+            z-index: 1;
+            background-color: white;
+        }
+        .sticky-header {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+        .total-cell {
+            font-weight: bold;
+            background-color: #f3f4f6 !important;
+        }
+        .dt-buttons {
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid mt-3">
+        <h1 class="mb-4 text-center">Distribución de Productos</h1>
+        
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Datos de Distribución</h5>
+                    <div>
+                        <button id="export-excel" class="btn btn-sm btn-success me-2">
+                            <i class="bi bi-file-excel"></i> Exportar a Excel
+                        </button>
+                        <button id="refresh-btn" class="btn btn-sm btn-light">
+                            <i class="bi bi-arrow-repeat"></i> Actualizar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body p-0">
+                <div class="table-responsive" style="max-height: 80vh;">
+                    <table id="distribution-table" class="table table-bordered table-hover table-striped mb-0">
+                        <thead class="sticky-header">
+                            <tr>
+                                <th>OP</th>
+                                <th>Fecha</th>
+                                <th>Planta</th>
+                                <th>Gestor</th>
+                                <th>Auditor</th>
+                                <th>Escáner</th>
+                                <th>Lote</th>
+                                <th>REF.PROV</th>
+                                <th>Descripción</th>
+                                <th>Cantidad</th>
+                                <th>Referencia</th>
+                                <th>Tipo</th>
+                                <th>PVP</th>
+                                <th>TP</th>
+                                <th>Género</th>
+                                <th>Proveedor</th>
+                                <th>Color</th>
+                                <th>Talla</th>
+                                <th>Total</th>
+                                <th>Templo</th>
+                                <th>Shopping</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <!-- SheetJS (xlsx) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- FileSaver para guardar el archivo -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    
+    <script>
+        // URL de tu API
+        const API_URL = "https://script.google.com/macros/s/AKfycbxvAb-hl2No_otFOvqSdFIgrDg1RU0Jh2JHB2kYyqksYi_to9gspsps3bbHLLj87JbG/exec";
+        
+        // Datos almacenados para exportación
+        let allData = [];
+        
+        $(document).ready(function() {
+            loadData();
+            
+            // Configurar evento de actualización
+            $('#refresh-btn').click(loadData);
+            
+            // Configurar evento de exportación a Excel
+            $('#export-excel').click(exportToExcel);
+        });
+        
+        function loadData() {
+            $('#refresh-btn').prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Cargando...');
+            $('#export-excel').prop('disabled', true);
+            
+            $.ajax({
+                url: API_URL,
+                type: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                    allData = data; // Almacenar los datos para exportación
+                    renderTable(data);
+                    $('#export-excel').prop('disabled', false);
+                },
+                error: function(xhr, status, error) {
+                    alert('Error al cargar los datos: ' + error);
+                    console.error(xhr);
+                },
+                complete: function() {
+                    $('#refresh-btn').prop('disabled', false).html('<i class="bi bi-arrow-repeat"></i> Actualizar');
+                }
+            });
+        }
+        
+        function renderTable(data) {
+            // Destruir la tabla existente si ya fue inicializada
+            if ($.fn.DataTable.isDataTable('#distribution-table')) {
+                $('#distribution-table').DataTable().destroy();
+            }
+            
+            const $tbody = $('#distribution-table tbody');
+            $tbody.empty();
+            
+            // Array para almacenar todas las filas procesadas
+            const processedRows = [];
+            
+            data.forEach(item => {
+                if (item.Clientes) {
+                    // Procesar distribuciones de Templo
+                    if (item.Clientes.Templo && item.Clientes.Templo.distribucion) {
+                        item.Clientes.Templo.distribucion.forEach(dist => {
+                            const temploQty = dist.cantidad;
+                            const shoppingQty = findShoppingQuantity(item, dist.codigo, dist.talla);
+                            const rubenQty = findRubenQuantity(item, dist.codigo, dist.talla);
+                            
+                            const rowData = createRowData(item, dist.color, dist.talla, temploQty, shoppingQty, rubenQty);
+                            processedRows.push(rowData);
+                            addTableRowFromData(rowData, $tbody);
+                        });
+                    }
+                    
+                    // Procesar distribuciones de Shopping (por si hay tallas/colores no presentes en Templo)
+                    if (item.Clientes.Shopping && item.Clientes.Shopping.distribucion) {
+                        item.Clientes.Shopping.distribucion.forEach(dist => {
+                            // Verificar si ya se procesó esta combinación color/talla
+                            const exists = item.Clientes.Templo && item.Clientes.Templo.distribucion.some(d => 
+                                d.codigo === dist.codigo && d.talla === dist.talla);
+                            
+                            if (!exists) {
+                                const shoppingQty = dist.cantidad;
+                                const temploQty = 0;
+                                const rubenQty = findRubenQuantity(item, dist.codigo, dist.talla);
+                                
+                                const rowData = createRowData(item, dist.color, dist.talla, temploQty, shoppingQty, rubenQty);
+                                processedRows.push(rowData);
+                                addTableRowFromData(rowData, $tbody);
+                            }
+                        });
+                    }
+                    
+                    // Procesar distribuciones de Rubén (si existen y no están ya procesadas)
+                    if (item.Clientes.Ruben && item.Clientes.Ruben.distribucion) {
+                        item.Clientes.Ruben.distribucion.forEach(dist => {
+                            // Verificar si ya se procesó esta combinación color/talla
+                            const exists = (item.Clientes.Templo && item.Clientes.Templo.distribucion.some(d => 
+                                d.codigo === dist.codigo && d.talla === dist.talla)) || 
+                                (item.Clientes.Shopping && item.Clientes.Shopping.distribucion.some(d => 
+                                d.codigo === dist.codigo && d.talla === dist.talla));
+                            
+                            if (!exists) {
+                                const rubenQty = dist.cantidad;
+                                const temploQty = 0;
+                                const shoppingQty = 0;
+                                
+                                const rowData = createRowData(item, dist.color, dist.talla, temploQty, shoppingQty, rubenQty);
+                                processedRows.push(rowData);
+                                addTableRowFromData(rowData, $tbody);
+                            }
+                        });
+                    }
+                }
+            });
+            
+            // Guardar las filas procesadas para la exportación
+            window.processedTableData = processedRows;
+            
+            // Inicializar DataTable después de cargar los datos
+            $('#distribution-table').DataTable({
+                scrollX: true,
+                scrollY: "65vh",
+                scrollCollapse: true,
+                paging: true,
+                fixedColumns: {
+                    left: 2
+                },
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
+                },
+                pageLength: 50,
+                order: [[0, 'desc'], [1, 'desc']]
+            });
+            
+            // Asegurar que las columnas fijas tengan el fondo correcto después de renderizar
+            $('.fixed-column, .second-fixed').each(function() {
+                $(this).css('background-color', $(this).closest('tr').css('background-color'));
+            });
+        }
+        
+        // Crea un objeto con los datos de la fila para exportar
+        function createRowData(item, color, talla, temploQty, shoppingQty, rubenQty) {
+            const total = parseInt(temploQty || 0) + parseInt(shoppingQty || 0) + parseInt(rubenQty || 0);
+            
+            return {
+                OP: item.A || '',
+                Fecha: item.FECHA || '',
+                Planta: item.TALLER || '',
+                Gestor: item.LINEA || '',
+                Auditor: item.AUDITOR || '',
+                Escaner: item.ESCANER || '',
+                Lote: item.LOTE || '',
+                RefProv: item.REFPROV || '',
+                Descripcion: item.DESCRIPCIÓN || '',
+                Cantidad: item.CANTIDAD || '',
+                Referencia: item.REFERENCIA || '',
+                Tipo: item.TIPO || '',
+                PVP: item.PVP || '',
+                TP: item.PRENDA || '',
+                Genero: item.GENERO || '',
+                Proveedor: item.PROVEEDOR || '',
+                Color: color || '',
+                Talla: talla || '',
+                Total: total,
+                Templo: temploQty || 0,
+                Shopping: shoppingQty || 0
+            };
+        }
+        
+        // Agrega una fila a la tabla a partir de un objeto de datos
+        function addTableRowFromData(rowData, $tbody) {
+            const $row = $(`
+                <tr>
+                    <td>${rowData.OP}</td>
+                    <td>${rowData.Fecha}</td>
+                    <td>${rowData.Planta}</td>
+                    <td>${rowData.Gestor}</td>
+                    <td>${rowData.Auditor}</td>
+                    <td>${rowData.Escaner}</td>
+                    <td>${rowData.Lote}</td>
+                    <td>${rowData.RefProv}</td>
+                    <td>${rowData.Descripcion}</td>
+                    <td>${rowData.Cantidad}</td>
+                    <td>${rowData.Referencia}</td>
+                    <td>${rowData.Tipo}</td>
+                    <td>${rowData.PVP}</td>
+                    <td>${rowData.TP}</td>
+                    <td>${rowData.Genero}</td>
+                    <td>${rowData.Proveedor}</td>
+                    <td>${rowData.Color}</td>
+                    <td>${rowData.Talla}</td>
+                    <td>${rowData.Total}</td>
+                    <td>${rowData.Templo}</td>
+                    <td>${rowData.Shopping}</td>
+                </tr>
+            `);
+            
+            $tbody.append($row);
+        }
+        
+        function findShoppingQuantity(item, codigo, talla) {
+            if (item.Clientes && item.Clientes.Shopping && item.Clientes.Shopping.distribucion) {
+                const dist = item.Clientes.Shopping.distribucion.find(d => 
+                    d.codigo === codigo && d.talla === talla);
+                return dist ? dist.cantidad : 0;
+            }
+            return 0;
+        }
+        
+        function findRubenQuantity(item, codigo, talla) {
+            if (item.Clientes && item.Clientes.Ruben && item.Clientes.Ruben.distribucion) {
+                const dist = item.Clientes.Ruben.distribucion.find(d => 
+                    d.codigo === codigo && d.talla === talla);
+                return dist ? dist.cantidad : 0;
+            }
+            return 0;
+        }
+        
+        // Función para exportar los datos a Excel
+        function exportToExcel() {
+            if (!window.processedTableData || window.processedTableData.length === 0) {
+                alert('No hay datos para exportar');
+                return;
+            }
+            
+            // Crear una hoja de trabajo
+            const worksheet = XLSX.utils.json_to_sheet(window.processedTableData);
+            
+            // Crear un libro de trabajo y añadir la hoja
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Distribución");
+            
+            // Generar el archivo Excel
+            const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+            
+            // Obtener la fecha actual para el nombre del archivo
+            const now = new Date();
+            const dateStr = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}`;
+            const timeStr = `${now.getHours().toString().padStart(2, '0')}-${now.getMinutes().toString().padStart(2, '0')}`;
+            
+            // Guardar como archivo Excel
+            const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+            saveAs(blob, `Distribucion_Productos_${dateStr}_${timeStr}.xlsx`);
+        }
+    </script>
+</body>
+</html>
