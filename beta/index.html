@@ -7,7 +7,7 @@
   <meta name="description" content="Sistema profesional de control de tiempo con persistencia total">
   <title>TimeTracker Premium</title>
   
-  <!-- PWA Manifest -->
+  <!-- PWA: Enlaces para iconos y manifest -->
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
@@ -22,51 +22,169 @@
   <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
   
   <style>
-    /* Estilos compactos y mejorados */
+    /* ====== Variables de Diseño ====== */
     :root {
+      /* Colores corporativos */
       --color-primary: #0061ff;
       --color-primary-hover: #004ecc;
+      --color-primary-light: rgba(0, 97, 255, 0.1);
+      --color-primary-light-hover: rgba(0, 97, 255, 0.15);
+      
       --color-danger: #dc3545;
+      --color-danger-hover: #bb2d3b;
+      
       --color-success: #198754;
+      --color-success-hover: #167c4b;
+      
       --color-warning: #f59e0b;
+      --color-warning-hover: #d97706;
+      
+      /* Neutros */
       --color-bg: #f8f9fa;
       --color-bg-elevated: #ffffff;
+      --color-bg-muted: #f1f3f5;
+      --color-bg-dark: #212529;
+      
       --color-text-primary: #212529;
       --color-text-secondary: #6c757d;
+      --color-text-muted: #adb5bd;
+      --color-text-light: #f8f9fa;
+      
       --color-border: rgba(33, 37, 41, 0.12);
+      --color-separator: rgba(33, 37, 41, 0.08);
+      
+      /* Modo oscuro presets */
+      --dark-bg: #111827;
+      --dark-bg-elevated: #1f2937;
+      --dark-bg-muted: #374151;
+      --dark-text-primary: #f8f9fa;
+      --dark-text-secondary: #d1d5db;
+      --dark-text-muted: #9ca3af;
+      --dark-border: rgba(255, 255, 255, 0.12);
+      --dark-separator: rgba(255, 255, 255, 0.06);
+      
+      /* Dimensiones y espaciado */
+      --radius-sm: 4px;
       --radius-md: 8px;
+      --radius-lg: 12px;
+      --radius-xl: 16px;
+      --radius-full: 9999px;
+      
+      --space-1: 4px;
+      --space-2: 8px;
       --space-3: 12px;
       --space-4: 16px;
-      --font-sans: 'Inter', sans-serif;
+      --space-5: 24px;
+      --space-6: 32px;
+      --space-7: 48px;
+      --space-8: 64px;
+      
+      /* Tipografía */
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
       --font-mono: 'Roboto Mono', monospace;
+      
+      --font-size-xs: 0.75rem;
+      --font-size-sm: 0.875rem;
+      --font-size-md: 1rem;
+      --font-size-lg: 1.125rem;
+      --font-size-xl: 1.25rem;
+      --font-size-2xl: 1.5rem;
+      --font-size-3xl: 1.875rem;
+      --font-size-4xl: 2.25rem;
+      --font-size-5xl: 3rem;
+      
+      /* Efectos */
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      
+      /* Transiciones */
+      --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+      --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+      --transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
+      
+      /* Z-index */
+      --z-dropdown: 1000;
+      --z-modal: 1050;
+      --z-tooltip: 1080;
+    }
+    
+    /* ====== Reset y Estilos Base ====== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    html {
+      height: 100%;
+      font-size: 16px;
+      line-height: 1.5;
+      -webkit-text-size-adjust: 100%;
+      scroll-behavior: smooth;
     }
     
     body {
+      height: 100%;
       font-family: var(--font-sans);
-      background-color: var(--color-bg);
+      font-weight: 400;
       color: var(--color-text-primary);
-      margin: 0;
-      padding: var(--space-4);
-      min-height: 100vh;
+      background-color: var(--color-bg);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      overflow-x: hidden;
+      position: relative;
     }
     
+    [data-theme="dark"] {
+      --color-bg: var(--dark-bg);
+      --color-bg-elevated: var(--dark-bg-elevated);
+      --color-bg-muted: var(--dark-bg-muted);
+      
+      --color-text-primary: var(--dark-text-primary);
+      --color-text-secondary: var(--dark-text-secondary);
+      --color-text-muted: var(--dark-text-muted);
+      
+      --color-border: var(--dark-border);
+      --color-separator: var(--dark-separator);
+      
+      color-scheme: dark;
+    }
+    
+    /* ====== Layout Principal ====== */
     .app-container {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      max-width: 1200px;
+      height: 100%;
+      min-height: 100vh;
+      margin: 0 auto;
+      padding: var(--space-4);
+    }
+    
+    .app-content {
+      flex: 1;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      padding: var(--space-4) 0;
+    }
+    
+    main {
+      flex: 1;
+      width: 100%;
       max-width: 800px;
       margin: 0 auto;
-      background: var(--color-bg-elevated);
-      border-radius: var(--radius-md);
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      overflow: hidden;
-      border: 1px solid var(--color-border);
     }
     
     .app-header {
-      padding: var(--space-4);
-      background: var(--color-primary);
-      color: white;
+      padding-top: var(--space-5);
+      padding-bottom: var(--space-5);
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      justify-content: space-between;
     }
     
     .brand {
@@ -76,414 +194,2036 @@
     }
     
     .brand-logo {
-      width: 36px;
-      height: 36px;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: rgba(255, 255, 255, 0.2);
+      width: 42px;
+      height: 42px;
       border-radius: var(--radius-md);
+      background: var(--color-primary);
+      color: white;
+      font-size: var(--font-size-xl);
     }
     
     .brand-name {
-      font-weight: 600;
-      font-size: 1.25rem;
+      font-size: var(--font-size-2xl);
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      line-height: 1.2;
+      color: var(--color-text-primary);
+    }
+    
+    .brand-subtitle {
+      display: block;
+      font-size: var(--font-size-sm);
+      font-weight: 400;
+      color: var(--color-text-secondary);
+    }
+    
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
     }
     
     .theme-toggle {
-      background: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-full);
+      background: var(--color-bg-muted);
+      color: var(--color-text-secondary);
       border: none;
-      color: white;
-      font-size: 1.2rem;
       cursor: pointer;
+      transition: var(--transition-fast);
     }
     
+    .theme-toggle:hover {
+      background: var(--color-primary-light);
+      color: var(--color-primary);
+    }
+    
+    .app-footer {
+      padding: var(--space-5) 0;
+      text-align: center;
+      font-size: var(--font-size-sm);
+      color: var(--color-text-secondary);
+    }
+    
+    /* ====== Componentes ====== */
     .card {
-      padding: var(--space-4);
+      background-color: var(--color-bg-elevated);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      overflow: hidden;
+      transition: var(--transition-normal);
     }
     
+    .card-header {
+      padding: var(--space-5);
+      border-bottom: 1px solid var(--color-separator);
+    }
+    
+    .card-title {
+      font-size: var(--font-size-xl);
+      font-weight: 600;
+      color: var(--color-text-primary);
+      line-height: 1.3;
+    }
+    
+    .card-subtitle {
+      font-size: var(--font-size-sm);
+      color: var(--color-text-secondary);
+      margin-top: var(--space-1);
+    }
+    
+    .card-body {
+      padding: var(--space-5);
+    }
+    
+    .card-footer {
+      padding: var(--space-4) var(--space-5);
+      border-top: 1px solid var(--color-separator);
+      background-color: var(--color-bg-muted);
+    }
+    
+    /* ====== Selector de Usuario ====== */
     .user-selection {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
       gap: var(--space-3);
-      margin: var(--space-4) 0;
+      margin: var(--space-5) 0;
     }
     
     .user-btn {
-      padding: var(--space-3);
-      background: var(--color-bg);
+      position: relative;
+      appearance: none;
+      background-color: var(--color-bg-elevated);
       border: 1px solid var(--color-border);
       border-radius: var(--radius-md);
+      color: var(--color-text-primary);
+      font-family: var(--font-sans);
+      font-size: var(--font-size-md);
+      font-weight: 500;
+      padding: var(--space-4);
+      text-align: center;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: var(--transition-fast);
+      overflow: hidden;
     }
     
-    .user-btn:hover {
+    .user-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      background-color: var(--color-primary);
+      opacity: 0;
+      transition: var(--transition-fast);
+    }
+    
+    .user-btn:hover, .user-btn:focus {
       border-color: var(--color-primary);
       transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+    
+    .user-btn:hover::before {
+      opacity: 0.05;
+    }
+    
+    .user-btn:active {
+      transform: translateY(0);
+    }
+    
+    .user-btn::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background-color: var(--color-primary);
+      transform: scaleX(0);
+      transition: var(--transition-normal);
+    }
+    
+    .user-btn:hover::after {
+      transform: scaleX(1);
+    }
+    
+    .user-btn span {
+      position: relative;
+      z-index: 1;
+    }
+    
+    /* ====== Timer & Controls ====== */
+    .user-selected {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-size: var(--font-size-md);
+      color: var(--color-text-secondary);
+      margin-bottom: var(--space-4);
+    }
+    
+    .user-selected i {
+      color: var(--color-primary);
+    }
+    
+    .user-selected strong {
+      font-weight: 600;
+      color: var(--color-text-primary);
+    }
+    
+    .timer-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: var(--space-5) 0;
+    }
+    
+    .timer-display-wrapper {
+      position: relative;
+      width: 100%;
+      max-width: 300px;
+      margin: var(--space-5) auto;
     }
     
     .timer-display {
-      text-align: center;
-      margin: var(--space-4) 0;
-      font-family: var(--font-mono);
-      font-size: 2.5rem;
-      font-weight: 600;
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      aspect-ratio: 2 / 1;
+      border-radius: var(--radius-lg);
+      background: linear-gradient(160deg, var(--color-bg-elevated) 0%, var(--color-bg-muted) 100%);
+      box-shadow: var(--shadow-lg);
     }
     
+    .timer-display::before {
+      content: '';
+      position: absolute;
+      inset: 2px;
+      border-radius: calc(var(--radius-lg) - 2px);
+      background: var(--color-bg-elevated);
+      z-index: 1;
+    }
+    
+    .timer-display::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 20%;
+      width: 60%;
+      height: 4px;
+      border-radius: var(--radius-full);
+      background: linear-gradient(90deg, transparent, var(--color-primary), transparent);
+      z-index: 2;
+      opacity: 0.6;
+    }
+    
+    .time-value {
+      font-family: var(--font-mono);
+      font-size: clamp(2.5rem, 8vw, 3.5rem);
+      font-weight: 600;
+      color: var(--color-text-primary);
+      position: relative;
+      z-index: 2;
+    }
+    
+    .time-active .time-value {
+      background: linear-gradient(135deg, var(--color-primary) 0%, #60a5fa 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      color: transparent;
+    }
+    
+    .timer-status {
+      position: absolute;
+      top: -12px;
+      right: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+      padding: var(--space-2) var(--space-3);
+      border-radius: var(--radius-full);
+      font-size: var(--font-size-xs);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      z-index: 3;
+      box-shadow: var(--shadow-sm);
+    }
+    
+    .status-running {
+      background-color: var(--color-success);
+      color: white;
+    }
+    
+    .status-paused {
+      background-color: var(--color-warning);
+      color: white;
+    }
+    
+    .status-inactive, .status-finished {
+      background-color: var(--color-text-secondary);
+      color: white;
+    }
+    
+    /* Controles */
     .controls {
       display: flex;
-      gap: var(--space-3);
       justify-content: center;
+      gap: var(--space-4);
       margin: var(--space-4) 0;
     }
     
     .btn {
-      padding: var(--space-3) var(--space-4);
-      border: none;
-      border-radius: var(--radius-md);
-      color: white;
-      font-weight: 500;
-      cursor: pointer;
-      display: flex;
+      position: relative;
+      display: inline-flex;
       align-items: center;
-      gap: var(--space-3);
+      justify-content: center;
+      gap: var(--space-2);
+      min-width: 140px;
+      padding: var(--space-3) var(--space-5);
+      border-radius: var(--radius-md);
+      font-family: var(--font-sans);
+      font-size: var(--font-size-md);
+      font-weight: 500;
+      text-align: center;
+      border: none;
+      outline: none;
+      cursor: pointer;
+      transition: var(--transition-fast);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+    
+    .btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-color: rgba(255, 255, 255, 0.1);
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+    }
+    
+    .btn:hover::before,
+    .btn:focus::before {
+      transform: translateX(0);
+    }
+    
+    .btn:focus {
+      outline: 2px solid var(--color-primary-light);
+      outline-offset: 2px;
     }
     
     .btn-primary {
-      background: var(--color-primary);
+      background-color: var(--color-primary);
+      color: white;
+    }
+    
+    .btn-primary:hover,
+    .btn-primary:focus {
+      background-color: var(--color-primary-hover);
+    }
+    
+    .btn-warning {
+      background-color: var(--color-warning);
+      color: white;
+    }
+    
+    .btn-warning:hover,
+    .btn-warning:focus {
+      background-color: var(--color-warning-hover);
     }
     
     .btn-danger {
-      background: var(--color-danger);
+      background-color: var(--color-danger);
+      color: white;
+    }
+    
+    .btn-danger:hover,
+    .btn-danger:focus {
+      background-color: var(--color-danger-hover);
+    }
+    
+    .btn-success {
+      background-color: var(--color-success);
+      color: white;
+    }
+    
+    .btn-success:hover,
+    .btn-success:focus {
+      background-color: var(--color-success-hover);
+    }
+    
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      pointer-events: none;
+      transform: none;
+    }
+    
+    .btn i {
+      font-size: 1.2em;
+    }
+    
+    /* ====== Activity Log ====== */
+    .log-container {
+      margin-top: var(--space-6);
+    }
+    
+    .log-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--space-4);
+    }
+    
+    .log-title {
+      font-size: var(--font-size-lg);
+      font-weight: 600;
+      color: var(--color-text-primary);
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
     }
     
     .events-log {
-      margin-top: var(--space-4);
-      max-height: 200px;
-      overflow-y: auto;
       border: 1px solid var(--color-border);
       border-radius: var(--radius-md);
-      padding: var(--space-3);
+      max-height: 300px;
+      overflow-y: auto;
+      background-color: var(--color-bg-muted);
+    }
+    
+    .events-log::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    .events-log::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    
+    .events-log::-webkit-scrollbar-thumb {
+      background-color: var(--color-text-muted);
+      border-radius: var(--radius-full);
     }
     
     .log-entry {
-      padding: var(--space-2) 0;
-      border-bottom: 1px solid var(--color-border);
+      padding: var(--space-3) var(--space-4);
+      border-bottom: 1px solid var(--color-separator);
       display: flex;
+      align-items: center;
       justify-content: space-between;
+      font-size: var(--font-size-sm);
+      transition: var(--transition-fast);
     }
     
-    /* Modo oscuro */
-    [data-theme="dark"] {
-      --color-bg: #111827;
-      --color-bg-elevated: #1f2937;
-      --color-text-primary: #f8f9fa;
-      --color-text-secondary: #d1d5db;
-      --color-border: rgba(255, 255, 255, 0.12);
+    .log-entry:hover {
+      background-color: var(--color-bg-elevated);
+    }
+    
+    .log-entry:last-child {
+      border-bottom: none;
+    }
+    
+    .event-type {
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+    
+    .event-start {
+      color: var(--color-success);
+    }
+    
+    .event-pause {
+      color: var(--color-warning);
+    }
+    
+    .event-end {
+      color: var(--color-danger);
+    }
+    
+    .event-time {
+      color: var(--color-text-secondary);
+      font-size: var(--font-size-xs);
+      display: flex;
+      gap: var(--space-3);
+      align-items: center;
+    }
+    
+    .event-time-separator {
+      display: inline-block;
+      width: 3px;
+      height: 3px;
+      border-radius: 50%;
+      background-color: var(--color-text-muted);
+    }
+    
+    /* ====== Animaciones ====== */
+    @keyframes pulse {
+      0% {
+        transform: scale(1);
+        opacity: 1;
+      }
+      50% {
+        transform: scale(1.02);
+        opacity: 0.85;
+      }
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+    
+    .time-active {
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .fade-in {
+      animation: fadeIn 0.4s ease forwards;
+    }
+    
+    /* Tooltip */
+    .tooltip {
+      position: relative;
+    }
+    
+    .tooltip::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: calc(100% + 10px);
+      left: 50%;
+      transform: translateX(-50%) scale(0.8);
+      background-color: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: var(--space-2) var(--space-3);
+      border-radius: var(--radius-sm);
+      font-size: var(--font-size-xs);
+      font-weight: 400;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: var(--transition-fast);
+      z-index: var(--z-tooltip);
+      box-shadow: var(--shadow-md);
+    }
+    
+    .tooltip::before {
+      content: '';
+      position: absolute;
+      bottom: calc(100% + 4px);
+      left: 50%;
+      transform: translateX(-50%) scale(0.8);
+      border: 6px solid transparent;
+      border-top-color: rgba(0, 0, 0, 0.8);
+      opacity: 0;
+      pointer-events: none;
+      transition: var(--transition-fast);
+      z-index: var(--z-tooltip);
+    }
+    
+    .tooltip:hover::after,
+    .tooltip:hover::before {
+      opacity: 1;
+      transform: translateX(-50%) scale(1);
+    }
+    
+    /* Utilidades */
+    .hidden {
+      display: none !important;
+    }
+    
+    .flex-center {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 var(--space-2);
+      height: 20px;
+      background-color: var(--color-primary-light);
+      color: var(--color-primary);
+      border-radius: var(--radius-full);
+      font-size: var(--font-size-xs);
+      font-weight: 600;
+    }
+    
+    /* ====== Responsive ====== */
+    @media (max-width: 768px) {
+      .app-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-4);
+      }
+      
+      .header-actions {
+        width: 100%;
+        justify-content: flex-end;
+      }
+      
+      .controls {
+        flex-direction: column;
+        width: 100%;
+        max-width: 280px;
+        margin: var(--space-4) auto;
+      }
+      
+      .user-selection {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .brand {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-1);
+      }
+      
+      .time-value {
+        font-size: 2.5rem;
+      }
+      
+      .user-selection {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      }
+      
+      .card-header, .card-body {
+        padding: var(--space-4);
+      }
+    }
+    
+    /* Animación de instalación PWA */
+    @keyframes installPulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+    
+    .pwa-install-hint {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: var(--color-bg-elevated);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-xl);
+      padding: var(--space-3) var(--space-4);
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      z-index: 1000;
+      border: 1px solid var(--color-border);
+      animation: installPulse 2s infinite;
+      pointer-events: all;
+    }
+    
+    .pwa-install-hint .btn {
+      min-width: auto;
+      padding: var(--space-2) var(--space-3);
+    }
+    
+    .pwa-close {
+      margin-left: var(--space-2);
+      cursor: pointer;
+      opacity: 0.7;
+      transition: var(--transition-fast);
+    }
+    
+    .pwa-close:hover {
+      opacity: 1;
+    }
+    
+    /* Splash screen para PWA */
+    .splash-screen {
+      position: fixed;
+      inset: 0;
+      background-color: var(--color-bg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      opacity: 1;
+      transition: opacity 0.5s ease-out;
+    }
+    
+    .splash-logo {
+      width: 80px;
+      height: 80px;
+      margin-bottom: var(--space-4);
+      position: relative;
+    }
+    
+    .splash-logo::before {
+      content: "";
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 16px;
+      background-color: var(--color-primary);
+      animation: pulse 1.5s infinite;
+    }
+    
+    .splash-logo i {
+      position: relative;
+      font-size: 40px;
+      color: white;
+    }
+    
+    .splash-name {
+      font-size: var(--font-size-2xl);
+      font-weight: 700;
+      margin-bottom: var(--space-1);
+      color: var(--color-text-primary);
+    }
+    
+    .splash-tagline {
+      font-size: var(--font-size-sm);
+      color: var(--color-text-secondary);
+      margin-bottom: var(--space-6);
+    }
+    
+    .splash-loading {
+      width: 100px;
+      height: 3px;
+      border-radius: var(--radius-full);
+      background-color: var(--color-bg-muted);
+      overflow: hidden;
+      position: relative;
+    }
+    
+    .splash-loading::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 30%;
+      background-color: var(--color-primary);
+      animation: loading 1.5s infinite ease-in-out;
+    }
+    
+    @keyframes loading {
+      0% { left: -30%; }
+      100% { left: 100%; }
+    }
+    
+    .splash-hide {
+      opacity: 0;
+      pointer-events: none;
     }
   </style>
 </head>
 <body>
+  <!-- Splash Screen (para PWA) -->
+  <div id="splashScreen" class="splash-screen">
+    <div class="splash-logo flex-center">
+      <i class="ri-time-line"></i>
+    </div>
+    <h1 class="splash-name">TimeTracker</h1>
+    <p class="splash-tagline">Sistema profesional de control de tiempo</p>
+    <div class="splash-loading"></div>
+  </div>
+
   <div class="app-container">
     <header class="app-header">
       <div class="brand">
         <div class="brand-logo">
           <i class="ri-time-line"></i>
         </div>
-        <h1 class="brand-name">TimeTracker</h1>
+        <div>
+          <h1 class="brand-name">TimeTracker<span class="badge">Pro</span></h1>
+          <span class="brand-subtitle">Sistema de control de tiempo profesional</span>
+        </div>
       </div>
-      <button id="themeToggle" class="theme-toggle">
-        <i id="themeIcon" class="ri-sun-line"></i>
-      </button>
+      
+      <div class="header-actions">
+        <button id="themeToggle" class="theme-toggle tooltip" data-tooltip="Cambiar tema">
+          <i id="themeIcon" class="ri-sun-line"></i>
+        </button>
+      </div>
     </header>
     
-    <main class="card">
-      <!-- Selector de Usuario -->
-      <div id="selectorSection">
-        <h2>Seleccionar Usuario</h2>
-        <div id="userContainer" class="user-selection"></div>
-      </div>
-      
-      <!-- Temporizador -->
-      <div id="timerContainer" style="display: none;">
-        <div class="user-selected">
-          <i class="ri-user-line"></i>
-          <span>Usuario: <strong id="selectedUser"></strong></span>
-        </div>
-        
-        <div class="timer-display">
-          <span id="timeValue">00:00:00</span>
-        </div>
-        
-        <div class="controls">
-          <button id="actionBtn" class="btn btn-primary">
-            <i class="ri-play-line"></i> Iniciar
-          </button>
-          <button id="finalizeBtn" class="btn btn-danger">
-            <i class="ri-stop-line"></i> Finalizar
-          </button>
-        </div>
-        
-        <div class="log-container">
-          <h3><i class="ri-history-line"></i> Historial</h3>
-          <div id="eventsLog" class="events-log">
-            <div id="logEntries"></div>
+    <div class="app-content">
+      <main>
+        <!-- Selector de Usuario -->
+        <div id="selectorSection" class="card fade-in hidden">
+          <div class="card-header">
+            <h2 class="card-title">Seleccionar Usuario</h2>
+            <p class="card-subtitle">Elige el usuario para iniciar el control de tiempo</p>
+          </div>
+          
+          <div class="card-body">
+            <div id="userContainer" class="user-selection"></div>
           </div>
         </div>
-      </div>
-    </main>
+        
+        <!-- Contenedor del Temporizador -->
+        <div id="timerContainer" class="card fade-in hidden">
+          <div class="card-header">
+            <div class="user-selected">
+              <i class="ri-user-line"></i>
+              <span>Usuario: <strong id="selectedUser"></strong></span>
+            </div>
+          </div>
+          
+          <div class="card-body">
+            <div class="timer-container">
+              <div class="timer-display-wrapper">
+                <div id="timerDisplay" class="timer-display">
+                  <span id="timeValue" class="time-value">00:00:00</span>
+                  <div id="timerStatus" class="timer-status status-inactive">
+                    <i class="ri-record-circle-line"></i> Inactivo
+                  </div>
+                </div>
+              </div>
+              
+              <div class="controls">
+                <!-- Botón Iniciar/Pausar -->
+                <button id="actionBtn" class="btn btn-primary tooltip" data-tooltip="Iniciar el contador">
+                  <i class="ri-play-line"></i> Iniciar
+                </button>
+                
+                <!-- Botón Finalizar/Descargar -->
+                <button id="finalizeBtn" class="btn btn-danger tooltip" data-tooltip="Finalizar la sesión">
+                  <i class="ri-stop-line"></i> Finalizar
+                </button>
+              </div>
+            </div>
+            
+            <!-- Registro de actividad -->
+            <div class="log-container">
+              <div class="log-header">
+                <h3 class="log-title">
+                  <i class="ri-history-line"></i> Historial de actividad
+                </h3>
+              </div>
+              
+              <div id="eventsLog" class="events-log">
+                <div id="logEntries"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+    
+    <footer class="app-footer">
+      <p>&copy; 2025 TimeTracker Premium | Versión 4.0</p>
+    </footer>
+    
+    <!-- PWA Install Prompt (aparece cuando es instalable) -->
+    <div id="pwaInstallHint" class="pwa-install-hint hidden">
+      <i class="ri-download-line"></i>
+      <span>Instala la aplicación para un mejor funcionamiento</span>
+      <button id="pwaInstallBtn" class="btn btn-primary">Instalar</button>
+      <i id="pwaCloseBtn" class="ri-close-line pwa-close"></i>
+    </div>
   </div>
 
-  <script>
-    // Configuración
-    const config = {
-      users: ["Carlos", "Ana", "Luis", "María", "Jorge", "Elena"],
-      storageKey: "timeTrackerData"
-    };
-    
-    // Estado
-    const state = {
-      selectedUser: null,
-      isActive: false,
-      isPaused: true,
-      startTime: null,
-      pauseTime: null,
-      totalTime: 0,
-      events: []
-    };
-    
-    // Elementos del DOM
-    const elements = {
-      selectorSection: document.getElementById("selectorSection"),
-      timerContainer: document.getElementById("timerContainer"),
-      userContainer: document.getElementById("userContainer"),
-      selectedUser: document.getElementById("selectedUser"),
-      timeValue: document.getElementById("timeValue"),
-      actionBtn: document.getElementById("actionBtn"),
-      finalizeBtn: document.getElementById("finalizeBtn"),
-      logEntries: document.getElementById("logEntries"),
-      themeToggle: document.getElementById("themeToggle"),
-      themeIcon: document.getElementById("themeIcon")
-    };
-    
-    // Inicialización
-    function init() {
-      generateUserOptions();
-      setupEventListeners();
-      checkSavedState();
-      setupPWA();
-    }
-    
-    // Generar opciones de usuario
-    function generateUserOptions() {
-      config.users.forEach(user => {
-        const btn = document.createElement("button");
-        btn.className = "user-btn";
-        btn.textContent = user;
-        btn.dataset.user = user;
-        elements.userContainer.appendChild(btn);
-      });
-    }
-    
-    // Configurar event listeners
-    function setupEventListeners() {
-      // Selección de usuario
-      elements.userContainer.addEventListener("click", (e) => {
-        if (e.target.classList.contains("user-btn")) {
-          selectUser(e.target.dataset.user);
+  <!-- Web App Manifest (contenido inline) -->
+  <script type="text/javascript">
+    // Crear el contenido del manifest
+    const manifestContent = {
+      "name": "TimeTracker Premium",
+      "short_name": "TimeTracker",
+      "description": "Sistema profesional de control de tiempo con persistencia total",
+      "start_url": "/",
+      "display": "standalone",
+      "background_color": "#ffffff",
+      "theme_color": "#0061ff",
+      "icons": [
+        {
+          "src": "icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png",
+          "purpose": "any maskable"
+        },
+        {
+          "src": "icon-512.png",
+          "sizes": "512x512",
+          "type": "image/png",
+          "purpose": "any maskable"
         }
+      ]
+    };
+    
+    // Crear el manifest.json como un Blob y asignarlo al link
+    const manifestBlob = new Blob([JSON.stringify(manifestContent)], {type: 'application/json'});
+    const manifestURL = URL.createObjectURL(manifestBlob);
+    document.getElementById('manifestPlaceholder').href = manifestURL;
+  </script>
+
+  <!-- Service Worker Registration -->
+  <script type="text/javascript">
+    // Código del Service Worker
+    const serviceWorkerCode = `
+      // Service Worker para TimeTracker Premium PWA
+      const CACHE_NAME = 'timetracker-v1';
+      const urlsToCache = [
+        '/',
+        '/index.html',
+        'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto+Mono:wght@400;600&display=swap',
+        'https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css'
+      ];
+
+      self.addEventListener('install', (event) => {
+        event.waitUntil(
+          caches.open(CACHE_NAME)
+            .then((cache) => {
+              return cache.addAll(urlsToCache);
+            })
+        );
       });
+
+      self.addEventListener('fetch', (event) => {
+        event.respondWith(
+          caches.match(event.request)
+            .then((response) => {
+              if (response) {
+                return response;
+              }
+              return fetch(event.request).then(
+                (response) => {
+                  if(!response || response.status !== 200 || response.type !== 'basic') {
+                    return response;
+                  }
+                  
+                  const responseToCache = response.clone();
+                  
+                  caches.open(CACHE_NAME)
+                    .then((cache) => {
+                      cache.put(event.request, responseToCache);
+                    });
+                    
+                  return response;
+                }
+              );
+            })
+        );
+      });
+
+      self.addEventListener('activate', (event) => {
+        const cacheWhitelist = [CACHE_NAME];
+        event.waitUntil(
+          caches.keys().then((cacheNames) => {
+            return Promise.all(
+              cacheNames.map((cacheName) => {
+                if (cacheWhitelist.indexOf(cacheName) === -1) {
+                  return caches.delete(cacheName);
+                }
+              })
+            );
+          })
+        );
+      });
+    `;
+    
+    // Función para registrar el service worker
+    function registerServiceWorker() {
+      if ('serviceWorker' in navigator) {
+        // Crear un Blob con el contenido del service worker
+        const swBlob = new Blob([serviceWorkerCode], {type: 'text/javascript'});
+        const swURL = URL.createObjectURL(swBlob);
+        
+        // Registrar el service worker
+        navigator.serviceWorker.register(swURL)
+          .then(registration => {
+            console.log('ServiceWorker registrado correctamente:', registration.scope);
+          })
+          .catch(error => {
+            console.error('Error al registrar el ServiceWorker:', error);
+          });
+      }
+    }
+    
+    // Registramos el service worker después de que la página cargue
+    window.addEventListener('load', registerServiceWorker);
+  </script>
+  
+  <!-- Aplicación Principal -->
+  <script type="text/javascript">
+    /**
+     * TimeTracker Premium - PWA Version
+     * 
+     * Sistema de control de tiempo profesional con:
+     * - Persistencia total del tiempo
+     * - Interfaz minimalista y profesional
+     * - Disponible offline con tecnología PWA
+     * 
+     * @version 4.0
+     * @author Web Designer Premium
+     */
+    
+    const TimeTracker = {
+      // Configuración general
+      config: {
+        users: ["Carlos", "Ana", "Luis", "María", "Jorge", "Elena", "Pablo", "Sofía"],
+        maxDisplayUsers: 6,
+        storageKey: "timeTrackerPro_v4",
+        updateInterval: 100,     // Actualización de UI cada 100ms
+        syncInterval: 3000,      // Sincronización a localStorage cada 3s
+        theme: "light",          // Tema por defecto
+        isDarkMode: false        // Estado del tema
+      },
       
-      // Botón de acción
-      elements.actionBtn.addEventListener("click", () => {
-        if (state.isPaused) {
-          startTimer();
+      // Estado del contador
+      state: {
+        // Usuario y sesión
+        selectedUser: null,
+        sessionId: null,
+        
+        // Estado del temporizador
+        isActive: false,         // Si el temporizador está activo
+        isPaused: true,          // Si está en pausa (iniciamos pausado)
+        isFinished: false,       // Si la sesión ha finalizado
+        
+        // Timestamps clave (en milisegundos)
+        startTimestamp: null,    // Cuándo se inició esta sesión
+        currentStartTime: null,  // Cuándo se inició/reanudó el último segmento
+        lastPauseTime: null,     // Cuándo se pausó por última vez
+        
+        // Duraciones acumuladas (en milisegundos)
+        accumulatedDuration: 0,  // Duración total acumulada cuando está en pausa
+        
+        // Registro de eventos
+        events: [],
+        
+        // Instalación PWA
+        deferredPrompt: null,    // Para la instalación de PWA
+        showInstallPrompt: false // Si mostrar el prompt de instalación
+      },
+      
+      // Referencias a elementos del DOM
+      elements: {
+        // Splash screen
+        splashScreen: document.getElementById("splashScreen"),
+        
+        // Secciones principales
+        selectorSection: document.getElementById("selectorSection"),
+        timerContainer: document.getElementById("timerContainer"),
+        
+        // Selector de usuario
+        userContainer: document.getElementById("userContainer"),
+        selectedUser: document.getElementById("selectedUser"),
+        
+        // Timer
+        timerDisplay: document.getElementById("timerDisplay"),
+        timeValue: document.getElementById("timeValue"),
+        timerStatus: document.getElementById("timerStatus"),
+        
+        // Controles
+        actionBtn: document.getElementById("actionBtn"),
+        finalizeBtn: document.getElementById("finalizeBtn"),
+        
+        // Registro de eventos
+        eventsLog: document.getElementById("eventsLog"),
+        logEntries: document.getElementById("logEntries"),
+        
+        // Tema
+        themeToggle: document.getElementById("themeToggle"),
+        themeIcon: document.getElementById("themeIcon"),
+        
+        // PWA
+        pwaInstallHint: document.getElementById("pwaInstallHint"),
+        pwaInstallBtn: document.getElementById("pwaInstallBtn"),
+        pwaCloseBtn: document.getElementById("pwaCloseBtn")
+      },
+      
+      // Intervalos de actualización
+      intervals: {
+        display: null,  // Para actualizar la UI
+        sync: null      // Para sincronizar con localStorage
+      },
+      
+      /**
+       * Inicializa la aplicación
+       */
+      init() {
+        // Mostrar splash screen (solo en PWA)
+        this.showSplashScreen();
+        
+        // Inicializar la interfaz de usuario
+        this.initUI();
+        
+        // Intentar restaurar la sesión anterior (si existe)
+        const restored = this.restoreState();
+        
+        // Si no se restauró ninguna sesión, mostrar el selector de usuarios
+        if (!restored) {
+          this.elements.selectorSection.classList.remove("hidden");
+        }
+        
+        // Configurar la PWA
+        this.setupPWA();
+        
+        // Inicializar el tema
+        this.initTheme();
+        
+        console.log("TimeTracker Premium inicializado correctamente.");
+      },
+      
+      /**
+       * Muestra la splash screen y la oculta después de un tiempo
+       */
+      showSplashScreen() {
+        // Solo mostramos la splash screen si estamos en modo standalone (PWA instalada)
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
+                             window.navigator.standalone === true;
+        
+        if (isStandalone) {
+          setTimeout(() => {
+            this.elements.splashScreen.classList.add("splash-hide");
+            setTimeout(() => {
+              this.elements.splashScreen.style.display = "none";
+            }, 500);
+          }, 1500);
         } else {
-          pauseTimer();
+          // Si no estamos en modo standalone, ocultar inmediatamente
+          this.elements.splashScreen.style.display = "none";
         }
-      });
+      },
       
-      // Botón de finalizar
-      elements.finalizeBtn.addEventListener("click", () => {
-        if (state.isActive) {
-          stopTimer();
-        } else {
-          downloadData();
-        }
-      });
+      /**
+       * Inicializa la interfaz de usuario
+       */
+      initUI() {
+        this.generateUserOptions();
+        this.setupEventListeners();
+      },
       
-      // Toggle de tema
-      elements.themeToggle.addEventListener("click", toggleTheme);
-    }
-    
-    // Seleccionar usuario
-    function selectUser(user) {
-      state.selectedUser = user;
-      state.startTime = Date.now();
-      state.isActive = true;
-      state.isPaused = true;
-      
-      elements.selectedUser.textContent = user;
-      elements.selectorSection.style.display = "none";
-      elements.timerContainer.style.display = "block";
-      
-      logEvent("Sesión iniciada");
-      saveState();
-    }
-    
-    // Iniciar temporizador
-    function startTimer() {
-      state.isPaused = false;
-      state.startTime = Date.now();
-      
-      elements.actionBtn.innerHTML = '<i class="ri-pause-line"></i> Pausar';
-      logEvent("Temporizador iniciado");
-      updateTimer();
-      saveState();
-    }
-    
-    // Pausar temporizador
-    function pauseTimer() {
-      state.isPaused = true;
-      state.totalTime += Date.now() - state.startTime;
-      
-      elements.actionBtn.innerHTML = '<i class="ri-play-line"></i> Reanudar';
-      logEvent("Temporizador pausado");
-      saveState();
-    }
-    
-    // Detener temporizador
-    function stopTimer() {
-      state.isActive = false;
-      state.totalTime += Date.now() - state.startTime;
-      
-      elements.actionBtn.disabled = true;
-      elements.finalizeBtn.innerHTML = '<i class="ri-download-line"></i> Descargar';
-      logEvent("Sesión finalizada");
-      saveState();
-    }
-    
-    // Actualizar display del temporizador
-    function updateTimer() {
-      if (!state.isActive || state.isPaused) return;
-      
-      const elapsed = state.totalTime + (Date.now() - state.startTime);
-      elements.timeValue.textContent = formatTime(elapsed);
-      
-      requestAnimationFrame(updateTimer);
-    }
-    
-    // Formatear tiempo
-    function formatTime(ms) {
-      const totalSec = Math.floor(ms / 1000);
-      const hours = Math.floor(totalSec / 3600).toString().padStart(2, '0');
-      const minutes = Math.floor((totalSec % 3600) / 60).toString().padStart(2, '0');
-      const seconds = (totalSec % 60).toString().padStart(2, '0');
-      return `${hours}:${minutes}:${seconds}`;
-    }
-    
-    // Registrar evento
-    function logEvent(type) {
-      const now = new Date();
-      const event = {
-        type,
-        time: now.toLocaleTimeString(),
-        totalTime: formatTime(state.totalTime + (state.isPaused ? 0 : Date.now() - state.startTime))
-      };
-      
-      state.events.push(event);
-      
-      const entry = document.createElement("div");
-      entry.className = "log-entry";
-      entry.innerHTML = `
-        <span>${type}</span>
-        <span>${event.time} (${event.totalTime})</span>
-      `;
-      
-      elements.logEntries.prepend(entry);
-    }
-    
-    // Guardar estado
-    function saveState() {
-      localStorage.setItem(config.storageKey, JSON.stringify(state));
-    }
-    
-    // Cargar estado guardado
-    function checkSavedState() {
-      const saved = localStorage.getItem(config.storageKey);
-      if (saved) {
-        const savedState = JSON.parse(saved);
-        if (savedState.selectedUser && confirm(`Continuar sesión de ${savedState.selectedUser}?`)) {
-          Object.assign(state, savedState);
+      /**
+       * Genera las opciones de usuario aleatorias
+       */
+      generateUserOptions() {
+        // Seleccionar usuarios aleatorios
+        const randomUsers = [...this.config.users]
+          .sort(() => 0.5 - Math.random())
+          .slice(0, this.config.maxDisplayUsers);
+        
+        // Crear botones de usuario
+        randomUsers.forEach((user, index) => {
+          const btn = document.createElement("button");
+          btn.className = "user-btn fade-in";
+          btn.dataset.user = user;
+          btn.style.animationDelay = `${index * 0.1}s`;
           
-          elements.selectedUser.textContent = state.selectedUser;
-          elements.selectorSection.style.display = "none";
-          elements.timerContainer.style.display = "block";
+          const span = document.createElement("span");
+          span.textContent = user;
+          btn.appendChild(span);
           
-          if (!state.isPaused) {
-            startTimer();
-          } else {
-            elements.timeValue.textContent = formatTime(state.totalTime);
+          this.elements.userContainer.appendChild(btn);
+        });
+      },
+      
+      /**
+       * Configura los listeners de eventos
+       */
+      setupEventListeners() {
+        // Eventos para la selección de usuario
+        this.elements.userContainer.addEventListener("click", (e) => {
+          const btn = e.target.closest(".user-btn");
+          if (btn) {
+            this.selectUser(btn.dataset.user);
           }
+        });
+        
+        // Evento para botón de acción (iniciar/pausar)
+        this.elements.actionBtn.addEventListener("click", () => {
+          if (this.state.isPaused) {
+            this.startTimer();
+          } else {
+            this.pauseTimer();
+          }
+        });
+        
+        // Evento para botón de finalizar/descargar
+        this.elements.finalizeBtn.addEventListener("click", () => {
+          if (this.state.isFinished) {
+            this.downloadData();
+          } else {
+            this.stopTimer();
+          }
+        });
+        
+        // Toggle de tema claro/oscuro
+        this.elements.themeToggle.addEventListener("click", () => {
+          this.toggleTheme();
+        });
+        
+        // Botones de instalación PWA
+        this.elements.pwaInstallBtn.addEventListener("click", () => {
+          this.installPWA();
+        });
+        
+        this.elements.pwaCloseBtn.addEventListener("click", () => {
+          this.elements.pwaInstallHint.classList.add("hidden");
+          localStorage.setItem("pwaPromptDismissed", "true");
+        });
+        
+        // Detectar cuando la página se va a cerrar para sincronizar
+        window.addEventListener("beforeunload", () => {
+          // Solo guardar si es una sesión activa (no finalizada)
+          if (this.state.isActive && !this.state.isFinished) {
+            this.saveState();
+          }
+        });
+        
+        // Eventos para visibilidad de la página (cuando cambia de pestaña)
+        document.addEventListener("visibilitychange", () => {
+          if (document.visibilityState === "visible") {
+            // Al volver a la página, actualizar la UI inmediatamente
+            if (this.state.isActive && !this.state.isPaused) {
+              this.updateDisplay();
+            }
+          }
+        });
+      },
+      
+      /**
+       * Inicializa el tema de la aplicación
+       */
+      initTheme() {
+        // Verificar si hay una preferencia guardada
+        const savedTheme = localStorage.getItem("theme");
+        if (savedTheme) {
+          this.config.theme = savedTheme;
+          this.config.isDarkMode = savedTheme === "dark";
+        } else {
+          // Verificar preferencia del sistema
+          const prefersDarkMode = window.matchMedia("(prefers-color-scheme: dark)").matches;
+          if (prefersDarkMode) {
+            this.config.theme = "dark";
+            this.config.isDarkMode = true;
+          }
+        }
+        
+        // Aplicar tema
+        this.applyTheme();
+      },
+      
+      /**
+       * Toggle entre tema claro y oscuro
+       */
+      toggleTheme() {
+        this.config.isDarkMode = !this.config.isDarkMode;
+        this.config.theme = this.config.isDarkMode ? "dark" : "light";
+        
+        // Guardar preferencia
+        localStorage.setItem("theme", this.config.theme);
+        
+        // Aplicar tema
+        this.applyTheme();
+      },
+      
+      /**
+       * Aplica el tema actual
+       */
+      applyTheme() {
+        if (this.config.isDarkMode) {
+          document.body.setAttribute("data-theme", "dark");
+          this.elements.themeIcon.className = "ri-moon-line";
+        } else {
+          document.body.removeAttribute("data-theme");
+          this.elements.themeIcon.className = "ri-sun-line";
+        }
+      },
+      
+      /**
+       * Configura la funcionalidad de PWA
+       */
+      setupPWA() {
+        // Detectar si la app es instalable
+        window.addEventListener('beforeinstallprompt', (e) => {
+          // Prevenir el prompt por defecto
+          e.preventDefault();
           
-          // Restaurar eventos
-          state.events.forEach(event => {
-            const entry = document.createElement("div");
-            entry.className = "log-entry";
-            entry.innerHTML = `
-              <span>${event.type}</span>
-              <span>${event.time} (${event.totalTime})</span>
-            `;
-            elements.logEntries.appendChild(entry);
+          // Guardar el evento para usarlo después
+          this.state.deferredPrompt = e;
+          
+          // Verificar si el usuario ya ha descartado el prompt
+          const promptDismissed = localStorage.getItem("pwaPromptDismissed");
+          
+          if (!promptDismissed) {
+            this.elements.pwaInstallHint.classList.remove("hidden");
+          }
+        });
+        
+        // Detectar cuando la app se ha instalado
+        window.addEventListener('appinstalled', () => {
+          // Ocultar el prompt de instalación
+          this.elements.pwaInstallHint.classList.add("hidden");
+          
+          // Limpiar el prompt guardado
+          this.state.deferredPrompt = null;
+          
+          console.log('Aplicación instalada correctamente');
+        });
+      },
+      
+      /**
+       * Instala la PWA
+       */
+      installPWA() {
+        if (this.state.deferredPrompt) {
+          // Mostrar el prompt de instalación
+          this.state.deferredPrompt.prompt();
+          
+          // Esperar a que el usuario responda
+          this.state.deferredPrompt.userChoice.then((choiceResult) => {
+            if (choiceResult.outcome === 'accepted') {
+              console.log('Usuario aceptó la instalación');
+            } else {
+              console.log('Usuario rechazó la instalación');
+            }
+            
+            // Limpiar
+            this.state.deferredPrompt = null;
           });
         }
-      }
-    }
-    
-    // Descargar datos
-    function downloadData() {
-      const data = {
-        user: state.selectedUser,
-        totalTime: state.totalTime,
-        formattedTime: formatTime(state.totalTime),
-        events: state.events,
-        date: new Date().toISOString()
-      };
+      },
       
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `timetracker_${state.selectedUser}_${new Date().toISOString().split('T')[0]}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-    }
-    
-    // Toggle tema claro/oscuro
-    function toggleTheme() {
-      const isDark = document.body.getAttribute("data-theme") === "dark";
-      document.body.setAttribute("data-theme", isDark ? "" : "dark");
-      elements.themeIcon.className = isDark ? "ri-sun-line" : "ri-moon-line";
-      localStorage.setItem("theme", isDark ? "light" : "dark");
-    }
-    
-    // Configurar PWA
-    function setupPWA() {
-      if ("serviceWorker" in navigator) {
-        navigator.serviceWorker.register("service-worker.js")
-          .then(registration => console.log("SW registered:", registration))
-          .catch(error => console.log("SW registration failed:", error));
-      }
+      /**
+       * Selecciona un usuario e inicia una nueva sesión
+       * @param {string} user - Nombre del usuario
+       */
+      selectUser(user) {
+        // Establecer información básica de sesión
+        this.state.selectedUser = user;
+        this.state.sessionId = this.generateSessionId();
+        this.state.startTimestamp = Date.now();
+        this.state.isActive = true;
+        this.state.isPaused = true; // Comienza pausado hasta que el usuario le dé a Iniciar
+        
+        // Actualizar interfaz
+        this.elements.selectedUser.textContent = user;
+        this.elements.selectorSection.classList.add("hidden");
+        this.elements.timerContainer.classList.remove("hidden");
+        
+        // Configurar UI inicial
+        this.updateTimerStatus();
+        this.updateButtonStates();
+        
+        // Registrar evento de creación de sesión
+        this.logEvent("sesión_creada", 0, {
+          sessionId: this.state.sessionId,
+          user: this.state.selectedUser
+        });
+        
+        // Sincronizar estado
+        this.saveState();
+      },
       
-      window.addEventListener("beforeinstallprompt", (e) => {
-        e.preventDefault();
-        console.log("PWA install prompt available");
-      });
-    }
+      /**
+       * Inicia o reanuda el temporizador
+       */
+      startTimer() {
+        const now = Date.now();
+        
+        // Si es la primera vez que se inicia en esta sesión
+        if (this.state.isPaused && this.state.accumulatedDuration === 0) {
+          this.logEvent("inicio_inicial", 0);
+        } else {
+          // Es una reanudación
+          this.logEvent("reanudación", this.calculateCurrentDuration());
+        }
+        
+        // Actualizar estado
+        this.state.isPaused = false;
+        this.state.isActive = true;
+        this.state.currentStartTime = now;
+        
+        // Actualizar UI
+        this.elements.timerDisplay.classList.add("time-active");
+        this.updateTimerStatus();
+        this.updateButtonStates();
+        
+        // Iniciar intervalo de actualización de la UI
+        this.startDisplayUpdates();
+        
+        // Iniciar sincronización periódica con localStorage
+        this.startPeriodicSync();
+        
+        // Guardar estado inmediatamente
+        this.saveState();
+      },
+      
+      /**
+       * Pausa el temporizador
+       */
+      pauseTimer() {
+        const now = Date.now();
+        
+        // Calcular duración del segmento actual
+        const currentSegmentDuration = this.state.currentStartTime 
+          ? now - this.state.currentStartTime
+          : 0;
+        
+        // Acumular duración
+        this.state.accumulatedDuration += currentSegmentDuration;
+        this.state.lastPauseTime = now;
+        this.state.isPaused = true;
+        
+        // Registrar evento con la duración actual
+        this.logEvent("pausa", this.calculateCurrentDuration(), {
+          segmentDuration: this.formatTime(Math.floor(currentSegmentDuration / 1000))
+        });
+        
+        // Detener intervalo de actualización
+        this.stopDisplayUpdates();
+        
+        // Actualizar UI
+        this.elements.timerDisplay.classList.remove("time-active");
+        this.updateTimerStatus();
+        this.updateButtonStates();
+        this.updateDisplay(); // Actualizar display una última vez
+        
+        // Guardar estado para persistencia
+        this.saveState();
+      },
+      
+      /**
+       * Finaliza la sesión de temporización
+       */
+      stopTimer() {
+        // Si el temporizador está corriendo, pausarlo primero
+        if (!this.state.isPaused) {
+          this.pauseTimer();
+        }
+        
+        // Marcar como finalizado
+        this.state.isFinished = true;
+        this.state.isActive = false;
+        
+        // Registrar evento de finalización
+        this.logEvent("finalizado", this.calculateCurrentDuration());
+        
+        // Actualizar UI
+        this.updateTimerStatus();
+        this.updateButtonStates();
+        
+        // Detener sincronizaciones periódicas
+        this.stopPeriodicSync();
+        
+        // Guardar estado final
+        this.saveState();
+      },
+      
+      /**
+       * Calcula la duración total acumulada hasta el momento actual
+       * @returns {number} Duración en milisegundos
+       */
+      calculateCurrentDuration() {
+        let duration = this.state.accumulatedDuration;
+        
+        // Si está activo y no pausado, añadir el tiempo del segmento actual
+        if (this.state.isActive && !this.state.isPaused && this.state.currentStartTime) {
+          duration += (Date.now() - this.state.currentStartTime);
+        }
+        
+        return duration;
+      },
+      
+      /**
+       * Actualiza la visualización del tiempo
+       */
+      updateDisplay() {
+        // Calcular duración actual total en segundos
+        const durationMs = this.calculateCurrentDuration();
+        const durationSec = Math.floor(durationMs / 1000);
+        
+        // Formatear y mostrar
+        this.elements.timeValue.textContent = this.formatTime(durationSec);
+      },
+      
+      /**
+       * Actualiza el indicador de estado del temporizador
+       */
+      updateTimerStatus() {
+        const statusEl = this.elements.timerStatus;
+        
+        // Eliminar clases anteriores
+        statusEl.classList.remove("status-running", "status-paused", "status-inactive", "status-finished");
+        
+        // Actualizar icono y texto según estado
+        let icon, text, statusClass;
+        
+        if (this.state.isFinished) {
+          icon = '<i class="ri-checkbox-circle-line"></i>';
+          text = 'Finalizado';
+          statusClass = 'status-finished';
+        } else if (this.state.isPaused) {
+          icon = '<i class="ri-pause-mini-fill"></i>';
+          text = 'Pausado';
+          statusClass = 'status-paused';
+        } else {
+          icon = '<i class="ri-record-circle-fill"></i>';
+          text = 'Activo';
+          statusClass = 'status-running';
+        }
+        
+        statusEl.innerHTML = `${icon} ${text}`;
+        statusEl.classList.add(statusClass);
+      },
+      
+      /**
+       * Actualiza el estado de los botones según el estado actual del temporizador
+       */
+      updateButtonStates() {
+        // Actualizar botón de acción (iniciar/pausar)
+        if (this.state.isFinished) {
+          // Si está finalizado, deshabilitar botón de acción
+          this.elements.actionBtn.disabled = true;
+          this.elements.actionBtn.classList.remove('btn-primary', 'btn-warning');
+          this.elements.actionBtn.classList.add('btn-primary');
+          this.elements.actionBtn.innerHTML = '<i class="ri-play-line"></i> Iniciar';
+          this.elements.actionBtn.dataset.tooltip = 'Sesión finalizada';
+        } else if (this.state.isPaused) {
+          // Si está pausado, mostrar botón de iniciar/reanudar
+          this.elements.actionBtn.disabled = false;
+          this.elements.actionBtn.classList.remove('btn-warning');
+          this.elements.actionBtn.classList.add('btn-primary');
+          this.elements.actionBtn.innerHTML = '<i class="ri-play-line"></i> Reanudar';
+          this.elements.actionBtn.dataset.tooltip = 'Reanudar el contador';
+        } else {
+          // Si está corriendo, mostrar botón de pausar
+          this.elements.actionBtn.disabled = false;
+          this.elements.actionBtn.classList.remove('btn-primary');
+          this.elements.actionBtn.classList.add('btn-warning');
+          this.elements.actionBtn.innerHTML = '<i class="ri-pause-line"></i> Pausar';
+          this.elements.actionBtn.dataset.tooltip = 'Pausar el contador';
+        }
+        
+        // Actualizar botón de finalizar/descargar
+        if (this.state.isFinished) {
+          // Si está finalizado, mostrar botón de descargar
+          this.elements.finalizeBtn.classList.remove('btn-danger');
+          this.elements.finalizeBtn.classList.add('btn-success');
+          this.elements.finalizeBtn.innerHTML = '<i class="ri-download-line"></i> Descargar';
+          this.elements.finalizeBtn.dataset.tooltip = 'Descargar registro completo';
+        } else {
+          // Si no está finalizado, mostrar botón de finalizar
+          this.elements.finalizeBtn.classList.remove('btn-success');
+          this.elements.finalizeBtn.classList.add('btn-danger');
+          this.elements.finalizeBtn.innerHTML = '<i class="ri-stop-line"></i> Finalizar';
+          this.elements.finalizeBtn.dataset.tooltip = 'Finalizar la sesión';
+          
+          // Deshabilitar si no hay tiempo acumulado
+          this.elements.finalizeBtn.disabled = (this.state.accumulatedDuration === 0 && this.state.isPaused);
+        }
+      },
+      
+      /**
+       * Formatea segundos en formato HH:MM:SS
+       * @param {number} seconds - Segundos a formatear
+       * @return {string} - Tiempo formateado
+       */
+      formatTime(seconds) {
+        const h = String(Math.floor(seconds / 3600)).padStart(2, '0');
+        const m = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
+        const s = String(Math.floor(seconds % 60)).padStart(2, '0');
+        return `${h}:${m}:${s}`;
+      },
+      
+      /**
+       * Formatea milisegundos a un formato legible con precisión
+       * @param {number} ms - Milisegundos
+       * @returns {string} - Tiempo formateado con precisión de milisegundos
+       */
+      formatTimeWithMs(ms) {
+        const totalSeconds = ms / 1000;
+        const seconds = Math.floor(totalSeconds);
+        const milliseconds = Math.floor((totalSeconds - seconds) * 1000);
+        
+        return `${this.formatTime(seconds)}.${String(milliseconds).padStart(3, '0')}`;
+      },
+      
+      /**
+       * Inicia las actualizaciones periódicas de la UI
+       */
+      startDisplayUpdates() {
+        // Limpiar intervalo anterior si existe
+        this.stopDisplayUpdates();
+        
+        // Crear nuevo intervalo
+        this.intervals.display = setInterval(() => {
+          this.updateDisplay();
+        }, this.config.updateInterval);
+      },
+      
+      /**
+       * Detiene las actualizaciones periódicas de la UI
+       */
+      stopDisplayUpdates() {
+        if (this.intervals.display) {
+          clearInterval(this.intervals.display);
+          this.intervals.display = null;
+        }
+      },
+      
+      /**
+       * Inicia la sincronización periódica con localStorage
+       */
+      startPeriodicSync() {
+        // Limpiar intervalo anterior si existe
+        this.stopPeriodicSync();
+        
+        // Crear nuevo intervalo
+        this.intervals.sync = setInterval(() => {
+          if (this.state.isActive && !this.state.isPaused) {
+            this.saveState();
+          }
+        }, this.config.syncInterval);
+      },
+      
+      /**
+       * Detiene la sincronización periódica con localStorage
+       */
+      stopPeriodicSync() {
+        if (this.intervals.sync) {
+          clearInterval(this.intervals.sync);
+          this.intervals.sync = null;
+        }
+      },
+      
+      /**
+       * Registra un evento en el sistema
+       * @param {string} type - Tipo de evento
+       * @param {number} duration - Duración acumulada hasta ese momento
+       * @param {Object} [extraData] - Datos adicionales a registrar
+       */
+      logEvent(type, duration, extraData = {}) {
+        const timestamp = Date.now();
+        
+        // Crear objeto de evento
+        const event = {
+          type,
+          timestamp,
+          dateTime: new Date(timestamp).toLocaleString(),
+          totalDuration: duration,
+          formattedDuration: this.formatTimeWithMs(duration),
+          ...extraData
+        };
+        
+        // Agregar al registro
+        this.state.events.push(event);
+        
+        // Actualizar visualización
+        this.updateEventLog(event);
+      },
+      
+      /**
+       * Actualiza el registro visual de eventos
+       * @param {Object} event - Evento a mostrar
+       */
+      updateEventLog(event) {
+        const entry = document.createElement("div");
+        entry.className = "log-entry fade-in";
+        
+        // Determinar clase CSS e icono según el tipo
+        let typeClass = "", icon = "";
+        switch(event.type) {
+          case "inicio_inicial":
+            typeClass = "event-start";
+            icon = '<i class="ri-play-circle-line"></i>';
+            break;
+          case "reanudación":
+            typeClass = "event-start";
+            icon = '<i class="ri-restart-line"></i>';
+            break;
+          case "pausa":
+            typeClass = "event-pause";
+            icon = '<i class="ri-pause-circle-line"></i>';
+            break;
+          case "finalizado":
+            typeClass = "event-end";
+            icon = '<i class="ri-stop-circle-line"></i>';
+            break;
+          case "reapertura_automática":
+            typeClass = "event-start";
+            icon = '<i class="ri-refresh-line"></i>';
+            break;
+          default:
+            icon = '<i class="ri-time-line"></i>';
+        }
+        
+        // Formatear mensaje según tipo
+        let message = `<span class="event-type ${typeClass}">${icon} ${this.formatEventType(event.type)}</span>`;
+        
+        // Formatear hora y duración
+        let details = `
+          <span class="event-time">
+            ${new Date(event.timestamp).toLocaleTimeString()}
+            <span class="event-time-separator"></span>
+            Total: ${this.formatTime(Math.floor(event.totalDuration/1000))}
+          </span>
+        `;
+        
+        entry.innerHTML = `${message} <span>${details}</span>`;
+        
+        // Agregar al log (al principio para que el más reciente esté arriba)
+        this.elements.logEntries.prepend(entry);
+      },
+      
+      /**
+       * Formatea el tipo de evento para visualización
+       * @param {string} type - Tipo de evento
+       * @returns {string} - Texto formateado
+       */
+      formatEventType(type) {
+        const typeMap = {
+          'sesión_creada': 'Sesión iniciada',
+          'inicio_inicial': 'Inicio',
+          'reanudación': 'Reanudación',
+          'pausa': 'Pausa',
+          'finalizado': 'Finalizado',
+          'reapertura_automática': 'Continuación automática'
+        };
+        
+        return typeMap[type] || type.charAt(0).toUpperCase() + type.slice(1);
+      },
+      
+      /**
+       * Genera un ID único para la sesión
+       * @returns {string} - ID de sesión
+       */
+      generateSessionId() {
+        return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      },
+      
+      /**
+       * Guarda el estado actual en localStorage
+       */
+      saveState() {
+        // Solo guardar si hay una sesión activa
+        if (!this.state.selectedUser) return;
+        
+        const data = {
+          // Metadatos
+          timestamp: Date.now(),
+          version: "4.0",
+          
+          // Información de la sesión
+          sessionId: this.state.sessionId,
+          selectedUser: this.state.selectedUser,
+          startTimestamp: this.state.startTimestamp,
+          
+          // Estado del temporizador
+          isActive: this.state.isActive,
+          isPaused: this.state.isPaused,
+          isFinished: this.state.isFinished,
+          
+          // Tiempos
+          currentStartTime: this.state.currentStartTime,
+          lastPauseTime: this.state.lastPauseTime,
+          accumulatedDuration: this.state.accumulatedDuration,
+          
+          // Eventos
+          events: this.state.events
+        };
+        
+        // Guardar en localStorage
+        try {
+          localStorage.setItem(this.config.storageKey, JSON.stringify(data));
+          console.log("Estado guardado:", new Date().toLocaleTimeString());
+        } catch (error) {
+          console.error("Error al guardar estado:", error);
+        }
+      },
+      
+      /**
+       * Restaura el estado desde localStorage
+       * @returns {boolean} - true si se restauró correctamente, false si no había datos
+       */
+      restoreState() {
+        try {
+          // Obtener datos guardados
+          const savedData = localStorage.getItem(this.config.storageKey);
+          if (!savedData) return false;
+          
+          const data = JSON.parse(savedData);
+          
+          // Verificar si los datos son válidos
+          if (!data.sessionId || !data.selectedUser) return false;
+          
+          // Si la sesión está finalizada, preguntar si desea ver los resultados
+          if (data.isFinished) {
+            if (confirm(`La sesión de ${data.selectedUser} ya está finalizada. ¿Desea ver los resultados?`)) {
+              // Restaurar solo para visualización
+              this.restoreFinishedSession(data);
+              return true;
+            } else {
+              // Eliminar sesión finalizada y comenzar nueva
+              localStorage.removeItem(this.config.storageKey);
+              return false;
+            }
+          }
+          
+          // Si la sesión está activa pero pausada, verificar si desea continuarla
+          if (data.isPaused) {
+            if (confirm(`Existe una sesión pausada para ${data.selectedUser}. ¿Desea continuarla?`)) {
+              this.restoreActiveSession(data);
+              return true;
+            } else {
+              localStorage.removeItem(this.config.storageKey);
+              return false;
+            }
+          }
+          
+          // Si la sesión está activa y corriendo, pregunta si desea continuarla
+          if (confirm(`Existe una sesión activa para ${data.selectedUser} que no fue pausada. ¿Desea continuarla?`)) {
+            this.restoreRunningSession(data);
+            return true;
+          } else {
+            localStorage.removeItem(this.config.storageKey);
+            return false;
+          }
+          
+        } catch (error) {
+          console.error("Error al restaurar estado:", error);
+          localStorage.removeItem(this.config.storageKey);
+          return false;
+        }
+      },
+      
+      /**
+       * Restaura una sesión finalizada (solo visualización)
+       * @param {Object} data - Datos de la sesión
+       */
+      restoreFinishedSession(data) {
+        // Restaurar datos básicos
+        this.state.selectedUser = data.selectedUser;
+        this.state.sessionId = data.sessionId;
+        this.state.startTimestamp = data.startTimestamp;
+        this.state.accumulatedDuration = data.accumulatedDuration;
+        this.state.events = data.events || [];
+        
+        // Establecer estado
+        this.state.isFinished = true;
+        this.state.isActive = false;
+        this.state.isPaused = true;
+        
+        // Actualizar interfaz
+        this.elements.selectedUser.textContent = data.selectedUser;
+        this.elements.selectorSection.classList.add("hidden");
+        this.elements.timerContainer.classList.remove("hidden");
+        
+        // Actualizar visualización
+        this.updateDisplay();
+        this.updateTimerStatus();
+        this.updateButtonStates();
+        
+        // Restaurar log de eventos
+        this.restoreEventLog(data.events || []);
+      },
+      
+      /**
+       * Restaura una sesión activa pero pausada
+       * @param {Object} data - Datos de la sesión
+       */
+      restoreActiveSession(data) {
+        // Restaurar todos los datos
+        this.state.selectedUser = data.selectedUser;
+        this.state.sessionId = data.sessionId;
+        this.state.startTimestamp = data.startTimestamp;
+        this.state.currentStartTime = data.currentStartTime;
+        this.state.lastPauseTime = data.lastPauseTime;
+        this.state.accumulatedDuration = data.accumulatedDuration;
+        this.state.events = data.events || [];
+        
+        // Establecer estado
+        this.state.isActive = true;
+        this.state.isPaused = true;
+        this.state.isFinished = false;
+        
+        // Actualizar interfaz
+        this.elements.selectedUser.textContent = data.selectedUser;
+        this.elements.selectorSection.classList.add("hidden");
+        this.elements.timerContainer.classList.remove("hidden");
+        
+        // Actualizar visualización
+        this.updateDisplay();
+        this.updateTimerStatus();
+        this.updateButtonStates();
+        
+        // Restaurar log de eventos
+        this.restoreEventLog(data.events || []);
+      },
+      
+      /**
+       * Restaura una sesión que estaba en ejecución (no pausada)
+       * @param {Object} data - Datos de la sesión
+       */
+      restoreRunningSession(data) {
+        // Calcular el tiempo adicional que ha pasado mientras la sesión estuvo cerrada
+        const now = Date.now();
+        let additionalTime = 0;
+        
+        // Si hay tiempo de inicio pero no estaba pausado, calcular tiempo adicional
+        if (data.currentStartTime && !data.isPaused) {
+          additionalTime = now - data.currentStartTime;
+          
+          // Registrar evento automático de cierre/reapertura
+          const reopenEvent = {
+            type: "reapertura_automática",
+            timestamp: now,
+            dateTime: new Date(now).toLocaleString(),
+            totalDuration: data.accumulatedDuration + additionalTime,
+            formattedDuration: this.formatTimeWithMs(data.accumulatedDuration + additionalTime),
+            continuedTime: this.formatTime(Math.floor(additionalTime / 1000)),
+          };
+          
+          // Añadir al array de eventos
+          if (data.events && Array.isArray(data.events)) {
+            data.events.push(reopenEvent);
+          } else {
+            data.events = [reopenEvent];
+          }
+        }
+        
+        // Restaurar datos básicos
+        this.state.selectedUser = data.selectedUser;
+        this.state.sessionId = data.sessionId;
+        this.state.startTimestamp = data.startTimestamp;
+        this.state.events = data.events || [];
+        
+        // Acumular duración
+        this.state.accumulatedDuration = data.accumulatedDuration + additionalTime;
+        
+        // Establecer nuevo tiempo de inicio actual
+        this.state.currentStartTime = now;
+        
+        // Establecer estado
+        this.state.isActive = true;
+        this.state.isPaused = false;
+        this.state.isFinished = false;
+        
+        // Actualizar interfaz
+        this.elements.selectedUser.textContent = data.selectedUser;
+        this.elements.selectorSection.classList.add("hidden");
+        this.elements.timerContainer.classList.remove("hidden");
+        this.elements.timerDisplay.classList.add("time-active");
+        
+        // Actualizar visualización
+        this.updateDisplay();
+        this.updateTimerStatus();
+        this.updateButtonStates();
+        
+        // Restaurar log de eventos
+        this.restoreEventLog(data.events || []);
+        
+        // Iniciar actualizaciones de display y sincronización
+        this.startDisplayUpdates();
+        this.startPeriodicSync();
+      },
+      
+      /**
+       * Restaura el log de eventos visualmente
+       * @param {Array} events - Array de eventos a restaurar
+       */
+      restoreEventLog(events) {
+        // Limpiar log actual
+        this.elements.logEntries.innerHTML = "";
+        
+        // Restaurar cada evento en orden cronológico inverso (más reciente primero)
+        [...events].reverse().forEach(event => {
+          this.updateEventLog(event);
+        });
+      },
+      
+      /**
+       * Prepara los datos para descarga
+       * @returns {Object} - Datos formateados para exportación
+       */
+      prepareDataForExport() {
+        // Calcular duración total final
+        const finalDuration = this.calculateCurrentDuration();
+        
+        return {
+          // Metadatos de exportación
+          exportInfo: {
+            exportDate: new Date().toISOString(),
+            exportVersion: "4.0",
+            appName: "TimeTracker Premium"
+          },
+          
+          // Información de la sesión
+          sessionInfo: {
+            id: this.state.sessionId,
+            user: this.state.selectedUser,
+            startDate: new Date(this.state.startTimestamp).toISOString(),
+            endDate: this.state.isFinished ? new Date().toISOString() : null,
+            status: this.state.isFinished ? "finalizado" : (this.state.isPaused ? "pausado" : "activo")
+          },
+          
+          // Duración total
+          duration: {
+            totalMilliseconds: finalDuration,
+            formatted: this.formatTime(Math.floor(finalDuration / 1000)),
+            formattedPrecise: this.formatTimeWithMs(finalDuration)
+          },
+          
+          // Registro completo de eventos
+          events: this.state.events.map(event => ({
+            ...event,
+            // Formatear las timestamps ISO para mejor legibilidad en JSON
+            isoDateTime: new Date(event.timestamp).toISOString()
+          }))
+        };
+      },
+      
+      /**
+       * Descarga los datos en formato JSON
+       */
+      downloadData() {
+        // Preparar datos para exportación
+        const exportData = this.prepareDataForExport();
+        
+        // Crear blob y URL
+        const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        
+        // Crear enlace de descarga
+        const downloadLink = document.createElement("a");
+        downloadLink.href = url;
+        
+        // Generar nombre de archivo con fecha y hora
+        const date = new Date().toISOString().split("T")[0];
+        const time = new Date().toTimeString().split(" ")[0].replace(/:/g, "-");
+        downloadLink.download = `timetracker_${this.state.selectedUser}_${date}_${time}.json`;
+        
+        // Simular clic y liberar URL
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+        URL.revokeObjectURL(url);
+      }
+    };
     
-    // Iniciar aplicación
-    document.addEventListener("DOMContentLoaded", init);
+    // Inicializar la aplicación cuando el DOM esté listo
+    document.addEventListener("DOMContentLoaded", () => {
+      TimeTracker.init();
+    });
   </script>
 </body>
 </html>
