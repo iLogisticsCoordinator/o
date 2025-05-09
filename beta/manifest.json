@@ -5,7 +5,7 @@
   "start_url": "/o/beta/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#0061ff",
+  "theme_color": "#ffffff",
   "icons": [
     {
       "src": "icons/icon-192.png",
