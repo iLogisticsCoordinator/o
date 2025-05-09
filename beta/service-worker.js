@@ -1,9 +1,9 @@
 const CACHE_NAME = 'timetracker-v1';
 const urlsToCache = [
-  '/',
-  '/index.html',
-  'icon-192.png',
-  'icon-512.png'
+  '/o/beta/',
+  '/o/beta/index.html',
+  '/o/beta/icons/icon-192.png',
+  '/o/beta/icons/icon-512.png'
 ];
 
 self.addEventListener('install', event => {
