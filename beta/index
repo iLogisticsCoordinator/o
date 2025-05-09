@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0061ff">
+  <meta name="description" content="Sistema profesional de control de tiempo con persistencia total">
+  <title>TimeTracker Premium</title>
+  
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto+Mono:wght@400;600&display=swap" rel="stylesheet">
+  
+  <!-- Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+  
+  <style>
+    /* Estilos compactos y mejorados */
+    :root {
+      --color-primary: #0061ff;
+      --color-primary-hover: #004ecc;
+      --color-danger: #dc3545;
+      --color-success: #198754;
+      --color-warning: #f59e0b;
+      --color-bg: #f8f9fa;
+      --color-bg-elevated: #ffffff;
+      --color-text-primary: #212529;
+      --color-text-secondary: #6c757d;
+      --color-border: rgba(33, 37, 41, 0.12);
+      --radius-md: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --font-sans: 'Inter', sans-serif;
+      --font-mono: 'Roboto Mono', monospace;
+    }
+    
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--color-bg);
+      color: var(--color-text-primary);
+      margin: 0;
+      padding: var(--space-4);
+      min-height: 100vh;
+    }
+    
+    .app-container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: var(--color-bg-elevated);
+      border-radius: var(--radius-md);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      border: 1px solid var(--color-border);
+    }
+    
+    .app-header {
+      padding: var(--space-4);
+      background: var(--color-primary);
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+    }
+    
+    .brand-logo {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: var(--radius-md);
+    }
+    
+    .brand-name {
+      font-weight: 600;
+      font-size: 1.25rem;
+    }
+    
+    .theme-toggle {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
+    
+    .card {
+      padding: var(--space-4);
+    }
+    
+    .user-selection {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: var(--space-3);
+      margin: var(--space-4) 0;
+    }
+    
+    .user-btn {
+      padding: var(--space-3);
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .user-btn:hover {
+      border-color: var(--color-primary);
+      transform: translateY(-2px);
+    }
+    
+    .timer-display {
+      text-align: center;
+      margin: var(--space-4) 0;
+      font-family: var(--font-mono);
+      font-size: 2.5rem;
+      font-weight: 600;
+    }
+    
+    .controls {
+      display: flex;
+      gap: var(--space-3);
+      justify-content: center;
+      margin: var(--space-4) 0;
+    }
+    
+    .btn {
+      padding: var(--space-3) var(--space-4);
+      border: none;
+      border-radius: var(--radius-md);
+      color: white;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+    }
+    
+    .btn-primary {
+      background: var(--color-primary);
+    }
+    
+    .btn-danger {
+      background: var(--color-danger);
+    }
+    
+    .events-log {
+      margin-top: var(--space-4);
+      max-height: 200px;
+      overflow-y: auto;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: var(--space-3);
+    }
+    
+    .log-entry {
+      padding: var(--space-2) 0;
+      border-bottom: 1px solid var(--color-border);
+      display: flex;
+      justify-content: space-between;
+    }
+    
+    /* Modo oscuro */
+    [data-theme="dark"] {
+      --color-bg: #111827;
+      --color-bg-elevated: #1f2937;
+      --color-text-primary: #f8f9fa;
+      --color-text-secondary: #d1d5db;
+      --color-border: rgba(255, 255, 255, 0.12);
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand-logo">
+          <i class="ri-time-line"></i>
+        </div>
+        <h1 class="brand-name">TimeTracker</h1>
+      </div>
+      <button id="themeToggle" class="theme-toggle">
+        <i id="themeIcon" class="ri-sun-line"></i>
+      </button>
+    </header>
+    
+    <main class="card">
+      <!-- Selector de Usuario -->
+      <div id="selectorSection">
+        <h2>Seleccionar Usuario</h2>
+        <div id="userContainer" class="user-selection"></div>
+      </div>
+      
+      <!-- Temporizador -->
+      <div id="timerContainer" style="display: none;">
+        <div class="user-selected">
+          <i class="ri-user-line"></i>
+          <span>Usuario: <strong id="selectedUser"></strong></span>
+        </div>
+        
+        <div class="timer-display">
+          <span id="timeValue">00:00:00</span>
+        </div>
+        
+        <div class="controls">
+          <button id="actionBtn" class="btn btn-primary">
+            <i class="ri-play-line"></i> Iniciar
+          </button>
+          <button id="finalizeBtn" class="btn btn-danger">
+            <i class="ri-stop-line"></i> Finalizar
+          </button>
+        </div>
+        
+        <div class="log-container">
+          <h3><i class="ri-history-line"></i> Historial</h3>
+          <div id="eventsLog" class="events-log">
+            <div id="logEntries"></div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // Configuración
+    const config = {
+      users: ["Carlos", "Ana", "Luis", "María", "Jorge", "Elena"],
+      storageKey: "timeTrackerData"
+    };
+    
+    // Estado
+    const state = {
+      selectedUser: null,
+      isActive: false,
+      isPaused: true,
+      startTime: null,
+      pauseTime: null,
+      totalTime: 0,
+      events: []
+    };
+    
+    // Elementos del DOM
+    const elements = {
+      selectorSection: document.getElementById("selectorSection"),
+      timerContainer: document.getElementById("timerContainer"),
+      userContainer: document.getElementById("userContainer"),
+      selectedUser: document.getElementById("selectedUser"),
+      timeValue: document.getElementById("timeValue"),
+      actionBtn: document.getElementById("actionBtn"),
+      finalizeBtn: document.getElementById("finalizeBtn"),
+      logEntries: document.getElementById("logEntries"),
+      themeToggle: document.getElementById("themeToggle"),
+      themeIcon: document.getElementById("themeIcon")
+    };
+    
+    // Inicialización
+    function init() {
+      generateUserOptions();
+      setupEventListeners();
+      checkSavedState();
+      setupPWA();
+    }
+    
+    // Generar opciones de usuario
+    function generateUserOptions() {
+      config.users.forEach(user => {
+        const btn = document.createElement("button");
+        btn.className = "user-btn";
+        btn.textContent = user;
+        btn.dataset.user = user;
+        elements.userContainer.appendChild(btn);
+      });
+    }
+    
+    // Configurar event listeners
+    function setupEventListeners() {
+      // Selección de usuario
+      elements.userContainer.addEventListener("click", (e) => {
+        if (e.target.classList.contains("user-btn")) {
+          selectUser(e.target.dataset.user);
+        }
+      });
+      
+      // Botón de acción
+      elements.actionBtn.addEventListener("click", () => {
+        if (state.isPaused) {
+          startTimer();
+        } else {
+          pauseTimer();
+        }
+      });
+      
+      // Botón de finalizar
+      elements.finalizeBtn.addEventListener("click", () => {
+        if (state.isActive) {
+          stopTimer();
+        } else {
+          downloadData();
+        }
+      });
+      
+      // Toggle de tema
+      elements.themeToggle.addEventListener("click", toggleTheme);
+    }
+    
+    // Seleccionar usuario
+    function selectUser(user) {
+      state.selectedUser = user;
+      state.startTime = Date.now();
+      state.isActive = true;
+      state.isPaused = true;
+      
+      elements.selectedUser.textContent = user;
+      elements.selectorSection.style.display = "none";
+      elements.timerContainer.style.display = "block";
+      
+      logEvent("Sesión iniciada");
+      saveState();
+    }
+    
+    // Iniciar temporizador
+    function startTimer() {
+      state.isPaused = false;
+      state.startTime = Date.now();
+      
+      elements.actionBtn.innerHTML = '<i class="ri-pause-line"></i> Pausar';
+      logEvent("Temporizador iniciado");
+      updateTimer();
+      saveState();
+    }
+    
+    // Pausar temporizador
+    function pauseTimer() {
+      state.isPaused = true;
+      state.totalTime += Date.now() - state.startTime;
+      
+      elements.actionBtn.innerHTML = '<i class="ri-play-line"></i> Reanudar';
+      logEvent("Temporizador pausado");
+      saveState();
+    }
+    
+    // Detener temporizador
+    function stopTimer() {
+      state.isActive = false;
+      state.totalTime += Date.now() - state.startTime;
+      
+      elements.actionBtn.disabled = true;
+      elements.finalizeBtn.innerHTML = '<i class="ri-download-line"></i> Descargar';
+      logEvent("Sesión finalizada");
+      saveState();
+    }
+    
+    // Actualizar display del temporizador
+    function updateTimer() {
+      if (!state.isActive || state.isPaused) return;
+      
+      const elapsed = state.totalTime + (Date.now() - state.startTime);
+      elements.timeValue.textContent = formatTime(elapsed);
+      
+      requestAnimationFrame(updateTimer);
+    }
+    
+    // Formatear tiempo
+    function formatTime(ms) {
+      const totalSec = Math.floor(ms / 1000);
+      const hours = Math.floor(totalSec / 3600).toString().padStart(2, '0');
+      const minutes = Math.floor((totalSec % 3600) / 60).toString().padStart(2, '0');
+      const seconds = (totalSec % 60).toString().padStart(2, '0');
+      return `${hours}:${minutes}:${seconds}`;
+    }
+    
+    // Registrar evento
+    function logEvent(type) {
+      const now = new Date();
+      const event = {
+        type,
+        time: now.toLocaleTimeString(),
+        totalTime: formatTime(state.totalTime + (state.isPaused ? 0 : Date.now() - state.startTime))
+      };
+      
+      state.events.push(event);
+      
+      const entry = document.createElement("div");
+      entry.className = "log-entry";
+      entry.innerHTML = `
+        <span>${type}</span>
+        <span>${event.time} (${event.totalTime})</span>
+      `;
+      
+      elements.logEntries.prepend(entry);
+    }
+    
+    // Guardar estado
+    function saveState() {
+      localStorage.setItem(config.storageKey, JSON.stringify(state));
+    }
+    
+    // Cargar estado guardado
+    function checkSavedState() {
+      const saved = localStorage.getItem(config.storageKey);
+      if (saved) {
+        const savedState = JSON.parse(saved);
+        if (savedState.selectedUser && confirm(`Continuar sesión de ${savedState.selectedUser}?`)) {
+          Object.assign(state, savedState);
+          
+          elements.selectedUser.textContent = state.selectedUser;
+          elements.selectorSection.style.display = "none";
+          elements.timerContainer.style.display = "block";
+          
+          if (!state.isPaused) {
+            startTimer();
+          } else {
+            elements.timeValue.textContent = formatTime(state.totalTime);
+          }
+          
+          // Restaurar eventos
+          state.events.forEach(event => {
+            const entry = document.createElement("div");
+            entry.className = "log-entry";
+            entry.innerHTML = `
+              <span>${event.type}</span>
+              <span>${event.time} (${event.totalTime})</span>
+            `;
+            elements.logEntries.appendChild(entry);
+          });
+        }
+      }
+    }
+    
+    // Descargar datos
+    function downloadData() {
+      const data = {
+        user: state.selectedUser,
+        totalTime: state.totalTime,
+        formattedTime: formatTime(state.totalTime),
+        events: state.events,
+        date: new Date().toISOString()
+      };
+      
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `timetracker_${state.selectedUser}_${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+    
+    // Toggle tema claro/oscuro
+    function toggleTheme() {
+      const isDark = document.body.getAttribute("data-theme") === "dark";
+      document.body.setAttribute("data-theme", isDark ? "" : "dark");
+      elements.themeIcon.className = isDark ? "ri-sun-line" : "ri-moon-line";
+      localStorage.setItem("theme", isDark ? "light" : "dark");
+    }
+    
+    // Configurar PWA
+    function setupPWA() {
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("service-worker.js")
+          .then(registration => console.log("SW registered:", registration))
+          .catch(error => console.log("SW registration failed:", error));
+      }
+      
+      window.addEventListener("beforeinstallprompt", (e) => {
+        e.preventDefault();
+        console.log("PWA install prompt available");
+      });
+    }
+    
+    // Iniciar aplicación
+    document.addEventListener("DOMContentLoaded", init);
+  </script>
+</body>
+</html>
