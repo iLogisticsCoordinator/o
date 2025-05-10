@@ -73,14 +73,15 @@
             padding: 1rem 1.25rem;
             font-weight: 600;
             border-bottom: 1px solid var(--border-color);
-            display: flex;
+            //display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
         .card-header .bi {
             color: var(--primary-color);
-            margin-right: 8px;
+            //color: #ffffff;
+            margin-right: 0px;
         }
 
         .card-header[data-bs-toggle="collapse"] {
@@ -652,113 +653,309 @@
             to { transform: rotate(360deg); }
         }
 
-        /* Estilos mejorados para anexos */
-        .anexo-card {
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-lg);
-            background-color: white;
-            box-shadow: var(--shadow-sm);
-            transition: all var(--transition-fast);
-            overflow: hidden;
-            margin-bottom: 1rem;
-        }
+/* ---------------------------- */
+/* ESTILOS PROFESIONALES ANEXOS */
+/* ---------------------------- */
 
-        .anexo-card:hover {
-            box-shadow: var(--shadow-md);
-            transform: translateY(-1px);
-        }
+/* Contenedor principal de anexos */
+#anexosCardsContainer {
+    display: grid;
+    gap: 1.25rem;
+    padding: 1.5rem;
+}
 
-        .anexo-card .card-header {
-            background-color: var(--light-bg);
-            padding: 0.75rem 1.25rem;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            transition: background-color var(--transition-fast);
-        }
+/* Tarjeta de anexo - Diseño premium */
+.anexo-card {
+    --card-border-radius: 10px;
+    --card-padding: 1.5rem;
+    --card-header-height: 56px;
+    
+    border-radius: var(--card-border-radius);
+    background: white;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    overflow: hidden;
+    border: 1px solid rgba(0, 0, 0, 0.03);
+}
 
-        .anexo-card .card-header:hover {
-            background-color: var(--lighter-bg);
-        }
+.anexo-card:hover {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
 
-        .anexo-card .card-header .card-title {
-            font-weight: 600;
-            color: var(--primary-color);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.95rem;
-        }
+/* Encabezado de tarjeta - Estilo premium */
+.anexo-card .card-header {
+    height: var(--card-header-height);
+    padding: 0 var(--card-padding);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
 
-        .anexo-card .card-header .card-actions {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
+.anexo-card .card-header:hover {
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+}
 
-        .anexo-card .card-body {
-            padding: 1.25rem;
-            border-top: 1px solid var(--border-color);
-        }
+/* Título de anexo - Tipografía profesional */
+.anexo-card .card-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #334155;
+    letter-spacing: 0.2px;
+}
 
-        .anexo-card .card-body.collapsed {
-            display: none;
-        }
+.anexo-card .card-title .bi {
+    font-size: 1.1rem;
+    color: #64748b;
+}
 
-        /* Iconos profesionales */
-        .anexo-card .bi {
-            font-size: 1.1rem;
-            transition: all var(--transition-fast);
-        }
+/* Contenedor de acciones - Diseño profesional */
+.anexo-card .card-actions {
+    display: flex;
+    gap: 0.5rem;
+}
 
-        .anexo-card .btn-toggle-collapse .bi {
-            color: var(--primary-color);
-        }
+/* Botones de acción - Estilo premium */
+.anexo-card .card-actions .btn {
+    --btn-size: 32px;
+    width: var(--btn-size);
+    height: var(--btn-size);
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    transition: all 0.25s ease;
+}
 
-        .anexo-card .btn-remove .bi {
-            color: var(--danger-color);
-        }
+/* Iconos - Diseño profesional */
+.anexo-card .card-actions .btn .bi {
+    font-size: 1rem;
+    transition: transform 0.2s ease;
+}
 
-        .anexo-card .btn-toggle-accion .bi {
-            color: var(--success-color);
-        }
+/* Botón de colapsar */
+.anexo-card .btn-toggle-collapse {
+    background: white;
+    border-color: rgba(0, 0, 0, 0.08) !important;
+}
 
-        .anexo-card .btn-toggle-collapse:hover .bi,
-        .anexo-card .btn-remove:hover .bi,
-        .anexo-card .btn-toggle-accion:hover .bi {
-            transform: scale(1.1);
-        }
+.anexo-card .btn-toggle-collapse .bi {
+    color: #64748b;
+}
 
-        /* Estados visuales mejorados */
-        .anexo-card[data-accion="none"] {
-            border-left: 3px solid var(--secondary-color);
-        }
+.anexo-card .btn-toggle-collapse:hover {
+    background: white;
+    border-color: rgba(0, 0, 0, 0.15) !important;
+}
 
-        .anexo-card[data-accion="DESCONTAR"] {
-            border-left: 3px solid var(--danger-color);
-        }
+.anexo-card .btn-toggle-collapse:hover .bi {
+    color: #334155;
+    transform: scale(1.1);
+}
 
-        .anexo-card[data-accion="DESCONTAR"] .card-header {
-            background-color: rgba(239, 68, 68, 0.05);
-        }
+/* Botón de cambiar acción */
+.anexo-card .btn-toggle-accion {
+    background: rgba(16, 185, 129, 0.1);
+    border-color: rgba(16, 185, 129, 0.2) !important;
+}
 
-        .anexo-card[data-accion="AGREGAR"] {
-            border-left: 3px solid var(--success-color);
-        }
+.anexo-card .btn-toggle-accion .bi {
+    color: #10b981;
+}
 
-        .anexo-card[data-accion="AGREGAR"] .card-header {
-            background-color: rgba(16, 185, 129, 0.05);
-        }
+.anexo-card .btn-toggle-accion:hover {
+    background: rgba(16, 185, 129, 0.2);
+}
 
-        .anexo-card[data-tipo="AJUSTE"] {
-            border-left: 3px solid var(--warning-color);
-        }
+.anexo-card .btn-toggle-accion:hover .bi {
+    transform: rotate(90deg);
+}
 
-        .anexo-card[data-tipo="AJUSTE"] .card-header {
-            background-color: rgba(245, 158, 11, 0.05);
-        }
+/* Botón de eliminar */
+.anexo-card .btn-remove {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.2) !important;
+}
+
+.anexo-card .btn-remove .bi {
+    color: #ef4444;
+}
+
+.anexo-card .btn-remove:hover {
+    background: rgba(239, 68, 68, 0.2);
+}
+
+.anexo-card .btn-remove:hover .bi {
+    transform: scale(1.1);
+}
+
+/* Cuerpo de la tarjeta - Diseño limpio */
+.anexo-card .card-body {
+    padding: var(--card-padding);
+    background: white;
+    border-top: 1px solid rgba(0, 0, 0, 0.03);
+}
+
+.anexo-card .card-body.collapsed {
+    display: none;
+}
+
+/* Campos del formulario - Estilo profesional */
+.anexo-card .form-label {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #64748b;
+    margin-bottom: 0.5rem;
+    display: block;
+    letter-spacing: 0.3px;
+}
+
+.anexo-card .form-control,
+.anexo-card .form-select {
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    box-shadow: none;
+}
+
+.anexo-card .form-control:focus,
+.anexo-card .form-select:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* Estado colapsado - Estilo del icono */
+.anexo-card .card-body.collapsed + .card-header .btn-toggle-collapse .bi-chevron-down {
+    transform: rotate(-90deg);
+}
+
+/* ---------------------------- */
+/* BOTÓN AGREGAR ANEXO - PREMIUM */
+/* ---------------------------- */
+#addAnexoBtn {
+    --btn-height: 44px;
+    --btn-icon-size: 20px;
+    
+    height: var(--btn-height);
+    padding: 0 1.5rem;
+    border-radius: 8px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    border: none;
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    color: white;
+    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.2);
+}
+
+#addAnexoBtn .bi {
+    //font-size: var(--btn-icon-size);
+    transition: transform 0.3s ease;
+}
+
+#addAnexoBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+}
+
+#addAnexoBtn:hover .bi {
+    transform: scale(1.1) rotate(90deg);
+}
+
+#addAnexoBtn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
+}
+
+/* ---------------------------- */
+/* ESTADOS VISUALES - PROFESIONAL */
+/* ---------------------------- */
+.anexo-card[data-accion="none"] {
+    border-left: 4px solid #94a3b8;
+}
+
+.anexo-card[data-accion="DESCONTAR"] {
+    border-left: 4px solid #ef4444;
+}
+
+.anexo-card[data-accion="DESCONTAR"] .card-header {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.05) 0%, rgba(239, 68, 68, 0.03) 100%);
+}
+
+.anexo-card[data-accion="AGREGAR"] {
+    border-left: 4px solid #10b981;
+}
+
+.anexo-card[data-accion="AGREGAR"] .card-header {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(16, 185, 129, 0.03) 100%);
+}
+
+.anexo-card[data-tipo="AJUSTE"] {
+    border-left: 4px solid #f59e0b;
+}
+
+.anexo-card[data-tipo="AJUSTE"] .card-header {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.05) 0%, rgba(245, 158, 11, 0.03) 100%);
+}
+
+.bi-plus-circle::before {
+    content: "\f4fa";
+    color: white;
+}
+
+/* ---------------------------- */
+/* EFECTOS ESPECIALES - PROFESIONAL */
+/* ---------------------------- */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.anexo-card {
+    animation: fadeIn 0.3s ease forwards;
+}
+
+/* ---------------------------- */
+/* RESPONSIVE - DISEÑO ADAPTATIVO */
+/* ---------------------------- */
+@media (max-width: 768px) {
+    #anexosCardsContainer {
+        padding: 1rem;
+        gap: 1rem;
+    }
+    
+    .anexo-card {
+        --card-padding: 1.25rem;
+    }
+    
+    .anexo-card .card-header {
+        padding: 0 1rem;
+    }
+    
+    .anexo-card .card-actions .btn {
+        --btn-size: 28px;
+    }
+    
+    #addAnexoBtn {
+        --btn-height: 40px;
+        padding: 0 1.25rem;
+    }
+}
     </style>
 </head>
 <body>
@@ -826,9 +1023,11 @@
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <span><i class="bi bi-paperclip"></i> ANEXOS</span>
-                            <button id="addAnexoBtn" class="btn btn-sm btn-success">
+
+                            <button id="addAnexoBtn" class="btn btn-sm btn-primary">
                                 <i class="bi bi-plus-circle"></i> Agregar Anexo
                             </button>
+
                         </div>
                         <div class="card-body p-0">
                             <div id="anexosCardsContainer" class="p-3">
