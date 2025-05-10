@@ -1837,6 +1837,9 @@
                 const anexos = [];
                 let hrData = JSON.parse(JSON.stringify(baseData.HR));
                 
+                // Variable para calcular la cantidad total
+                let cantidadTotal = originalData.informacionGeneral.totalCantidad || 0;
+                
                 // Modificado para trabajar correctamente con las cards
                 document.querySelectorAll('.anexo-card').forEach(anexoCard => {
                     // Asegurarnos de que estamos trabajando con un elemento DOM
@@ -1879,6 +1882,13 @@
                         "CANTIDAD": cantidad,
                         "ACCION": accion || null
                     });
+                    
+                    // Actualizar la cantidad total según la acción del anexo
+                    if (accion === 'AGREGAR') {
+                        cantidadTotal += cantidad;
+                    } else if (accion === 'DESCONTAR') {
+                        cantidadTotal = Math.max(0, cantidadTotal - cantidad);
+                    }
                     
                     if (talla && color && cantidad > 0) {
                         if (tipo === 'AJUSTE' && accion === 'AGREGAR') {
@@ -1958,7 +1968,8 @@
                     "PROVEEDOR": baseData.PROVEEDOR,
                     "DESCRIPCIÓN": descripcionConcatenada || baseData.DESCRIPCIÓN,
                     "ANEXOS": anexos,
-                    "HR": hrSimplificado
+                    "HR": hrSimplificado,
+                    "CANTIDAD": cantidadTotal // Actualizamos con la cantidad total calculada
                 };
             }
             
@@ -2040,7 +2051,7 @@
                     });
                 }
 
-                // Llenar select de tallas
+                // Llenar select de tallas (modificado)
                 const tallaSelect = anexoCard.querySelector('.anexo-talla');
                 if (tallaSelect) {
                     Array.from(tallasUnicas).sort().forEach(talla => {
@@ -2050,13 +2061,10 @@
                         tallaSelect.appendChild(option);
                     });
                     
-                    const newSizeOption = document.createElement('option');
-                    newSizeOption.value = '_nueva_';
-                    newSizeOption.textContent = '[Nueva talla]';
-                    tallaSelect.appendChild(newSizeOption);
+
                 }
 
-                // Llenar select de colores
+                // Llenar select de colores (modificado)
                 const colorSelect = anexoCard.querySelector('.anexo-color');
                 if (colorSelect) {
                     Array.from(coloresUnicos).sort().forEach(color => {
@@ -2066,10 +2074,7 @@
                         colorSelect.appendChild(option);
                     });
                     
-                    const newColorOption = document.createElement('option');
-                    newColorOption.value = '_nuevo_';
-                    newColorOption.textContent = '[Nuevo color]';
-                    colorSelect.appendChild(newColorOption);
+
                 }
 
                 setupAnexoCardEvents(anexoCard);
@@ -2133,39 +2138,12 @@
                         accionSelect.disabled = true;
                         anexoCard.dataset.tipo = 'AJUSTE';
                         if (toggleAccionBtn) toggleAccionBtn.style.display = 'none';
-
-                        // Manejar nueva talla
-                        if (tallaSelect.value === '_nueva_') {
-                            const newSizeInput = document.createElement('input');
-                            newSizeInput.type = 'text';
-                            newSizeInput.className = 'form-control form-control-sm';
-                            newSizeInput.placeholder = 'Ingrese nueva talla';
-                            tallaSelect.replaceWith(newSizeInput);
-                        }
-
-                        // Manejar nuevo color
-                        if (colorSelect.value === '_nuevo_') {
-                            const newColorInput = document.createElement('input');
-                            newColorInput.type = 'text';
-                            newColorInput.className = 'form-control form-control-sm';
-                            newColorInput.placeholder = 'Ingrese nuevo color';
-                            colorSelect.replaceWith(newColorInput);
-                        }
+                        
                     } else {
                         accionSelect.disabled = false;
                         anexoCard.dataset.tipo = tipoSelect.value || 'none';
                         if (toggleAccionBtn) toggleAccionBtn.style.display = 'inline-block';
                         
-                        // Restaurar selects si fueron reemplazados
-                        if (!anexoCard.querySelector('.anexo-talla')) {
-                            const input = anexoCard.querySelector('input[placeholder="Ingrese nueva talla"]');
-                            if (input) input.replaceWith(tallaSelect);
-                        }
-                        
-                        if (!anexoCard.querySelector('.anexo-color')) {
-                            const input = anexoCard.querySelector('input[placeholder="Ingrese nuevo color"]');
-                            if (input) input.replaceWith(colorSelect);
-                        }
                     }
 
                     // Configuración para PROMO
