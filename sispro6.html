@@ -9,6 +9,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
     <style>
         /* Variables de color modernizadas con paleta más profesional */
         :root {
@@ -206,20 +207,57 @@
             box-shadow: var(--shadow-sm);
         }
 
-        /* Mejorar aspecto de JSON Preview */
-        .json-preview {
-            background-color: var(--light-bg);
-            border-radius: var(--radius-md);
-            padding: 1.25rem;
-            max-height: 400px;
-            overflow-y: auto;
-            font-family: 'Fira Code', 'Roboto Mono', monospace;
-            font-size: 0.85rem;
-            line-height: 1.6;
-            white-space: pre-wrap;
-            border: 1px solid var(--border-color);
-            box-shadow: var(--shadow-sm) inset;
-        }
+.json-preview {
+    font-family: 'Fira Code', 'Roboto Mono', monospace;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    background-color: #f8fafc; /* o utiliza var(--light-bg) si está definido globalmente */
+    border-radius: 6px; /* o var(--radius-md) si está definido globalmente */
+    padding: 1.25rem;
+    border: 1px solid #e2e8f0; /* o var(--border-color) si está definido globalmente */
+    max-height: 400px;
+    overflow-y: auto;
+    box-shadow: var(--shadow-sm) inset; /* o elimina si no es necesario */
+    color: #334155; /* color de texto */
+}
+
+.json-key {
+    color: #0d6efd; /* Azul oscuro elegante para claves */
+    //font-weight: 600;
+}
+
+.json-string {
+    color: #117733; /* Verde oscuro sobrio para strings */
+}
+
+.json-number {
+    color: #b45f06; /* Cobre oscuro para números */
+}
+
+.json-boolean {
+    color: #a61c00; /* Rojo quemado para booleanos */
+}
+
+.json-null {
+    color: #cc0000; /* Rojo intenso para null */
+}
+
+.json-object,
+.json-array {
+    color: #374151; /* Gris grafito para estructura */
+}
+
+.json-colon,
+.json-comma {
+    color: #6b7280; /* Gris medio para puntuación */
+}
+
+.json-error {
+    color: #990000; /* Rojo fuerte profesional para errores */
+    font-weight: bold;
+}
+
 
         /* Tabla compacta y moderna */
         .compact-table {
@@ -1232,8 +1270,7 @@
                     <div class="d-flex align-items-center">
                         <label class="form-label small text-muted me-2">ACCIÓN:</label>
                         <select class="form-select form-select-sm anexo-accion w-auto">
-                            <!-- <option value="">SELECCIONE</option>-->
-                            <option value="">Seleccione</option>
+                            <option value="">Ninguna</option>
                             <option value="DESCONTAR">Descontar</option>
                             <option value="AGREGAR">Agregar</option>
                         </select>
@@ -1824,154 +1861,165 @@
             
             // Función para crear JSON transformado con campos editables y anexos
             function createTransformedJSONWithExtras(originalData, extraData = {}) {
-                const baseData = createTransformedJSON(originalData);
-                if (baseData.A !== null && baseData.A !== undefined) {
-                    baseData.A = String(baseData.A);
-                }
-                
-                const prenda = extraData.prenda || "";
-                const genero = extraData.genero || "";
-                const refprov = baseData.REFPROV || "";
-                let descripcionConcatenada = [prenda, genero, refprov].filter(Boolean).join(" ");
-                
-                const anexos = [];
-                let hrData = JSON.parse(JSON.stringify(baseData.HR));
-                
-                // Variable para calcular la cantidad total
-                let cantidadTotal = originalData.informacionGeneral.totalCantidad || 0;
-                
-                // Modificado para trabajar correctamente con las cards
-                document.querySelectorAll('.anexo-card').forEach(anexoCard => {
-                    // Asegurarnos de que estamos trabajando con un elemento DOM
-                    if (!(anexoCard instanceof Element)) return;
-                    
-                    const tipoElement = anexoCard.querySelector('.anexo-tipo');
-                    if (!tipoElement) return;
-                    
-                    const tipo = tipoElement.value;
-                    if (!tipo) return;
-                    
-                    const accionElement = anexoCard.querySelector('.anexo-accion');
-                    const accion = tipo === 'AJUSTE' ? 'AGREGAR' : (accionElement ? accionElement.value : null);
-                    
-                    // Manejar talla (puede ser select o input)
-                    let talla = '';
-                    const tallaElement = anexoCard.querySelector('.anexo-talla');
-                    if (tallaElement) {
-                        talla = tallaElement.tagName === 'SELECT' ? tallaElement.value : tallaElement.value.trim();
-                    }
-                    
-                    // Manejar color (puede ser select o input)
-                    let color = '';
-                    const colorElement = anexoCard.querySelector('.anexo-color');
-                    if (colorElement) {
-                        color = colorElement.tagName === 'SELECT' ? colorElement.value : colorElement.value.trim();
-                    }
-                    
-                    const documentoElement = anexoCard.querySelector('.anexo-documento');
-                    const documento = documentoElement ? documentoElement.value : '';
-                    
-                    const cantidadElement = anexoCard.querySelector('.anexo-cantidad');
-                    const cantidad = cantidadElement ? parseInt(cantidadElement.value) || 0 : 0;
-                    
-                    anexos.push({
-                        "DOCUMENTO": documento || baseData.A,
-                        "TALLA": talla || null,
-                        "COLOR": color || null,
-                        "TIPO": tipo,
-                        "CANTIDAD": cantidad,
-                        "ACCION": accion || null
-                    });
-                    
-                    // Actualizar la cantidad total según la acción del anexo
-                    if (accion === 'AGREGAR') {
-                        cantidadTotal += cantidad;
-                    } else if (accion === 'DESCONTAR') {
-                        cantidadTotal = Math.max(0, cantidadTotal - cantidad);
-                    }
-                    
-                    if (talla && color && cantidad > 0) {
-                        if (tipo === 'AJUSTE' && accion === 'AGREGAR') {
-                            const existingItem = hrData.find(hr => 
-                                hr.talla === talla && 
-                                (hr.color ? hr.color.replace(/^\d+\s*/, '') : null) === color
-                            );
-                            
-                            if (!existingItem) {
-                                hrData.push({
-                                    codigo: null,
-                                    color: color,
-                                    talla: talla,
-                                    cantidad: cantidad
-                                });
-                            } else {
-                                existingItem.cantidad += cantidad;
-                            }
-                        } else if (accion) {
-                            const existingItem = hrData.find(hr => 
-                                hr.talla === talla && 
-                                (hr.color ? hr.color.replace(/^\d+\s*/, '') : null) === color
-                            );
-                            
-                            if (existingItem) {
-                                existingItem.cantidad = accion === 'DESCONTAR' 
-                                    ? Math.max(0, existingItem.cantidad - cantidad)
-                                    : existingItem.cantidad + cantidad;
-                            }
-                        }
-                    }
-                });
-                
-                const hrSimplificado = hrData.map(item => {
-                    let codigo = item.codigo;
-                    
-                    if (!codigo && parsedData?.productos) {
-                        const productoOriginal = parsedData.productos.find(p => {
-                            const colorOriginal = p.color ? p.color.replace(/^\d+\s*/, '') : null;
-                            return colorOriginal === item.color;
-                        });
-                        
-                        if (productoOriginal?.color) {
-                            const match = productoOriginal.color.match(/^(\d+)/);
-                            codigo = match ? match[1] : null;
-                        }
-                    }
-                    
-                    if (!codigo && item.color && item.talla) {
-                        const esAjuste = anexos.some(anexo => 
-                            anexo.TALLA === item.talla && 
-                            anexo.COLOR === item.color && 
-                            anexo.TIPO === 'AJUSTE'
-                        );
-                        
-                        if (esAjuste) codigo = "ajuste";
-                    }
-                    
-                    return [
-                        codigo || null,
-                        item.color || null,
-                        item.talla ? String(item.talla) : null,
-                        item.cantidad || 0
-                    ];
-                });
-                
-                return {
-                    ...baseData,
-                    "LINEA": extraData.linea || baseData.LINEA,
-                    "AUDITOR": extraData.auditor || baseData.AUDITOR,
-                    "REFERENCIA": extraData.referencia || baseData.REFERENCIA,
-                    "TIPO": extraData.tipo || baseData.TIPO,
-                    "PVP": extraData.pvp ? `$ ${extraData.pvp}.900` : baseData.PVP,
-                    "BOLSAS": extraData.bolsas || 0,
-                    "PRENDA": extraData.prenda || baseData.PRENDA,
-                    "GENERO": extraData.genero || baseData.GENERO,
-                    "PROVEEDOR": baseData.PROVEEDOR,
-                    "DESCRIPCIÓN": descripcionConcatenada || baseData.DESCRIPCIÓN,
-                    "ANEXOS": anexos,
-                    "HR": hrSimplificado,
-                    "CANTIDAD": cantidadTotal // Actualizamos con la cantidad total calculada
-                };
+    const baseData = createTransformedJSON(originalData);
+    if (baseData.A !== null && baseData.A !== undefined) {
+        baseData.A = String(baseData.A);
+    }
+
+    const prenda = extraData.prenda || "";
+    const genero = extraData.genero || "";
+    const refprov = baseData.REFPROV || "";
+    let descripcionConcatenada = [prenda, genero, refprov].filter(Boolean).join(" ");
+
+    const anexos = [];
+    let hrData = JSON.parse(JSON.stringify(baseData.HR));
+    
+    // Calcular cantidad total inicial
+    let cantidadTotal = originalData.informacionGeneral.totalCantidad || 0;
+    
+    // Validar que todos los anexos tengan campos completos
+    const anexosCards = document.querySelectorAll('.anexo-card');
+    let anexosValidos = true;
+    
+    anexosCards.forEach(anexoCard => {
+        const camposRequeridos = anexoCard.querySelectorAll('[required]');
+        camposRequeridos.forEach(campo => {
+            if (!campo.value.trim()) {
+                campo.classList.add('is-invalid');
+                anexosValidos = false;
             }
+        });
+    });
+
+    if (!anexosValidos) {
+        throw new Error("Hay anexos con campos incompletos");
+    }
+
+    // Procesar cada anexo válido
+    anexosCards.forEach(anexoCard => {
+        const tipoElement = anexoCard.querySelector('.anexo-tipo');
+        const accionElement = anexoCard.querySelector('.anexo-accion');
+        const tallaElement = anexoCard.querySelector('.anexo-talla');
+        const colorElement = anexoCard.querySelector('.anexo-color');
+        const documentoElement = anexoCard.querySelector('.anexo-documento');
+        const cantidadElement = anexoCard.querySelector('.anexo-cantidad');
+
+        const tipo = tipoElement.value;
+        const accion = tipo === 'AJUSTE' ? 'AGREGAR' : (accionElement ? accionElement.value : null);
+        const talla = tallaElement.value;
+        const color = colorElement.value;
+        const documento = documentoElement.value;
+        const cantidad = parseInt(cantidadElement.value) || 0;
+
+        // Agregar a los anexos
+        anexos.push({
+            "DOCUMENTO": documento || baseData.A,
+            "TALLA": talla || null,
+            "COLOR": color || null,
+            "TIPO": tipo,
+            "CANTIDAD": cantidad,
+            "ACCION": accion || null
+        });
+
+        // Actualizar la cantidad total según la acción
+        if (accion === 'AGREGAR') {
+            cantidadTotal += cantidad;
+        } else if (accion === 'DESCONTAR') {
+            cantidadTotal = Math.max(0, cantidadTotal - cantidad);
+        }
+
+        // Actualizar HR data
+        if (talla && color && cantidad > 0) {
+            if (tipo === 'AJUSTE' && accion === 'AGREGAR') {
+                // Buscar si ya existe un item con esta talla y color
+                const existingItem = hrData.find(hr => 
+                    hr.talla === talla && 
+                    (hr.color ? hr.color.replace(/^\d+\s*/, '') : null) === color
+                );
+                
+                if (!existingItem) {
+                    // Si no existe, agregar nuevo item
+                    hrData.push({
+                        codigo: null,
+                        color: color,
+                        talla: talla,
+                        cantidad: cantidad
+                    });
+                } else {
+                    // Si existe, sumar la cantidad
+                    existingItem.cantidad += cantidad;
+                }
+            } else if (accion) {
+                // Buscar item existente para actualizar cantidad
+                const existingItem = hrData.find(hr => 
+                    hr.talla === talla && 
+                    (hr.color ? hr.color.replace(/^\d+\s*/, '') : null) === color
+                );
+                
+                if (existingItem) {
+                    // Actualizar cantidad según la acción
+                    existingItem.cantidad = accion === 'DESCONTAR' 
+                        ? Math.max(0, existingItem.cantidad - cantidad)
+                        : existingItem.cantidad + cantidad;
+                }
+            }
+        }
+    });
+
+    // Simplificar HR data para el formato final
+    const hrSimplificado = hrData.map(item => {
+        let codigo = item.codigo;
+        
+        // Intentar obtener código de color de los productos originales
+        if (!codigo && parsedData?.productos) {
+            const productoOriginal = parsedData.productos.find(p => {
+                const colorOriginal = p.color ? p.color.replace(/^\d+\s*/, '') : null;
+                return colorOriginal === item.color;
+            });
+            
+            if (productoOriginal?.color) {
+                const match = productoOriginal.color.match(/^(\d+)/);
+                codigo = match ? match[1] : null;
+            }
+        }
+        
+        // Marcar códigos de ajuste
+        if (!codigo && item.color && item.talla) {
+            const esAjuste = anexos.some(anexo => 
+                anexo.TALLA === item.talla && 
+                anexo.COLOR === item.color && 
+                anexo.TIPO === 'AJUSTE'
+            );
+            
+            if (esAjuste) codigo = "ajuste";
+        }
+        
+        return [
+            codigo || null,
+            item.color || null,
+            item.talla ? String(item.talla) : null,
+            item.cantidad || 0
+        ];
+    });
+
+    // Construir el objeto final
+    return {
+        ...baseData,
+        "LINEA": extraData.linea || baseData.LINEA,
+        "AUDITOR": extraData.auditor || baseData.AUDITOR,
+        "REFERENCIA": extraData.referencia || baseData.REFERENCIA,
+        "TIPO": extraData.tipo || baseData.TIPO,
+        "PVP": extraData.pvp ? `$ ${extraData.pvp}.900` : baseData.PVP,
+        "BOLSAS": extraData.bolsas || 0,
+        "PRENDA": extraData.prenda || baseData.PRENDA,
+        "GENERO": extraData.genero || baseData.GENERO,
+        "PROVEEDOR": baseData.PROVEEDOR,
+        "DESCRIPCIÓN": descripcionConcatenada || baseData.DESCRIPCIÓN,
+        "ANEXOS": anexos,
+        "HR": hrSimplificado,
+        "CANTIDAD": cantidadTotal // Cantidad total actualizada
+    };
+}
             
             // Función para inicializar el formulario con los datos disponibles
             function initFormWithData() {
@@ -2061,7 +2109,6 @@
                         tallaSelect.appendChild(option);
                     });
                     
-
                 }
 
                 // Llenar select de colores (modificado)
@@ -2085,112 +2132,193 @@
             }
 
             // Configurar eventos para la card de anexo
-            function setupAnexoCardEvents(anexoCard) {
-                // Verificar que anexoCard es un elemento DOM válido
-                if (!anexoCard || !anexoCard.querySelector) {
-                    console.error('Elemento anexo no válido');
-                    return;
+function setupAnexoCardEvents(anexoCard) {
+    // Verificar que anexoCard es un elemento DOM válido
+    if (!anexoCard || !anexoCard.querySelector) {
+        console.error('Elemento anexo no válido');
+        return;
+    }
+
+    const cardHeader = anexoCard.querySelector('.card-header');
+    const cardBody = anexoCard.querySelector('.card-body');
+    const toggleCollapseBtn = anexoCard.querySelector('.btn-toggle-collapse');
+    const tipoSelect = anexoCard.querySelector('.anexo-tipo');
+    const documentoInput = anexoCard.querySelector('.anexo-documento');
+    const accionSelect = anexoCard.querySelector('.anexo-accion');
+    const cantidadInput = anexoCard.querySelector('.anexo-cantidad');
+    const tallaSelect = anexoCard.querySelector('.anexo-talla');
+    const colorSelect = anexoCard.querySelector('.anexo-color');
+    const removeBtn = anexoCard.querySelector('.btn-remove');
+    const toggleAccionBtn = anexoCard.querySelector('.btn-toggle-accion');
+    const maxAvailableSpan = anexoCard.querySelector('.max-available');
+
+    // Función para validar campos requeridos
+    const validarCampos = () => {
+        let valido = true;
+        
+        [tipoSelect, documentoInput, tallaSelect, colorSelect, cantidadInput, accionSelect].forEach(campo => {
+            if (campo.hasAttribute('required') && !campo.value.trim()) {
+                campo.classList.add('is-invalid');
+                valido = false;
+            } else {
+                campo.classList.remove('is-invalid');
+            }
+        });
+
+        return valido;
+    };
+
+    // Función para colapsar/expandir
+    const toggleCollapse = () => {
+        cardBody.classList.toggle('collapsed');
+        const icon = toggleCollapseBtn.querySelector('i');
+        if (cardBody.classList.contains('collapsed')) {
+            icon.classList.remove('bi-chevron-down');
+            icon.classList.add('bi-chevron-right');
+        } else {
+            icon.classList.remove('bi-chevron-right');
+            icon.classList.add('bi-chevron-down');
+        }
+    };
+
+    // Configurar eventos de colapsar/expandir
+    if (cardHeader && cardBody && toggleCollapseBtn) {
+        cardHeader.addEventListener('click', (e) => {
+            if (!e.target.closest('.btn')) {
+                toggleCollapse();
+            }
+        });
+        
+        toggleCollapseBtn.addEventListener('click', toggleCollapse);
+    }
+
+    // Actualizar selecciones y validar
+    const updateSelections = () => {
+        const currentDocValue = documentoInput.value;
+        
+        if (tipoSelect.value === 'AJUSTE') {
+            accionSelect.value = 'AGREGAR';
+            accionSelect.disabled = true;
+            anexoCard.dataset.tipo = 'AJUSTE';
+            if (toggleAccionBtn) toggleAccionBtn.style.display = 'none';
+            documentoInput.readOnly = true;
+            documentoInput.value = document.getElementById('refprov').value || '';
+        } else {
+            accionSelect.disabled = false;
+            anexoCard.dataset.tipo = tipoSelect.value || 'none';
+            if (toggleAccionBtn) toggleAccionBtn.style.display = 'inline-block';
+            
+            if (tipoSelect.value === 'PROMO') {
+                setupPromoAutocomplete(documentoInput);
+                documentoInput.readOnly = false;
+                if (!currentDocValue || currentDocValue === document.getElementById('refprov').value) {
+                    documentoInput.value = '';
                 }
-
-                const cardHeader = anexoCard.querySelector('.card-header');
-                const cardBody = anexoCard.querySelector('.card-body');
-                const toggleCollapseBtn = anexoCard.querySelector('.btn-toggle-collapse');
-                const tipoSelect = anexoCard.querySelector('.anexo-tipo');
-                const documentoInput = anexoCard.querySelector('.anexo-documento');
-                const accionSelect = anexoCard.querySelector('.anexo-accion');
-                const cantidadInput = anexoCard.querySelector('.anexo-cantidad');
-                const tallaSelect = anexoCard.querySelector('.anexo-talla');
-                const colorSelect = anexoCard.querySelector('.anexo-color');
-                const removeBtn = anexoCard.querySelector('.btn-remove');
-                const toggleAccionBtn = anexoCard.querySelector('.btn-toggle-accion');
-                const maxAvailableSpan = anexoCard.querySelector('.max-available');
-
-                // Función para colapsar/expandir
-                const toggleCollapse = () => {
-                    cardBody.classList.toggle('collapsed');
-                    const icon = toggleCollapseBtn.querySelector('i');
-                    if (cardBody.classList.contains('collapsed')) {
-                        icon.classList.remove('bi-chevron-down');
-                        icon.classList.add('bi-chevron-right');
-                    } else {
-                        icon.classList.remove('bi-chevron-right');
-                        icon.classList.add('bi-chevron-down');
-                    }
-                };
-
-                // Configurar eventos de colapsar/expandir
-                if (cardHeader && cardBody && toggleCollapseBtn) {
-                    cardHeader.addEventListener('click', (e) => {
-                        // Solo colapsar/expandir si no se hizo clic en un botón de acción
-                        if (!e.target.closest('.btn')) {
-                            toggleCollapse();
-                        }
-                    });
-                    
-                    toggleCollapseBtn.addEventListener('click', toggleCollapse);
+            } else if (tipoSelect.value === 'COBRO') {
+                documentoInput.readOnly = true;
+                documentoInput.value = document.getElementById('refprov').value || '';
+            } else {
+                documentoInput.readOnly = true;
+                if (!currentDocValue || currentDocValue === document.getElementById('refprov').value) {
+                    documentoInput.value = document.getElementById('refprov').value || '';
                 }
+            }
+        }
 
-                // Resto de la configuración de eventos...
-                const updateSelections = () => {
-                    // Configuración especial para AJUSTE
-                    if (tipoSelect.value === 'AJUSTE') {
-                        accionSelect.value = 'AGREGAR';
-                        accionSelect.disabled = true;
-                        anexoCard.dataset.tipo = 'AJUSTE';
-                        if (toggleAccionBtn) toggleAccionBtn.style.display = 'none';
-                        
-                    } else {
-                        accionSelect.disabled = false;
-                        anexoCard.dataset.tipo = tipoSelect.value || 'none';
-                        if (toggleAccionBtn) toggleAccionBtn.style.display = 'inline-block';
-                        
-                    }
+        anexoCard.dataset.accion = accionSelect.value || 'none';
+        updateMaxAvailable(anexoCard);
+        validarCampos();
+        updateJsonPreview();
+    };
 
-                    // Configuración para PROMO
-                    if (tipoSelect.value === 'PROMO') {
-                        setupPromoAutocomplete(documentoInput);
-                        documentoInput.readOnly = false;
-                        documentoInput.value = '';
-                    } else if (tipoSelect.value === 'COBRO' || tipoSelect.value === 'AJUSTE') {
-                        documentoInput.readOnly = true;
-                        documentoInput.value = document.getElementById('refprov').value || '';
-                    } else {
-                        documentoInput.readOnly = true;
-                        documentoInput.value = document.getElementById('refprov').value || '';
-                    }
+    // Función para alternar entre acciones
+    const toggleAccion = () => {
+        if (accionSelect.value === 'DESCONTAR') {
+            accionSelect.value = 'AGREGAR';
+        } else {
+            accionSelect.value = 'DESCONTAR';
+        }
+        updateSelections();
+    };
 
-                    anexoCard.dataset.accion = accionSelect.value || 'none';
-                    updateMaxAvailable(anexoCard);
-                };
-
-                // Función para alternar entre acciones
-                const toggleAccion = () => {
-                    if (accionSelect.value === 'DESCONTAR') {
-                        accionSelect.value = 'AGREGAR';
-                    } else {
-                        accionSelect.value = 'DESCONTAR';
-                    }
-                    updateSelections();
-                };
-
-                // Event listeners
-                if (tipoSelect) tipoSelect.addEventListener('change', updateSelections);
-                if (accionSelect) accionSelect.addEventListener('change', updateSelections);
-                if (tallaSelect) tallaSelect.addEventListener('change', updateSelections);
-                if (colorSelect) colorSelect.addEventListener('change', updateSelections);
-                if (cantidadInput) cantidadInput.addEventListener('change', updateJsonPreview);
-                if (toggleAccionBtn) toggleAccionBtn.addEventListener('click', toggleAccion);
-
-                if (removeBtn) {
-                    removeBtn.addEventListener('click', function() {
-                        anexoCard.remove();
-                        updateTotalAnexos();
-                        updateJsonPreview();
-                    });
-                }
-
+    // Event listeners para todos los campos
+    const campos = [tipoSelect, documentoInput, tallaSelect, colorSelect, cantidadInput, accionSelect];
+    campos.forEach(campo => {
+        campo.addEventListener('change', function() {
+            if (validarCampos()) {
                 updateSelections();
             }
+        });
+        
+        // Para inputs de texto, validar también al escribir
+        if (campo.tagName === 'INPUT' && campo.type === 'text') {
+            campo.addEventListener('input', function() {
+                if (this.value.trim()) {
+                    this.classList.remove('is-invalid');
+                    updateSelections();
+                } else {
+                    this.classList.add('is-invalid');
+                }
+            });
+        }
+    });
+
+    if (toggleAccionBtn) {
+        toggleAccionBtn.addEventListener('click', toggleAccion);
+    }
+
+    if (removeBtn) {
+        removeBtn.addEventListener('click', function() {
+            anexoCard.remove();
+            updateTotalAnexos();
+            updateJsonPreview();
+            updateActionButtons();
+        });
+    }
+
+    // Inicializar
+    updateSelections();
+}
+
+
+function updateActionButtons() {
+    const anexos = document.querySelectorAll('.anexo-card');
+    let hayErrores = false;
+    
+    // Verificar campos requeridos en todos los anexos
+    anexos.forEach(anexo => {
+        const camposRequeridos = anexo.querySelectorAll('[required]');
+        camposRequeridos.forEach(campo => {
+            if (!campo.value.trim()) {
+                campo.classList.add('is-invalid');
+                hayErrores = true;
+            }
+        });
+    });
+
+    // Verificar campos requeridos en el formulario principal
+    const camposFormulario = document.querySelectorAll('#complementarForm input[required], #complementarForm select[required]');
+    camposFormulario.forEach(campo => {
+        if (!campo.value.trim()) {
+            campo.classList.add('is-invalid');
+            hayErrores = true;
+        }
+    });
+
+    // Deshabilitar botones si hay errores
+    document.getElementById('descargarComplementado').disabled = hayErrores;
+    document.getElementById('enviarAlServidor').disabled = hayErrores;
+
+    // Mostrar mensaje si hay errores y hay anexos
+    if (hayErrores && anexos.length > 0) {
+        Toast.fire({
+            icon: 'warning',
+            title: 'Campos incompletos',
+            text: 'Complete todos los campos requeridos',
+            timer: 2000
+        });
+    }
+}
 
             // Actualizar máximo disponible
             function updateMaxAvailable(card) {
@@ -2401,18 +2529,124 @@
                 };
             }
             
-            // Función para actualizar la vista previa del JSON en tiempo real
-            function updateJsonPreview() {
-                if (!parsedData) return;
-                
-                try {
-                    const formValues = getFormValues();
-                    transformedDataWithExtras = createTransformedJSONWithExtras(parsedData, formValues);
-                    complementarOutput.textContent = JSON.stringify(transformedDataWithExtras, null, 2);
-                } catch (error) {
-                    console.error("Error al actualizar JSON:", error);
-                }
+// Función para actualizar la vista previa del JSON en tiempo real
+function updateJsonPreview() {
+    if (!parsedData) return;
+    
+    // Limpiar errores previos
+    document.querySelectorAll('.is-invalid').forEach(el => {
+        el.classList.remove('is-invalid');
+    });
+
+    try {
+        const formValues = getFormValues();
+        
+        // Validar formulario principal primero
+        let formularioValido = true;
+        document.querySelectorAll('#complementarForm input[required], #complementarForm select[required]').forEach(campo => {
+            if (!campo.value.trim()) {
+                campo.classList.add('is-invalid');
+                formularioValido = false;
             }
+        });
+        
+        if (!formularioValido) {
+            complementarOutput.innerHTML = '<span class="json-error">Complete los campos requeridos del formulario principal</span>';
+            updateActionButtons();
+            return;
+        }
+
+        transformedDataWithExtras = createTransformedJSONWithExtras(parsedData, formValues);
+        
+        if (transformedDataWithExtras) {
+            const jsonString = JSON.stringify(transformedDataWithExtras, null, 2);
+            complementarOutput.innerHTML = formatJsonWithColors(jsonString);
+        }
+        
+        updateActionButtons();
+    } catch (error) {
+        console.error("Error al actualizar JSON:", error);
+        complementarOutput.innerHTML = '<span class="json-error">Error al formatear JSON</span>';
+        updateActionButtons();
+    }
+}
+
+function formatJsonWithColors(json) {
+    // Función para escapar caracteres HTML
+    const escapeHtml = (str) => {
+        return str.replace(/[&<>'"]/g, 
+            tag => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                "'": '&#39;',
+                '"': '&quot;'
+            }[tag]));
+    };
+
+    // Función para determinar el tipo de valor y aplicar el formato adecuado
+    const formatValue = (value) => {
+        if (value === null) {
+            return '<span class="json-null">null</span>';
+        }
+        if (typeof value === 'boolean') {
+            return `<span class="json-boolean">${value}</span>`;
+        }
+        if (typeof value === 'number') {
+            return `<span class="json-number">${value}</span>`;
+        }
+        if (typeof value === 'string') {
+            return `<span class="json-string">"${escapeHtml(value)}"</span>`;
+        }
+        if (Array.isArray(value)) {
+            return formatArray(value);
+        }
+        if (typeof value === 'object') {
+            return formatObject(value);
+        }
+        return value;
+    };
+
+    // Formatear arrays
+    const formatArray = (arr) => {
+        if (arr.length === 0) return '<span class="json-array">[]</span>';
+        
+        let html = '<span class="json-array">[</span>\n';
+        arr.forEach((item, i) => {
+            html += '  '.repeat(indentLevel + 1) + formatValue(item);
+            if (i < arr.length - 1) html += '<span class="json-comma">,</span>';
+            html += '\n';
+        });
+        html += '  '.repeat(indentLevel) + '<span class="json-array">]</span>';
+        return html;
+    };
+
+    // Formatear objetos
+    const formatObject = (obj) => {
+        const keys = Object.keys(obj);
+        if (keys.length === 0) return '<span class="json-object">{}</span>';
+        
+        let html = '<span class="json-object">{</span>\n';
+        keys.forEach((key, i) => {
+            html += '  '.repeat(indentLevel + 1) + 
+                   `<span class="json-key">"${escapeHtml(key)}"</span><span class="json-colon">:</span> ` + 
+                   formatValue(obj[key]);
+            if (i < keys.length - 1) html += '<span class="json-comma">,</span>';
+            html += '\n';
+        });
+        html += '  '.repeat(indentLevel) + '<span class="json-object">}</span>';
+        return html;
+    };
+
+    let indentLevel = 0;
+    try {
+        const parsedJson = typeof json === 'string' ? JSON.parse(json) : json;
+        return formatValue(parsedJson);
+    } catch (e) {
+        console.error("Error al formatear JSON:", e);
+        return '<span class="json-error">Error al formatear JSON</span>';
+    }
+}
             
             // Función para cargar datos externos
             async function cargarDatosExternos() {
