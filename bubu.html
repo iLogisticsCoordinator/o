@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualizador de Distribuciones</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.min.css">
+    <style>
+        .table-responsive {
+            overflow-x: auto;
+        }
+        .table th {
+            white-space: nowrap;
+            position: relative;
+            background-color: #f8f9fa;
+        }
+        .fixed-column {
+            position: sticky;
+            left: 0;
+            z-index: 1;
+            background-color: white;
+        }
+        .sticky-header {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+        #loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading overlay -->
+    <div id="loading-overlay" style="display: none;">
+        <div class="text-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+            <h5 class="mt-2">Procesando, por favor espere...</h5>
+        </div>
+    </div>
+
+    <div class="container-fluid mt-3">
+        <h1 class="mb-4 text-center">Distribución de Productos</h1>
+        
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Datos de Distribución</h5>
+                    <div>
+                        <button id="add-new-btn" class="btn btn-sm btn-success me-2">
+                            <i class="bi bi-plus-circle"></i> Nuevo Registro
+                        </button>
+                        <button id="export-excel" class="btn btn-sm btn-success me-2">
+                            <i class="bi bi-file-excel"></i> Exportar a Excel
+                        </button>
+                        <button id="refresh-btn" class="btn btn-sm btn-light">
+                            <i class="bi bi-arrow-repeat"></i> Actualizar
+                        </button>
+                        <button id="login-btn" class="btn btn-sm btn-warning">
+                            <i class="bi bi-person"></i> Iniciar Sesión
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body p-0">
+                <div class="table-responsive" style="max-height: 80vh;">
+                    <table id="distribution-table" class="table table-bordered table-hover table-striped mb-0">
+                        <thead class="sticky-header">
+                            <tr>
+                                <th>Acciones</th>
+                                <th>OP</th>
+                                <th>Fecha</th>
+                                <th>Planta</th>
+                                <th>Gestor</th>
+                                <th>Auditor</th>
+                                <th>Escáner</th>
+                                <th>Lote</th>
+                                <th>REF.PROV</th>
+                                <th>Descripción</th>
+                                <th>Cantidad</th>
+                                <th>Referencia</th>
+                                <th>Tipo</th>
+                                <th>PVP</th>
+                                <th>TP</th>
+                                <th>Género</th>
+                                <th>Proveedor</th>
+                                <th>Color</th>
+                                <th>Talla</th>
+                                <th>Templo</th>
+                                <th>Shopping</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para editar registro -->
+    <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="editModalLabel">Editar Registro</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="edit-form">
+                        <input type="hidden" id="edit-index">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="edit-op" class="form-label">OP/Documento</label>
+                                <input type="text" class="form-control" id="edit-op" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="edit-fecha" class="form-label">Fecha</label>
+                                <input type="date" class="form-control" id="edit-fecha" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="edit-planta" class="form-label">Planta</label>
+                                <input type="text" class="form-control" id="edit-planta">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="edit-color" class="form-label">Color</label>
+                                <input type="text" class="form-control" id="edit-color">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="edit-talla" class="form-label">Talla</label>
+                                <input type="text" class="form-control" id="edit-talla">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="edit-templo-cantidad" class="form-label">Cantidad Templo</label>
+                                <input type="number" class="form-control" id="edit-templo-cantidad" min="0" value="0">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="edit-shopping-cantidad" class="form-label">Cantidad Shopping</label>
+                                <input type="number" class="form-control" id="edit-shopping-cantidad" min="0" value="0">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="save-changes-btn">Guardar Cambios</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.all.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://apis.google.com/js/api.js"></script>
+    
+    <script>
+        // Constantes
+        const SPREADSHEET_ID_MAIN = '133NiyjNApZGkEFs4jUvpJ9So-cSEzRVeW2FblwOCrjI';
+        const SPREADSHEET_ID_COMP = '1d5dCCCgiWXfM6vHu3zGGKlvK2EycJtT7Uk4JqUjDOfE';
+        const API_KEY = 'AIzaSyAn6o3jTwxe2ahhT-Aj03BWAS2ccE3NlE4';
+        const CLIENT_ID = '701357112149-j632rhbulgjqqddf6p7mnt2stupb1f09.apps.googleusercontent.com';
+        const SCOPES = 'https://www.googleapis.com/auth/spreadsheets';
+        
+        // Variables globales
+        let allData = [];
+        let dataTable;
+        let isAuthenticated = false;
+        let tokenClient;
+        
+        // SweetAlert Toast para notificaciones
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true
+        });
+        
+        // Al cargar la página
+        $(document).ready(function() {
+            // Cargar la API de Google
+            loadGapiAndGis();
+            
+            // Configurar eventos
+            $('#refresh-btn').click(loadData);
+            $('#export-excel').click(exportToExcel);
+            $('#add-new-btn').click(showAddNewModal);
+            $('#save-changes-btn').click(saveChanges);
+            $('#login-btn').click(handleAuthClick);
+            
+            // Cargar datos inicialmente (en modo lectura)
+            loadData();
+        });
+        
+        // Cargar las bibliotecas GAPI y GIS
+        function loadGapiAndGis() {
+            // Cargar GAPI
+            gapi.load('client', initializeGapiClient);
+            
+            // Configurar el botón de inicio de sesión
+            $('#login-btn').prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Cargando...');
+        }
+        
+        // Inicializar cliente GAPI
+        async function initializeGapiClient() {
+            try {
+                await gapi.client.init({
+                    apiKey: API_KEY,
+                    discoveryDocs: ['https://sheets.googleapis.com/$discovery/rest?version=v4'],
+                });
+                
+                // Cargar el cliente de Google Identity Services
+                loadGisClient();
+            } catch (error) {
+                console.error('Error al inicializar GAPI:', error);
+                $('#login-btn').prop('disabled', false).html('<i class="bi bi-person"></i> Iniciar Sesión');
+                
+                Toast.fire({
+                    icon: 'error',
+                    title: 'Error al cargar la API de Google'
+                });
+            }
+        }
+        
+        // Cargar cliente GIS (Google Identity Services)
+        function loadGisClient() {
+            // Crear cliente de token
+            tokenClient = google.accounts.oauth2.initTokenClient({
+                client_id: CLIENT_ID,
+                scope: SCOPES,
+                callback: handleTokenResponse
+            });
+            
+            // Habilitar botón de inicio de sesión
+            $('#login-btn').prop('disabled', false).html('<i class="bi bi-person"></i> Iniciar Sesión');
+        }
+        
+        // Manejar respuesta de token
+        function handleTokenResponse(response) {
+            if (response.error !== undefined) {
+                console.error('Error en la autenticación:', response);
+                isAuthenticated = false;
+                
+                Toast.fire({
+                    icon: 'error',
+                    title: 'Error al iniciar sesión'
+                });
+                return;
+            }
+            
+            isAuthenticated = true;
+            
+            Toast.fire({
+                icon: 'success',
+                title: 'Sesión iniciada correctamente'
+            });
+            
+            // Actualizar botón de inicio de sesión
+            $('#login-btn').html('<i class="bi bi-person-check"></i> Sesión Iniciada');
+            
+            // Recargar datos para mostrar los botones de edición
+            loadData();
+        }
+        
+        // Manejar clic en botón de autenticación
+        function handleAuthClick() {
+            if (!isAuthenticated) {
+                // Solicitar token de autenticación
+                tokenClient.requestAccessToken();
+            } else {
+                // Ya autenticado - mostrar mensaje
+                Toast.fire({
+                    icon: 'info',
+                    title: 'Ya has iniciado sesión'
+                });
+            }
+        }
+        
+        // Cargar datos
+        function loadData() {
+            $('#refresh-btn').prop('disabled', true);
+            $('#refresh-btn').html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Cargando...');
+            $('#export-excel').prop('disabled', true);
+            $('#loading-overlay').show();
+            
+            // Función para obtener datos
+            const fetchData = async () => {
+                const fetchSheet = async (id, range) => {
+                    const url = `https://sheets.googleapis.com/v4/spreadsheets/${id}/values/${range}?key=${API_KEY}`;
+                    const res = await fetch(url);
+                    if (!res.ok) throw new Error(`Error al obtener ${range}`);
+                    return (await res.json()).values || [];
+                };
+                
+                const parseJSON = str => {
+                    try { return str ? JSON.parse(str) : null; } catch { return null; }
+                };
+                
+                const [main, comp] = await Promise.all([
+                    fetchSheet(SPREADSHEET_ID_MAIN, 'DATA2!A2:S'),
+                    fetchSheet(SPREADSHEET_ID_COMP, 'DATA!C2:C')
+                ]);
+                
+                const compParsed = comp.map(r => parseJSON(r[0]));
+                return main.map(row => {
+                    const doc = row[0]?.toString();
+                    const compMatch = compParsed.find(c => c?.Documento === doc);
+                    return {
+                        A: row[0], FECHA: row[1], TALLER: row[2], LINEA: row[3],
+                        AUDITOR: row[4], ESCANER: row[5], LOTE: row[6], REFPROV: row[7],
+                        DESCRIPCIÓN: row[8], CANTIDAD: row[9], REFERENCIA: row[10],
+                        TIPO: row[11], PVP: row[12], PRENDA: row[13], GENERO: row[14],
+                        PROVEEDOR: row[15], ANEXOS: parseJSON(row[16]), HR: parseJSON(row[17]),
+                        Clientes: compMatch ? compMatch.Clientes : null
+                    };
+                });
+            };
+            
+            // Ejecutar la obtención de datos
+            fetchData()
+                .then(data => {
+                    allData = data;
+                    renderTable(data);
+                    $('#export-excel').prop('disabled', false);
+                    
+                    Toast.fire({
+                        icon: 'success',
+                        title: 'Datos cargados correctamente'
+                    });
+                })
+                .catch(error => {
+                    console.error('Error al cargar datos:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error al cargar datos',
+                        text: error.message || 'No se pudo conectar con el servidor'
+                    });
+                })
+                .finally(() => {
+                    $('#refresh-btn').prop('disabled', false);
+                    $('#refresh-btn').html('<i class="bi bi-arrow-repeat"></i> Actualizar');
+                    $('#loading-overlay').hide();
+                });
+        }
+        
+        // Renderizar tabla con los datos
+        function renderTable(data) {
+            // Destruir la tabla existente si ya fue inicializada
+            if ($.fn.DataTable.isDataTable('#distribution-table')) {
+                $('#distribution-table').DataTable().destroy();
+            }
+            
+            const $tbody = $('#distribution-table tbody');
+            $tbody.empty();
+            
+            // Array para almacenar todas las filas procesadas
+            const processedRows = [];
+            
+            data.forEach((item, index) => {
+                if (item.Clientes) {
+                    // Procesar distribuciones de Templo
+                    if (item.Clientes.Templo && item.Clientes.Templo.distribucion) {
+                        item.Clientes.Templo.distribucion.forEach(dist => {
+                            const temploQty = dist.cantidad;
+                            const shoppingQty = findShoppingQuantity(item, dist.codigo, dist.talla);
+                            
+                            const rowData = createRowData(item, dist.color, dist.talla, temploQty, shoppingQty);
+                            rowData.raw_index = index;
+                            rowData.distribucion_key = `${dist.codigo}-${dist.talla}`;
+                            processedRows.push(rowData);
+                            addTableRowFromData(rowData, $tbody);
+                        });
+                    }
+                    
+                    // Procesar distribuciones de Shopping (por si hay tallas/colores no presentes en Templo)
+                    if (item.Clientes.Shopping && item.Clientes.Shopping.distribucion) {
+                        item.Clientes.Shopping.distribucion.forEach(dist => {
+                            // Verificar si ya se procesó esta combinación color/talla
+                            const exists = item.Clientes.Templo && item.Clientes.Templo.distribucion.some(d => 
+                                d.codigo === dist.codigo && d.talla === dist.talla);
+                            
+                            if (!exists) {
+                                const shoppingQty = dist.cantidad;
+                                const temploQty = 0;
+                                
+                                const rowData = createRowData(item, dist.color, dist.talla, temploQty, shoppingQty);
+                                rowData.raw_index = index;
+                                rowData.distribucion_key = `${dist.codigo}-${dist.talla}`;
+                                processedRows.push(rowData);
+                                addTableRowFromData(rowData, $tbody);
+                            }
+                        });
+                    }
+                }
+            });
+            
+            // Guardar las filas procesadas para la exportación
+            window.processedTableData = processedRows;
+            
+            // Inicializar DataTable
+            dataTable = $('#distribution-table').DataTable({
+                scrollX: true,
+                scrollY: "65vh",
+                scrollCollapse: true,
+                paging: true,
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
+                },
+                pageLength: 25,
+                order: [[1, 'desc'], [2, 'desc']]
+            });
+        }
+        
+        // Crea un objeto con los datos de la fila para exportar
+        function createRowData(item, color, talla, temploQty, shoppingQty) {
+            return {
+                OP: item.A || '',
+                Fecha: item.FECHA || '',
+                Planta: item.TALLER || '',
+                Gestor: item.LINEA || '',
+                Auditor: item.AUDITOR || '',
+                Escaner: item.ESCANER || '',
+                Lote: item.LOTE || '',
+                RefProv: item.REFPROV || '',
+                Descripcion: item.DESCRIPCIÓN || '',
+                Cantidad: item.CANTIDAD || '',
+                Referencia: item.REFERENCIA || '',
+                Tipo: item.TIPO || '',
+                PVP: item.PVP || '',
+                TP: item.PRENDA || '',
+                Genero: item.GENERO || '',
+                Proveedor: item.PROVEEDOR || '',
+                Color: color || '',
+                Talla: talla || '',
+                Templo: temploQty || 0,
+                Shopping: shoppingQty || 0
+            };
+        }
+        
+        // Agrega una fila a la tabla a partir de un objeto de datos
+        function addTableRowFromData(rowData, $tbody) {
+            const $row = $(`
+                <tr data-index="${rowData.raw_index}" data-distribucion="${rowData.distribucion_key}">
+                    <td>
+                        ${isAuthenticated ? `
+                            <button class="btn btn-sm btn-primary edit-btn" title="Editar">
+                                <i class="bi bi-pencil-square"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger delete-btn" title="Eliminar">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        ` : `
+                            <button class="btn btn-sm btn-secondary" disabled title="Inicia sesión para editar">
+                                <i class="bi bi-lock"></i>
+                            </button>
+                        `}
+                    </td>
+                    <td>${rowData.OP}</td>
+                    <td>${rowData.Fecha}</td>
+                    <td>${rowData.Planta}</td>
+                    <td>${rowData.Gestor}</td>
+                    <td>${rowData.Auditor}</td>
+                    <td>${rowData.Escaner}</td>
+                    <td>${rowData.Lote}</td>
+                    <td>${rowData.RefProv}</td>
+                    <td>${rowData.Descripcion}</td>
+                    <td>${rowData.Cantidad}</td>
+                    <td>${rowData.Referencia}</td>
+                    <td>${rowData.Tipo}</td>
+                    <td>${rowData.PVP}</td>
+                    <td>${rowData.TP}</td>
+                    <td>${rowData.Genero}</td>
+                    <td>${rowData.Proveedor}</td>
+                    <td>${rowData.Color}</td>
+                    <td>${rowData.Talla}</td>
+                    <td>${rowData.Templo}</td>
+                    <td>${rowData.Shopping}</td>
+                </tr>
+            `);
+            
+            // Agregar manejadores de eventos para los botones
+            if (isAuthenticated) {
+                $row.find('.edit-btn').click(function() {
+                    const index = $(this).closest('tr').data('index');
+                    const distribucionKey = $(this).closest('tr').data('distribucion');
+                    editRow(index, distribucionKey);
+                });
+                
+                $row.find('.delete-btn').click(function() {
+                    const index = $(this).closest('tr').data('index');
+                    const distribucionKey = $(this).closest('tr').data('distribucion');
+                    deleteRow(index, distribucionKey);
+                });
+            }
+            
+            $tbody.append($row);
+        }
+        
+        // Encontrar cantidad para Shopping
+        function findShoppingQuantity(item, codigo, talla) {
+            if (item.Clientes && item.Clientes.Shopping && item.Clientes.Shopping.distribucion) {
+                const dist = item.Clientes.Shopping.distribucion.find(d => 
+                    d.codigo === codigo && d.talla === talla);
+                return dist ? dist.cantidad : 0;
+            }
+            return 0;
+        }
+        
+        // Mostrar modal para añadir nuevo registro
+        function showAddNewModal() {
+            if (!isAuthenticated) {
+                Swal.fire({
+                    title: 'Inicia sesión',
+                    text: 'Debes iniciar sesión para añadir registros',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Iniciar sesión',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        handleAuthClick();
+                    }
+                });
+                return;
+            }
+            
+            // Limpiar formulario
+            $('#edit-index').val('');
+            $('#edit-form')[0].reset();
+            
+            // Establecer fecha actual
+            const today = new Date();
+            const formattedDate = today.toISOString().split('T')[0];
+            $('#edit-fecha').val(formattedDate);
+            
+            // Mostrar modal
+            $('#editModalLabel').text('Nuevo Registro');
+            $('#editModal').modal('show');
+        }
+        
+        // Editar fila
+        function editRow(index, distribucionKey) {
+            if (!isAuthenticated) {
+                handleAuthClick();
+                return;
+            }
+            
+            const item = allData[index];
+            if (!item) {
+                Toast.fire({
+                    icon: 'error',
+                    title: 'No se encontró el registro'
+                });
+                return;
+            }
+            
+            // Extraer partes del distribucionKey
+            const [color, talla] = distribucionKey.split('-');
+            
+            // Rellenar el formulario con los datos
+            $('#edit-index').val(index);
+            $('#edit-op').val(item.A || '');
+            $('#edit-fecha').val(formatDateForInput(item.FECHA || ''));
+            $('#edit-planta').val(item.TALLER || '');
+            $('#edit-color').val(color || '');
+            $('#edit-talla').val(talla || '');
+            
+            // Buscar las cantidades de distribución
+            let temploQty = 0;
+            if (item.Clientes && item.Clientes.Templo && item.Clientes.Templo.distribucion) {
+                const temploDist = item.Clientes.Templo.distribucion.find(d => 
+                    d.codigo === color && d.talla === talla);
+                temploQty = temploDist ? temploDist.cantidad : 0;
+            }
+            
+            let shoppingQty = 0;
+            if (item.Clientes && item.Clientes.Shopping && item.Clientes.Shopping.distribucion) {
+                const shoppingDist = item.Clientes.Shopping.distribucion.find(d => 
+                    d.codigo === color && d.talla === talla);
+                shoppingQty = shoppingDist ? shoppingDist.cantidad : 0;
+            }
+            
+            $('#edit-templo-cantidad').val(temploQty);
+            $('#edit-shopping-cantidad').val(shoppingQty);
+            
+            // Mostrar el modal
+            $('#editModalLabel').text('Editar Distribución');
+            $('#editModal').modal('show');
+        }
+        
+        // Eliminar fila
+        function deleteRow(index, distribucionKey) {
+            if (!isAuthenticated) {
+                handleAuthClick();
+                return;
+            }
+            
+            Swal.fire({
+                title: '¿Estás seguro?',
+                text: "Esta acción eliminará la distribución. No podrás revertir esto.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    doDeleteDistribution(index, distribucionKey);
+                }
+            });
+        }
+        
+        // Eliminar distribución
+        function doDeleteDistribution(index, distribucionKey) {
+            $('#loading-overlay').show();
+            
+            const item = allData[index];
+            if (!item) {
+                Toast.fire({
+                    icon: 'error',
+                    title: 'No se encontró el registro a eliminar'
+                });
+                $('#loading-overlay').hide();
+                return;
+            }
+            
+            // Extraer partes del distribucionKey
+            const [color, talla] = distribucionKey.split('-');
+            
+            // Eliminar la distribución de todos los clientes
+            let distribChanged = false;
+            
+            if (item.Clientes) {
+                ['Templo', 'Shopping'].forEach(cliente => {
+                    if (item.Clientes[cliente] && item.Clientes[cliente].distribucion) {
+                        const existingIndex = item.Clientes[cliente].distribucion.findIndex(d => 
+                            d.codigo === color && d.talla === talla);
+                            
+                        if (existingIndex >= 0) {
+                            // Eliminar la distribución
+                            item.Clientes[cliente].distribucion.splice(existingIndex, 1);
+                            distribChanged = true;
+                        }
+                    }
+                });
+            }
+            
+            if (!distribChanged) {
+                Toast.fire({
+                    icon: 'error',
+                    title: 'No se encontró la distribución a eliminar'
+                });
+                $('#loading-overlay').hide();
+                return;
+            }
+            
+            // Actualizar en la hoja
+            updateItemInSheet(item)
+                .then(() => {
+                    Toast.fire({
+                        icon: 'success',
+                        title: 'Distribución eliminada correctamente'
+                    });
+                    loadData();
+                })
+                .catch(error => {
+                    console.error('Error al eliminar distribución:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error al eliminar',
+                        text: error.message || 'No se pudo eliminar la distribución'
+                    });
+                })
+                .finally(() => {
+                    $('#loading-overlay').hide();
+                });
+        }
+        
+        // Guardar cambios del formulario
+        function saveChanges() {
+            if (!$('#edit-form')[0].checkValidity()) {
+                $('#edit-form')[0].reportValidity();
+                return;
+            }
+            
+            $('#loading-overlay').show();
+            $('#save-changes-btn').prop('disabled', true);
+            
+            const index = $('#edit-index').val();
+            const isNewRecord = !index || index === '';
+            
+            const op = $('#edit-op').val();
+            const fecha = $('#edit-fecha').val();
+            const planta = $('#edit-planta').val();
+            const color = $('#edit-color').val();
+            const talla = $('#edit-talla').val();
+            const temploQty = parseInt($('#edit-templo-cantidad').val() || '0');
+            const shoppingQty = parseInt($('#edit-shopping-cantidad').val() || '0');
+            
+            if (isNewRecord) {
+                // Crear nuevo elemento
+                const clientes = {};
+                
+                if (temploQty > 0) {
+                    clientes.Templo = { 
+                        distribucion: [{
+                            codigo: color,
+                            color: color,
+                            talla: talla,
+                            cantidad: temploQty
+                        }]
+                    };
+                }
+                
+                if (shoppingQty > 0) {
+                    clientes.Shopping = { 
+                        distribucion: [{
+                            codigo: color,
+                            color: color,
+                            talla: talla,
+                            cantidad: shoppingQty
+                        }]
+                    };
+                }
+                
+                const newItem = {
+                    A: op,
+                    FECHA: formatDateForSheet(fecha),
+                    TALLER: planta,
+                    Clientes: clientes
+                };
+                
+                // Añadir el nuevo elemento
+                addItemToSheet(newItem)
+                    .then(() => {
+                        Toast.fire({
+                            icon: 'success',
+                            title: 'Registro añadido correctamente'
+                        });
+                        $('#editModal').modal('hide');
+                        loadData();
+                    })
+                    .catch(error => {
+                        console.error('Error al añadir registro:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error al añadir',
+                            text: error.message || 'No se pudo añadir el registro'
+                        });
+                    })
+                    .finally(() => {
+                        $('#loading-overlay').hide();
+                        $('#save-changes-btn').prop('disabled', false);
+                    });
+            } else {
+                // Actualizar elemento existente
+                const item = allData[index];
+                if (!item) {
+                    Toast.fire({
+                        icon: 'error',
+                        title: 'No se encontró el registro a actualizar'
+                    });
+                    $('#loading-overlay').hide();
+                    $('#save-changes-btn').prop('disabled', false);
+                    return;
+                }
+                
+                // Actualizar propiedades básicas
+                item.A = op;
+                item.FECHA = formatDateForSheet(fecha);
+                item.TALLER = planta;
+                
+                // Inicializar la estructura de clientes si no existe
+                if (!item.Clientes) {
+                    item.Clientes = {};
+                }
+                
+                // Actualizar cantidades en Templo
+                if (!item.Clientes.Templo) {
+                    item.Clientes.Templo = { distribucion: [] };
+                }
+                if (!item.Clientes.Templo.distribucion) {
+                    item.Clientes.Templo.distribucion = [];
+                }
+                updateDistribution(item, 'Templo', color, talla, temploQty);
+                
+                // Actualizar cantidades en Shopping
+                if (!item.Clientes.Shopping) {
+                    item.Clientes.Shopping = { distribucion: [] };
+                }
+                if (!item.Clientes.Shopping.distribucion) {
+                    item.Clientes.Shopping.distribucion = [];
+                }
+                updateDistribution(item, 'Shopping', color, talla, shoppingQty);
+                
+                // Guardar los cambios
+                updateItemInSheet(item)
+                    .then(() => {
+                        Toast.fire({
+                            icon: 'success',
+                            title: 'Registro actualizado correctamente'
+                        });
+                        $('#editModal').modal('hide');
+                        loadData();
+                    })
+                    .catch(error => {
+                        console.error('Error al actualizar registro:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error al actualizar',
+                            text: error.message || 'No se pudo actualizar el registro'
+                        });
+                    })
+                    .finally(() => {
+                        $('#loading-overlay').hide();
+                        $('#save-changes-btn').prop('disabled', false);
+                    });
+            }
+        }
+        
+        // Actualizar la distribución de un cliente específico
+        function updateDistribution(item, cliente, color, talla, cantidad) {
+            const existingIndex = item.Clientes[cliente].distribucion.findIndex(d => 
+                d.codigo === color && d.talla === talla);
+                
+            if (existingIndex >= 0) {
+                if (cantidad > 0) {
+                    // Actualizar cantidad existente
+                    item.Clientes[cliente].distribucion[existingIndex].cantidad = cantidad;
+                } else {
+                    // Eliminar si la cantidad es 0
+                    item.Clientes[cliente].distribucion.splice(existingIndex, 1);
+                }
+            } else if (cantidad > 0) {
+                // Agregar nueva distribución
+                item.Clientes[cliente].distribucion.push({
+                    codigo: color,
+                    color: color,
+                    talla: talla,
+                    cantidad: cantidad
+                });
+            }
+        }
+        
+        // Buscar fila por documento
+        async function findDocumentRow(spreadsheetId, sheetName, documento) {
+            try {
+                const response = await gapi.client.sheets.spreadsheets.values.get({
+                    spreadsheetId: spreadsheetId,
+                    range: `${sheetName}!A:A`
+                });
+                
+                const values = response.result.values || [];
+                
+                for (let i = 0; i < values.length; i++) {
+                    if (values[i][0] == documento) {
+                        return { found: true, row: i + 1 }; // +1 porque las filas en Sheets empiezan en 1
+                    }
+                }
+                
+                return { found: false, row: -1 };
+            } catch (error) {
+                console.error('Error al buscar fila:', error);
+                throw new Error(`Error al buscar documento: ${error.message}`);
+            }
+        }
+        
+        // Actualizar elemento en la hoja
+        async function updateItemInSheet(item) {
+            try {
+                // Buscar fila en la hoja principal
+                const mainSheet = await findDocumentRow(SPREADSHEET_ID_MAIN, 'DATA2', item.A);
+                if (!mainSheet.found) {
+                    throw new Error(`No se encontró el documento ${item.A} en la hoja principal`);
+                }
+                
+                // Buscar fila en la hoja de clientes
+                const compSheet = await findDocumentRow(SPREADSHEET_ID_COMP, 'DATA', item.A);
+                
+                const updates = [];
+                
+                // Actualizar datos principales
+                const mainResponse = await gapi.client.sheets.spreadsheets.values.update({
+                    spreadsheetId: SPREADSHEET_ID_MAIN,
+                    range: `DATA2!A${mainSheet.row}:C${mainSheet.row}`,
+                    valueInputOption: 'USER_ENTERED',
+                    resource: {
+                        values: [[item.A, item.FECHA, item.TALLER]]
+                    }
+                });
+                updates.push(mainResponse);
+                
+                // Actualizar datos de clientes
+                const clientesData = JSON.stringify({ Documento: item.A, Clientes: item.Clientes });
+                
+                if (compSheet.found) {
+                    // Actualizar fila existente
+                    const compResponse = await gapi.client.sheets.spreadsheets.values.update({
+                        spreadsheetId: SPREADSHEET_ID_COMP,
+                        range: `DATA!A${compSheet.row}:C${compSheet.row}`,
+                        valueInputOption: 'USER_ENTERED',
+                        resource: {
+                            values: [[item.A, '', clientesData]]
+                        }
+                    });
+                    updates.push(compResponse);
+                } else {
+                    // Obtener la última fila
+                    const response = await gapi.client.sheets.spreadsheets.get({
+                        spreadsheetId: SPREADSHEET_ID_COMP,
+                        ranges: ['DATA!A:C'],
+                        includeGridData: false
+                    });
+                    
+                    const sheet = response.result.sheets[0];
+                    const lastRow = sheet.properties.gridProperties.rowCount;
+                    
+                    // Añadir nueva fila
+                    const compResponse = await gapi.client.sheets.spreadsheets.values.update({
+                        spreadsheetId: SPREADSHEET_ID_COMP,
+                        range: `DATA!A${lastRow + 1}:C${lastRow + 1}`,
+                        valueInputOption: 'USER_ENTERED',
+                        resource: {
+                            values: [[item.A, '', clientesData]]
+                        }
+                    });
+                    updates.push(compResponse);
+                }
+                
+                return Promise.all(updates);
+            } catch (error) {
+                console.error('Error al actualizar en la hoja:', error);
+                throw new Error(`Error al actualizar en la hoja: ${error.message}`);
+            }
+        }
+        
+        // Añadir nuevo elemento a la hoja
+        async function addItemToSheet(item) {
+            try {
+                // Verificar si el documento ya existe
+                const mainSheet = await findDocumentRow(SPREADSHEET_ID_MAIN, 'DATA2', item.A);
+                if (mainSheet.found) {
+                    throw new Error(`El documento ${item.A} ya existe en la hoja. No se puede duplicar.`);
+                }
+                
+                const updates = [];
+                
+                // Obtener la última fila de la hoja principal
+                const mainResponse = await gapi.client.sheets.spreadsheets.get({
+                    spreadsheetId: SPREADSHEET_ID_MAIN,
+                    ranges: ['DATA2!A:C'],
+                    includeGridData: false
+                });
+                
+                const mainSheet2 = mainResponse.result.sheets[0];
+                const mainLastRow = mainSheet2.properties.gridProperties.rowCount;
+                
+                // Añadir a la hoja principal
+                const addMainResponse = await gapi.client.sheets.spreadsheets.values.update({
+                    spreadsheetId: SPREADSHEET_ID_MAIN,
+                    range: `DATA2!A${mainLastRow + 1}:C${mainLastRow + 1}`,
+                    valueInputOption: 'USER_ENTERED',
+                    resource: {
+                        values: [[item.A, item.FECHA, item.TALLER]]
+                    }
+                });
+                updates.push(addMainResponse);
+                
+                // Añadir a la hoja de clientes
+                if (item.Clientes && Object.keys(item.Clientes).length > 0) {
+                    // Obtener la última fila de la hoja de clientes
+                    const compResponse = await gapi.client.sheets.spreadsheets.get({
+                        spreadsheetId: SPREADSHEET_ID_COMP,
+                        ranges: ['DATA!A:C'],
+                        includeGridData: false
+                    });
+                    
+                    const compSheet = compResponse.result.sheets[0];
+                    const compLastRow = compSheet.properties.gridProperties.rowCount;
+                    
+                    const clientesData = JSON.stringify({ Documento: item.A, Clientes: item.Clientes });
+                    
+                    const addCompResponse = await gapi.client.sheets.spreadsheets.values.update({
+                        spreadsheetId: SPREADSHEET_ID_COMP,
+                        range: `DATA!A${compLastRow + 1}:C${compLastRow + 1}`,
+                        valueInputOption: 'USER_ENTERED',
+                        resource: {
+                            values: [[item.A, '', clientesData]]
+                        }
+                    });
+                    updates.push(addCompResponse);
+                }
+                
+                return Promise.all(updates);
+            } catch (error) {
+                console.error('Error al añadir a la hoja:', error);
+                throw new Error(`Error al añadir a la hoja: ${error.message}`);
+            }
+        }
+        
+        // Formatear fecha para input
+        function formatDateForInput(dateStr) {
+            if (!dateStr) return '';
+            
+            // Intentar diferentes formatos de fecha
+            let date;
+            
+            // Intentar formato español (DD/MM/YYYY)
+            if (dateStr.includes('/')) {
+                const parts = dateStr.split('/');
+                if (parts.length === 3) {
+                    date = new Date(parts[2], parts[1] - 1, parts[0]);
+                }
+            } 
+            // Intentar formato ISO (YYYY-MM-DD)
+            else if (dateStr.includes('-')) {
+                date = new Date(dateStr);
+            }
+            
+            if (!date || isNaN(date.getTime())) {
+                return '';
+            }
+            
+            return date.toISOString().split('T')[0];
+        }
+        
+        // Formatear fecha para la hoja
+        function formatDateForSheet(dateStr) {
+            if (!dateStr) return '';
+            
+            const date = new Date(dateStr);
+            if (!date || isNaN(date.getTime())) {
+                return dateStr;
+            }
+            
+            return `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
+        }
+        
+        // Exportar a Excel
+        function exportToExcel() {
+            if (!window.processedTableData || window.processedTableData.length === 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'No hay datos',
+                    text: 'No hay datos para exportar'
+                });
+                return;
+            }
+            
+            // Crear una hoja de trabajo
+            const worksheet = XLSX.utils.json_to_sheet(window.processedTableData);
+            
+            // Crear un libro de trabajo y añadir la hoja
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Distribución");
+            
+            // Generar el archivo Excel
+            const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+            
+            // Obtener la fecha actual para el nombre del archivo
+            const now = new Date();
+            const dateStr = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}`;
+            const timeStr = `${now.getHours().toString().padStart(2, '0')}-${now.getMinutes().toString().padStart(2, '0')}`;
+            
+            // Guardar como archivo Excel
+            const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+            saveAs(blob, `Distribucion_Productos_${dateStr}_${timeStr}.xlsx`);
+        }
+    </script>
+    
+    <!-- Script para cargar Google Identity Services -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+</body>
+</html>
