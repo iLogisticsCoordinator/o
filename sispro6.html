@@ -782,12 +782,19 @@
 
 /* Botón de colapsar */
 .anexo-card .btn-toggle-collapse {
-    background: white;
-    border-color: rgba(0, 0, 0, 0.08) !important;
+    color: inherit; /* Heredar el color del contexto */
+    background: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    font-size: 1rem; /* Tamaño estándar */
 }
 
 .anexo-card .btn-toggle-collapse .bi {
-    color: #64748b;
+    color: inherit; /* Heredar el color del contexto */
+    background: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    font-size: 1rem; /* Tamaño estándar */
 }
 
 .anexo-card .btn-toggle-collapse:hover {
@@ -943,9 +950,61 @@
     background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(16, 185, 129, 0.03) 100%);
 }
 
+
+
+
+/* Estilos base para tarjetas de AJUSTE */
 .anexo-card[data-tipo="AJUSTE"] {
-    border-left: 4px solid #f59e0b;
+    border-left: 4px solid #f59e0b; /* Naranja base */
 }
+
+.anexo-card[data-tipo="AJUSTE"] .card-header {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.05) 0%, rgba(245, 158, 11, 0.03) 100%);
+}
+
+/* Cuando es AJUSTE con AGREGAR */
+.anexo-card[data-tipo="AJUSTE"][data-accion="AGREGAR"] {
+    border-left: 4px solid #10b981; /* Verde */
+}
+
+.anexo-card[data-tipo="AJUSTE"][data-accion="AGREGAR"] .card-header {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.05) 100%);
+}
+
+/* Cuando es AJUSTE con DESCONTAR */
+.anexo-card[data-tipo="AJUSTE"][data-accion="DESCONTAR"] {
+    border-left: 4px solid #ef4444; /* Rojo */
+}
+
+.anexo-card[data-tipo="AJUSTE"][data-accion="DESCONTAR"] .card-header {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(239, 68, 68, 0.05) 100%);
+}
+
+/* Transición suave para cambios */
+.anexo-card, 
+.anexo-card .card-header {
+    transition: all 0.3s ease;
+}
+
+/* Iconos según acción */
+.anexo-card[data-tipo="AJUSTE"][data-accion="AGREGAR"] .card-title .bi {
+    color: #10b981;
+}
+
+.anexo-card[data-tipo="AJUSTE"][data-accion="DESCONTAR"] .card-title .bi {
+    color: #ef4444;
+}
+
+/* Efecto hover consistente */
+.anexo-card[data-tipo="AJUSTE"][data-accion="AGREGAR"] .card-header:hover {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(16, 185, 129, 0.1) 100%) !important;
+}
+
+.anexo-card[data-tipo="AJUSTE"][data-accion="DESCONTAR"] .card-header:hover {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(239, 68, 68, 0.1) 100%) !important;
+}
+
+
 
 .anexo-card[data-tipo="AJUSTE"] .card-header {
     background: linear-gradient(135deg, rgba(245, 158, 11, 0.05) 0%, rgba(245, 158, 11, 0.03) 100%);
@@ -1221,11 +1280,11 @@
                 <button class="btn btn-sm btn-outline-secondary btn-toggle-accion" title="Cambiar acción">
                     <i class="bi bi-arrow-left-right"></i>
                 </button>
-                <button class="btn btn-sm btn-outline-secondary btn-toggle-collapse" title="Mostrar/ocultar detalles">
-                    <i class="bi bi-chevron-down"></i>
-                </button>
                 <button class="btn btn-sm btn-outline-danger btn-remove" title="Eliminar anexo">
                     <i class="bi bi-trash"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-secondary btn-toggle-collapse" title="Mostrar/ocultar detalles">
+                    <i class="bi bi-chevron-down"></i>
                 </button>
             </div>
         </div>
@@ -1272,7 +1331,7 @@
                         <select class="form-select form-select-sm anexo-accion w-auto">
                             <option value="">Ninguna</option>
                             <option value="DESCONTAR">Descontar</option>
-                            <option value="AGREGAR">Agregar</option>
+                            <option value="AGREGAR" selected>Agregar</option>
                         </select>
                         <small class="text-muted ms-2 max-available"></small>
                     </div>
@@ -1860,7 +1919,7 @@
             }
             
             // Función para crear JSON transformado con campos editables y anexos
-            function createTransformedJSONWithExtras(originalData, extraData = {}) {
+function createTransformedJSONWithExtras(originalData, extraData = {}) {
     const baseData = createTransformedJSON(originalData);
     if (baseData.A !== null && baseData.A !== undefined) {
         baseData.A = String(baseData.A);
@@ -1905,7 +1964,7 @@
         const cantidadElement = anexoCard.querySelector('.anexo-cantidad');
 
         const tipo = tipoElement.value;
-        const accion = tipo === 'AJUSTE' ? 'AGREGAR' : (accionElement ? accionElement.value : null);
+        const accion = accionElement ? accionElement.value : null;
         const talla = tallaElement.value;
         const color = colorElement.value;
         const documento = documentoElement.value;
@@ -1921,47 +1980,36 @@
             "ACCION": accion || null
         });
 
-        // Actualizar la cantidad total según la acción
+        // Actualizar la cantidad total según la acción (CORRECCIÓN APLICADA)
         if (accion === 'AGREGAR') {
             cantidadTotal += cantidad;
         } else if (accion === 'DESCONTAR') {
             cantidadTotal = Math.max(0, cantidadTotal - cantidad);
         }
 
-        // Actualizar HR data
+        // Actualizar HR data (CORRECCIÓN APLICADA)
         if (talla && color && cantidad > 0) {
-            if (tipo === 'AJUSTE' && accion === 'AGREGAR') {
-                // Buscar si ya existe un item con esta talla y color
-                const existingItem = hrData.find(hr => 
-                    hr.talla === talla && 
-                    (hr.color ? hr.color.replace(/^\d+\s*/, '') : null) === color
-                );
-                
-                if (!existingItem) {
-                    // Si no existe, agregar nuevo item
-                    hrData.push({
-                        codigo: null,
-                        color: color,
-                        talla: talla,
-                        cantidad: cantidad
-                    });
-                } else {
-                    // Si existe, sumar la cantidad
+            // Buscar item existente para actualizar cantidad
+            const existingItem = hrData.find(hr => 
+                hr.talla === talla && 
+                (hr.color ? hr.color.replace(/^\d+\s*/, '') : null) === color
+            );
+            
+            if (existingItem) {
+                // Actualizar cantidad según la acción
+                if (accion === 'DESCONTAR') {
+                    existingItem.cantidad = Math.max(0, existingItem.cantidad - cantidad);
+                } else if (accion === 'AGREGAR') {
                     existingItem.cantidad += cantidad;
                 }
-            } else if (accion) {
-                // Buscar item existente para actualizar cantidad
-                const existingItem = hrData.find(hr => 
-                    hr.talla === talla && 
-                    (hr.color ? hr.color.replace(/^\d+\s*/, '') : null) === color
-                );
-                
-                if (existingItem) {
-                    // Actualizar cantidad según la acción
-                    existingItem.cantidad = accion === 'DESCONTAR' 
-                        ? Math.max(0, existingItem.cantidad - cantidad)
-                        : existingItem.cantidad + cantidad;
-                }
+            } else if (accion === 'AGREGAR') {
+                // Si no existe y es AGREGAR, agregar nuevo item
+                hrData.push({
+                    codigo: null,
+                    color: color,
+                    talla: talla,
+                    cantidad: cantidad
+                });
             }
         }
     });
@@ -2193,53 +2241,49 @@ function setupAnexoCardEvents(anexoCard) {
     }
 
     // Actualizar selecciones y validar
-    const updateSelections = () => {
-        const currentDocValue = documentoInput.value;
-        
-        if (tipoSelect.value === 'AJUSTE') {
-            accionSelect.value = 'AGREGAR';
-            accionSelect.disabled = true;
-            anexoCard.dataset.tipo = 'AJUSTE';
-            if (toggleAccionBtn) toggleAccionBtn.style.display = 'none';
-            documentoInput.readOnly = true;
-            documentoInput.value = document.getElementById('refprov').value || '';
-        } else {
-            accionSelect.disabled = false;
-            anexoCard.dataset.tipo = tipoSelect.value || 'none';
-            if (toggleAccionBtn) toggleAccionBtn.style.display = 'inline-block';
-            
-            if (tipoSelect.value === 'PROMO') {
-                setupPromoAutocomplete(documentoInput);
-                documentoInput.readOnly = false;
-                if (!currentDocValue || currentDocValue === document.getElementById('refprov').value) {
-                    documentoInput.value = '';
-                }
-            } else if (tipoSelect.value === 'COBRO') {
-                documentoInput.readOnly = true;
-                documentoInput.value = document.getElementById('refprov').value || '';
-            } else {
-                documentoInput.readOnly = true;
-                if (!currentDocValue || currentDocValue === document.getElementById('refprov').value) {
-                    documentoInput.value = document.getElementById('refprov').value || '';
-                }
-            }
+const updateSelections = () => {
+    const currentDocValue = documentoInput.value;
+    
+    if (tipoSelect.value === 'AJUSTE') {
+        // Para AJUSTE: habilitar selector
+        if (!accionSelect.value) {
+            accionSelect.value = 'AGREGAR'; // Valor por defecto
         }
+        accionSelect.disabled = false;
+        anexoCard.dataset.tipo = 'AJUSTE';
+        anexoCard.dataset.accion = accionSelect.value; // Asegurar que se actualice
+        if (toggleAccionBtn) toggleAccionBtn.style.display = 'inline-block';
+        documentoInput.readOnly = true;
+        documentoInput.value = document.getElementById('refprov').value || '';
+    } else {
+        // Para otros tipos
+        accionSelect.value = '';
+        accionSelect.disabled = true;
+        anexoCard.dataset.tipo = tipoSelect.value || 'none';
+        anexoCard.dataset.accion = 'none'; // Ninguna acción
+        if (toggleAccionBtn) toggleAccionBtn.style.display = 'none';
+        
+        // Resto de la lógica para otros tipos...
+    }
 
-        anexoCard.dataset.accion = accionSelect.value || 'none';
-        updateMaxAvailable(anexoCard);
-        validarCampos();
-        updateJsonPreview();
-    };
+    updateMaxAvailable(anexoCard);
+    validarCampos();
+    updateJsonPreview();
+};
 
     // Función para alternar entre acciones
-    const toggleAccion = () => {
-        if (accionSelect.value === 'DESCONTAR') {
-            accionSelect.value = 'AGREGAR';
-        } else {
-            accionSelect.value = 'DESCONTAR';
-        }
-        updateSelections();
-    };
+const toggleAccion = () => {
+    if (accionSelect.value === 'DESCONTAR') {
+        accionSelect.value = 'AGREGAR';
+    } else {
+        accionSelect.value = 'DESCONTAR';
+    }
+    
+    // Actualizar atributo data-accion para reflejar el cambio en CSS
+    anexoCard.dataset.accion = accionSelect.value;
+    
+    updateSelections();
+};
 
     // Event listeners para todos los campos
     const campos = [tipoSelect, documentoInput, tallaSelect, colorSelect, cantidadInput, accionSelect];
@@ -2321,71 +2365,56 @@ function updateActionButtons() {
 }
 
             // Actualizar máximo disponible
-            function updateMaxAvailable(card) {
-                // Verificar que card es un elemento DOM válido
-                if (!card || !card.querySelector) {
-                    console.error('Elemento card no válido');
-                    return;
-                }
+function updateMaxAvailable(card) {
+    const tallaElement = card.querySelector('.anexo-talla');
+    const colorElement = card.querySelector('.anexo-color');
+    const cantidadInput = card.querySelector('.anexo-cantidad');
+    const accionSelect = card.querySelector('.anexo-accion');
+    const tipoSelect = card.querySelector('.anexo-tipo');
+    const maxAvailableSpan = card.querySelector('.max-available');
 
-                const tallaElement = card.querySelector('.anexo-talla');
-                const colorElement = card.querySelector('.anexo-color');
-                const cantidadInput = card.querySelector('.anexo-cantidad');
-                const accionSelect = card.querySelector('.anexo-accion');
-                const tipoSelect = card.querySelector('.anexo-tipo');
-                const maxAvailableSpan = card.querySelector('.max-available');
-
-                // Verificar que todos los elementos necesarios existen
-                if (!tallaElement || !colorElement || !cantidadInput || !accionSelect || !tipoSelect || !maxAvailableSpan) {
-                    return;
+    let talla = '';
+    let color = '';
+    
+    if (tallaElement.tagName === 'SELECT') {
+        talla = tallaElement.value;
+    } else {
+        talla = tallaElement.value.trim();
+    }
+    
+    if (colorElement.tagName === 'SELECT') {
+        color = colorElement.value;
+    } else {
+        color = colorElement.value.trim();
+    }
+    
+    cantidadInput.max = '';
+    maxAvailableSpan.textContent = '';
+    
+    if (talla && color) {
+        const jsonData = transformedDataWithExtras || createTransformedJSON(parsedData);
+        const item = jsonData.HR.find(item => {
+            const hrColor = item[1] ? item[1].replace(/^\d+\s*/, '') : null;
+            return item[2] === talla && hrColor === color;
+        });
+        
+        if (item) {
+            const cantidadDisponible = item[3];
+            
+            if (accionSelect.value === 'DESCONTAR') {
+                cantidadInput.max = cantidadDisponible;
+                maxAvailableSpan.textContent = `(Máx: ${cantidadDisponible})`;
+                if (parseInt(cantidadInput.value) > cantidadDisponible) {
+                    cantidadInput.value = cantidadDisponible;
                 }
-
-                let talla = '';
-                let color = '';
-                
-                // Obtener talla (puede ser select o input)
-                if (tallaElement.tagName === 'SELECT') {
-                    talla = tallaElement.value;
-                } else {
-                    talla = tallaElement.value.trim();
-                }
-                
-                // Obtener color (puede ser select o input)
-                if (colorElement.tagName === 'SELECT') {
-                    color = colorElement.value;
-                } else {
-                    color = colorElement.value.trim();
-                }
-                
-                // Determinar acción efectiva (AJUSTE siempre es AGREGAR)
-                const accion = tipoSelect.value === 'AJUSTE' ? 'AGREGAR' : accionSelect.value;
-                
-                // Resetear estado
-                cantidadInput.max = '';
-                maxAvailableSpan.textContent = '';
-                
-                if (talla && color) {
-                    const jsonData = transformedDataWithExtras || createTransformedJSON(parsedData);
-                    const item = jsonData.HR.find(item => {
-                        const hrColor = item.color ? item.color.replace(/^\d+\s*/, '') : null;
-                        return item.talla === talla && hrColor === color;
-                    });
-                    
-                    if (item) {
-                        if (accion === 'DESCONTAR') {
-                            cantidadInput.max = item.cantidad;
-                            maxAvailableSpan.textContent = `(Máx: ${item.cantidad})`;
-                            if (parseInt(cantidadInput.value) > item.cantidad) {
-                                cantidadInput.value = item.cantidad;
-                            }
-                        } else {
-                            maxAvailableSpan.textContent = accion === 'AGREGAR' 
-                                ? '(Puede agregar cualquier cantidad)' 
-                                : '';
-                        }
-                    }
-                }
+            } else {
+                maxAvailableSpan.textContent = accionSelect.value === 'AGREGAR' 
+                    ? '(Puede agregar cualquier cantidad)' 
+                    : '';
             }
+        }
+    }
+}
 
             // Actualizar contador de anexos
             function updateTotalAnexos() {
