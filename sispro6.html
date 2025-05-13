@@ -1930,6 +1930,7 @@ function createTransformedJSONWithExtras(originalData, extraData = {}) {
     const refprov = baseData.REFPROV || "";
     let descripcionConcatenada = [prenda, genero, refprov].filter(Boolean).join(" ");
 
+    // Inicializar array de anexos
     const anexos = [];
     let hrData = JSON.parse(JSON.stringify(baseData.HR));
     
@@ -1970,46 +1971,48 @@ function createTransformedJSONWithExtras(originalData, extraData = {}) {
         const documento = documentoElement.value;
         const cantidad = parseInt(cantidadElement.value) || 0;
 
-        // Agregar a los anexos
-        anexos.push({
-            "DOCUMENTO": documento || baseData.A,
-            "TALLA": talla || null,
-            "COLOR": color || null,
-            "TIPO": tipo,
-            "CANTIDAD": cantidad,
-            "ACCION": accion || null
-        });
+        // Solo agregar a los anexos si tiene datos válidos
+        if (tipo && (talla || color || documento || cantidad > 0)) {
+            anexos.push({
+                "DOCUMENTO": documento || baseData.A,
+                "TALLA": talla || null,
+                "COLOR": color || null,
+                "TIPO": tipo,
+                "CANTIDAD": cantidad,
+                "ACCION": accion || null
+            });
 
-        // Actualizar la cantidad total según la acción (CORRECCIÓN APLICADA)
-        if (accion === 'AGREGAR') {
-            cantidadTotal += cantidad;
-        } else if (accion === 'DESCONTAR') {
-            cantidadTotal = Math.max(0, cantidadTotal - cantidad);
-        }
+            // Actualizar la cantidad total según la acción
+            if (accion === 'AGREGAR') {
+                cantidadTotal += cantidad;
+            } else if (accion === 'DESCONTAR') {
+                cantidadTotal = Math.max(0, cantidadTotal - cantidad);
+            }
 
-        // Actualizar HR data (CORRECCIÓN APLICADA)
-        if (talla && color && cantidad > 0) {
-            // Buscar item existente para actualizar cantidad
-            const existingItem = hrData.find(hr => 
-                hr.talla === talla && 
-                (hr.color ? hr.color.replace(/^\d+\s*/, '') : null) === color
-            );
-            
-            if (existingItem) {
-                // Actualizar cantidad según la acción
-                if (accion === 'DESCONTAR') {
-                    existingItem.cantidad = Math.max(0, existingItem.cantidad - cantidad);
+            // Actualizar HR data
+            if (talla && color && cantidad > 0) {
+                // Buscar item existente para actualizar cantidad
+                const existingItem = hrData.find(hr => 
+                    hr.talla === talla && 
+                    (hr.color ? hr.color.replace(/^\d+\s*/, '') : null) === color
+                );
+                
+                if (existingItem) {
+                    // Actualizar cantidad según la acción
+                    if (accion === 'DESCONTAR') {
+                        existingItem.cantidad = Math.max(0, existingItem.cantidad - cantidad);
+                    } else if (accion === 'AGREGAR') {
+                        existingItem.cantidad += cantidad;
+                    }
                 } else if (accion === 'AGREGAR') {
-                    existingItem.cantidad += cantidad;
+                    // Si no existe y es AGREGAR, agregar nuevo item
+                    hrData.push({
+                        codigo: null,
+                        color: color,
+                        talla: talla,
+                        cantidad: cantidad
+                    });
                 }
-            } else if (accion === 'AGREGAR') {
-                // Si no existe y es AGREGAR, agregar nuevo item
-                hrData.push({
-                    codigo: null,
-                    color: color,
-                    talla: talla,
-                    cantidad: cantidad
-                });
             }
         }
     });
@@ -2050,7 +2053,7 @@ function createTransformedJSONWithExtras(originalData, extraData = {}) {
         ];
     });
 
-    // Construir el objeto final
+    // Construir el objeto final - SIEMPRE con ANEXOS como array (vacío si no hay datos)
     return {
         ...baseData,
         "LINEA": extraData.linea || baseData.LINEA,
@@ -2063,9 +2066,9 @@ function createTransformedJSONWithExtras(originalData, extraData = {}) {
         "GENERO": extraData.genero || baseData.GENERO,
         "PROVEEDOR": baseData.PROVEEDOR,
         "DESCRIPCIÓN": descripcionConcatenada || baseData.DESCRIPCIÓN,
-        "ANEXOS": anexos,
+        "ANEXOS": anexos, // Ahora siempre es un array (puede estar vacío)
         "HR": hrSimplificado,
-        "CANTIDAD": cantidadTotal // Cantidad total actualizada
+        "CANTIDAD": cantidadTotal
     };
 }
             
