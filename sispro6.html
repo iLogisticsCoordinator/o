@@ -1840,8 +1840,8 @@
                                     articulo: productoRow[1] || "",
                                     op: productoRow[3] || "",
                                     talla: productoRow[4] ? String(productoRow[4]) : "",
-                                    color: productoRow[5] ? String(productoRow[4]) : "",
-                                    /**color: productoRow[5] || "",*/
+                                    /**color: productoRow[5] ? String(productoRow[4]) : "",*/
+                                    color: productoRow[5] || "",
                                     cantidad: productoRow[6] || 0,
                                     valorUnitario: productoRow[7] || 0,
                                     subTotal: productoRow[9] || 0
