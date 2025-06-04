@@ -1373,24 +1373,7 @@ function reproducirSonidoError() {
     };
     
     // API URLs
-
-const urls = [
-  "https://script.google.com/macros/s/AKfycbzMw9hMlh9dNDhKsBeuMhE66IEZ4v5FrE_Ezg8vojIFkkmBrtstYVz2zPEU5_qS6Axx/exec",
-  "https://script.google.com/macros/s/AKfycbwz6LT-e4m3R74wRvC5h4isRE4wmSnzpa-MJtYnAg56PCWbrwI3rdwbekWxauVPGrsmLw/exec"
-];
-
-// Definir API_URL_GET como una función
-const API_URL_GET = async () => {
-  const [res1, res2] = await Promise.all([
-    fetch(urls[0]).then(r => r.json()),
-    fetch(urls[1]).then(r => r.json())
-  ]);
-
-  // Combina los resultados (asume que ambos retornan arrays)
-  return [...res1, ...res2];
-};
-    
-    //const API_URL_GET = "https://script.google.com/macros/s/AKfycbzMw9hMlh9dNDhKsBeuMhE66IEZ4v5FrE_Ezg8vojIFkkmBrtstYVz2zPEU5_qS6Axx/exec";  // SISPRO
+    const API_URL_GET = "https://script.google.com/macros/s/AKfycbzMw9hMlh9dNDhKsBeuMhE66IEZ4v5FrE_Ezg8vojIFkkmBrtstYVz2zPEU5_qS6Axx/exec";  // SISPRO
     //const API_URL_GET = "https://script.google.com/macros/s/AKfycbwz6LT-e4m3R74wRvC5h4isRE4wmSnzpa-MJtYnAg56PCWbrwI3rdwbekWxauVPGrsmLw/exec";  //BUSINT
     const API_URL_POST = "https://script.google.com/macros/s/AKfycbwgnkjVCMWlWuXnVaxSBD18CGN3rXGZtQZIvX9QlBXSgbQndWC4uqQ2sc00DuNH6yrb/exec";
 
