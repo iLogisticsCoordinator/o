@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard SIESA - Visualización de Imágenes</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/css/lightbox.min.css">
+    
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            padding: 20px;
+        }
+        .stats-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .stats-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .img-thumbnail {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: transform 0.2s;
+        }
+        .img-thumbnail:hover {
+            transform: scale(1.1);
+        }
+        #loading-indicator {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            color: white;
+            font-size: 1.2rem;
+        }
+        .loading-spinner {
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <!-- Tarjetas de resumen -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-value" id="total-facturas">0</div>
+                    <div>Total Facturas</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-value" id="facturas-soporte">0</div>
+                    <div>Con Soporte</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-value" id="facturas-sin-soporte">0</div>
+                    <div>Sin Soporte</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-value" id="total-unidades">0</div>
+                    <div>Total Unidades</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla de datos -->
+        <div class="card">
+            <div class="card-body">
+                <table id="datosTable" class="table table-striped" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>Factura</th>
+                            <th>Fecha</th>
+                            <th>Cliente</th>
+                            <th>Proveedor</th>
+                            <th>Valor</th>
+                            <th>Cantidad</th>
+                            <th>Soportes</th>
+                            <th>Imágenes</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Indicador de carga -->
+    <div id="loading-indicator">
+        <span class="loading-spinner"></span>
+        <span>Cargando datos...</span>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/js/lightbox.min.js"></script>
+    
+    <script>
+        // Configuración
+        const CONFIG = {
+            apiUrl: "https://script.google.com/macros/s/AKfycbwUG-zMJyhV065hf-VLJBlnH3-_M5c9I9Mm1ru25lyu_84FN440fexC418zI-QqJ-YFuQ/exec",
+            timeout: 15000
+        };
+
+        // Mostrar/ocultar loading
+        function setLoading(show) {
+            document.getElementById('loading-indicator').style.display = show ? 'flex' : 'none';
+        }
+
+        // Formatear moneda
+        function formatCurrency(value) {
+            return '$' + Math.round(value).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        }
+
+        // Función clave: Manejar imágenes de Google Drive
+        function getImageThumbnails(soportes) {
+            if (!soportes || soportes.length === 0) return 'N/A';
+            
+            const images = soportes
+                .filter(s => s.url && isGoogleDriveImage(s.url))
+                .slice(0, 3); // Máximo 3 imágenes
+            
+            if (images.length === 0) return 'N/A';
+            
+            return images.map((soporte, i) => {
+                const imageUrl = convertToDirectImageLink(soporte.url);
+                return `
+                    <a href="${imageUrl}" data-lightbox="soporte-${soporte.registro || i}" data-title="Soporte ${soporte.registro || ''}">
+                        <img src="${imageUrl}" class="img-thumbnail me-1" alt="Soporte ${i+1}" onerror="this.style.display='none'">
+                    </a>
+                `;
+            }).join('');
+        }
+
+        // Verificar si es enlace de Google Drive
+        function isGoogleDriveImage(url) {
+            return url.includes('lh3.googleusercontent.com') || url.includes('drive.google.com');
+        }
+
+        // Convertir enlace de Google Drive a enlace directo de imagen
+        function convertToDirectImageLink(url) {
+            // Si ya es un enlace lh3, lo usamos directamente
+            if (url.includes('lh3.googleusercontent.com')) {
+                return url.split('?')[0]; // Eliminar parámetros de consulta si existen
+            }
+            
+            // Si es un enlace de drive.google.com, extraemos el ID
+            const match = url.match(/\/d\/([^\/]+)/);
+            if (match && match[1]) {
+                return `https://lh3.googleusercontent.com/d/${match[1]}=s400`; // s400 define el tamaño
+            }
+            
+            return url; // Si no podemos convertirlo, devolvemos el original
+        }
+
+        // Cargar datos
+        function loadData() {
+            setLoading(true);
+            
+            if ($.fn.DataTable.isDataTable('#datosTable')) {
+                $('#datosTable').DataTable().destroy();
+            }
+            
+            fetch(CONFIG.apiUrl)
+                .then(response => {
+                    if (!response.ok) throw new Error('Error en la respuesta');
+                    return response.json();
+                })
+                .then(data => {
+                    if (!data.success) throw new Error(data.error || 'Datos no disponibles');
+                    processData(data.data);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error al cargar datos: ' + error.message);
+                })
+                .finally(() => setLoading(false));
+        }
+
+        // Procesar datos
+        function processData(data) {
+            updateCards(data);
+            initTable(data);
+        }
+
+        // Actualizar tarjetas
+        function updateCards(data) {
+            const total = data.length;
+            const conSoporte = data.filter(d => d.soportes && d.soportes.length > 0).length;
+            const sinSoporte = total - conSoporte;
+            const unidades = data.reduce((sum, item) => sum + (item.cantidad || 0), 0);
+            
+            document.getElementById('total-facturas').textContent = total;
+            document.getElementById('facturas-soporte').textContent = conSoporte;
+            document.getElementById('facturas-sin-soporte').textContent = sinSoporte;
+            document.getElementById('total-unidades').textContent = unidades;
+        }
+
+        // Inicializar tabla
+        function initTable(data) {
+            $('#datosTable').DataTable({
+                data: data,
+                columns: [
+                    { data: 'factura' },
+                    { 
+                        data: 'fecha',
+                        render: function(data) {
+                            return data || 'N/A';
+                        }
+                    },
+                    { data: 'cliente' },
+                    { data: 'proveedor' },
+                    { 
+                        data: 'valorBruto',
+                        render: function(data) {
+                            return formatCurrency(data || 0);
+                        }
+                    },
+                    { data: 'cantidad' },
+                    {
+                        data: 'soportes',
+                        render: function(data) {
+                            return data && data.length > 0 
+                                ? `${data.length} soporte(s)` 
+                                : 'Sin soporte';
+                        }
+                    },
+                    {
+                        data: 'soportes',
+                        render: getImageThumbnails
+                    }
+                ],
+                pageLength: 25,
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.11.5/i18n/es-ES.json'
+                },
+                initComplete: function() {
+                    lightbox.option({
+                        'resizeDuration': 200,
+                        'wrapAround': true,
+                        'maxWidth': 800,
+                        'maxHeight': 600
+                    });
+                }
+            });
+        }
+
+        // Inicializar al cargar
+        $(document).ready(function() {
+            lightbox.option({
+                'albumLabel': 'Imagen %1 de %2',
+                'disableScrolling': true
+            });
+            
+            loadData();
+        });
+    </script>
+</body>
+</html>
