@@ -96,13 +96,6 @@
             font-weight: 700;
             color: var(--color-dark);
             margin: 10px 0;
-            display: flex;
-            align-items: center;
-        }
-        
-        .stats-value i {
-            margin-right: 10px;
-            font-size: 24px;
         }
         
         .stats-label {
@@ -121,11 +114,19 @@
             border-top: 1px solid #eee;
         }
         
-        .stats-subvalue {
-            font-size: 14px;
+        .stats-row {
             display: flex;
             justify-content: space-between;
-            margin-top: 5px;
+            margin: 8px 0;
+        }
+        
+        .stats-row-label {
+            font-weight: 600;
+            color: var(--color-dark);
+        }
+        
+        .stats-row-value {
+            font-weight: 600;
         }
         
         .progress {
@@ -354,6 +355,15 @@
         .monetary-value.danger {
             color: var(--color-danger);
         }
+        
+        /* Tooltip para tabla */
+        .tooltip-cell {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 150px;
+            display: inline-block;
+        }
     </style>
 </head>
 <body>
@@ -412,58 +422,57 @@
         <!-- Alertas -->
         <div class="alert-container" id="alertContainer"></div>
 
-        <!-- Tarjetas de resumen -->
+        <!-- Tarjetas de resumen optimizadas -->
         <div class="row mb-4">
-            <div class="col-md-4">
-                <div class="stats-card">
-                    <div class="stats-label"><i class="fas fa-file-invoice me-2"></i>Total Facturas</div>
-                    <div class="stats-value">
-                        <span id="total-facturas">0</span>
-                    </div>
-                    <div class="stats-subvalue">
-                        <span class="badge badge-success me-2" id="facturas-soporte">0 Entregadas</span>
-                        <span class="badge badge-danger" id="facturas-sin-soporte">0 Pendientes</span>
-                    </div>
-                    <div class="stats-detail">
-                        <span id="total-valor" class="monetary-value">$0</span> valor total
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
+            <div class="col-md-6">
                 <div class="stats-card success">
                     <div class="stats-label"><i class="fas fa-check-circle me-2"></i>Facturas Entregadas</div>
                     <div class="stats-value">
                         <span id="facturas-entregadas">0</span>
                     </div>
-                    <div class="stats-subvalue">
-                        <span><span id="unidades-entregadas">0</span> unidades</span>
-                        <span class="monetary-value success" id="valor-entregado">$0</span>
+                    <div class="stats-row">
+                        <span class="stats-row-label">Valor total:</span>
+                        <span class="stats-row-value monetary-value success" id="valor-entregado">$0</span>
+                    </div>
+                    <div class="stats-row">
+                        <span class="stats-row-label">Unidades:</span>
+                        <span class="stats-row-value" id="unidades-entregadas">0</span>
+                    </div>
+                    <div class="stats-row">
+                        <span class="stats-row-label">Porcentaje:</span>
+                        <span class="stats-row-value" id="porcentaje-entregado">0%</span>
                     </div>
                     <div class="stats-detail">
-                        <span id="porcentaje-entregado">0%</span> del total
-                        <div class="float-end"><i class="fas fa-calendar-check"></i> <span id="ultima-entregada">N/A</span></div>
+                        <i class="fas fa-calendar-check"></i> Última entrega: <span id="ultima-entregada">N/A</span>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-6">
                 <div class="stats-card warning">
                     <div class="stats-label"><i class="fas fa-clock me-2"></i>Facturas Pendientes</div>
                     <div class="stats-value">
                         <span id="facturas-pendientes">0</span>
                     </div>
-                    <div class="stats-subvalue">
-                        <span><span id="unidades-pendientes">0</span> unidades</span>
-                        <span class="monetary-value danger" id="valor-pendiente">$0</span>
+                    <div class="stats-row">
+                        <span class="stats-row-label">Valor pendiente:</span>
+                        <span class="stats-row-value monetary-value danger" id="valor-pendiente">$0</span>
+                    </div>
+                    <div class="stats-row">
+                        <span class="stats-row-label">Unidades:</span>
+                        <span class="stats-row-value" id="unidades-pendientes">0</span>
+                    </div>
+                    <div class="stats-row">
+                        <span class="stats-row-label">Días promedio:</span>
+                        <span class="stats-row-value" id="dias-promedio">0</span>
                     </div>
                     <div class="stats-detail">
-                        <span id="dias-promedio">N/A</span> días promedio
-                        <div class="float-end"><i class="fas fa-exclamation-triangle"></i> <span id="mas-antigua">N/A</span></div>
+                        <i class="fas fa-exclamation-triangle"></i> Más antigua: <span id="mas-antigua">N/A</span>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Tabla de datos -->
+        <!-- Tabla de datos con lote y referencia -->
         <div class="data-card">
             <div class="card-header">
                 <span>Detalle de Facturas</span>
@@ -475,6 +484,8 @@
                         <tr>
                             <th>Factura</th>
                             <th>Fecha</th>
+                            <th>Lote</th>
+                            <th>Referencia</th>
                             <th>Cliente</th>
                             <th>Proveedor</th>
                             <th>Valor</th>
@@ -760,7 +771,7 @@
 
         // Actualizar tarjetas
         function updateCards(data) {
-            const total = data.length;
+            const totalFacturas = data.length;
             const entregadas = data.filter(d => d.estado === 'ENTREGADO').length;
             const pendientes = data.filter(d => d.estado === 'PENDIENTE').length;
             const vencidas = data.filter(d => d.estado === 'VENCIDO').length;
@@ -769,6 +780,16 @@
             const ultimaEntregada = data
                 .filter(d => d.estado === 'ENTREGADO' && d.fechaObj)
                 .sort((a, b) => b.fechaObj - a.fechaObj)[0];
+            
+            const valorEntregado = data
+                .filter(d => d.estado === 'ENTREGADO')
+                .reduce((sum, item) => sum + (item.valorBruto || 0), 0);
+            
+            const unidadesEntregadas = data
+                .filter(d => d.estado === 'ENTREGADO')
+                .reduce((sum, item) => sum + (item.cantidad || 0), 0);
+            
+            const porcentajeEntregado = totalFacturas > 0 ? Math.round((entregadas / totalFacturas) * 100) : 0;
             
             // Datos para tarjeta de pendientes
             const facturasPendientes = data.filter(d => d.estado !== 'ENTREGADO');
@@ -779,38 +800,27 @@
                 .filter(d => d.fechaObj)
                 .sort((a, b) => a.fechaObj - b.fechaObj)[0];
             
-            // Totales monetarios y de unidades
-            const valorTotal = data.reduce((sum, item) => sum + (item.valorBruto || 0), 0);
-            const valorEntregado = data.filter(d => d.estado === 'ENTREGADO').reduce((sum, item) => sum + (item.valorBruto || 0), 0);
-            const valorPendiente = valorTotal - valorEntregado;
+            const valorPendiente = facturasPendientes
+                .reduce((sum, item) => sum + (item.valorBruto || 0), 0);
             
-            const unidadesTotal = data.reduce((sum, item) => sum + (item.cantidad || 0), 0);
-            const unidadesEntregadas = data.filter(d => d.estado === 'ENTREGADO').reduce((sum, item) => sum + (item.cantidad || 0), 0);
-            const unidadesPendientes = unidadesTotal - unidadesEntregadas;
-            
-            // Porcentaje entregado
-            const porcentajeEntregado = total > 0 ? Math.round((entregadas / total) * 100) : 0;
+            const unidadesPendientes = facturasPendientes
+                .reduce((sum, item) => sum + (item.cantidad || 0), 0);
             
             // Actualizar DOM
-            document.getElementById('total-facturas').textContent = total;
-            document.getElementById('facturas-soporte').textContent = `${entregadas} Entregadas`;
-            document.getElementById('facturas-sin-soporte').textContent = `${pendientes + vencidas} Pendientes`;
-            document.getElementById('total-valor').textContent = formatCurrency(valorTotal);
-            
             document.getElementById('facturas-entregadas').textContent = entregadas;
-            document.getElementById('unidades-entregadas').textContent = unidadesEntregadas;
             document.getElementById('valor-entregado').textContent = formatCurrency(valorEntregado);
-            document.getElementById('porcentaje-entregado').textContent = `${porcentajeEntregado}% del total`;
+            document.getElementById('unidades-entregadas').textContent = unidadesEntregadas;
+            document.getElementById('porcentaje-entregado').textContent = `${porcentajeEntregado}%`;
             document.getElementById('ultima-entregada').textContent = ultimaEntregada ? formatFecha(ultimaEntregada.fechaObj) : 'N/A';
             
             document.getElementById('facturas-pendientes').textContent = pendientes + vencidas;
-            document.getElementById('unidades-pendientes').textContent = unidadesPendientes;
             document.getElementById('valor-pendiente').textContent = formatCurrency(valorPendiente);
-            document.getElementById('dias-promedio').textContent = `${diasPromedio} días promedio`;
+            document.getElementById('unidades-pendientes').textContent = unidadesPendientes;
+            document.getElementById('dias-promedio').textContent = diasPromedio;
             document.getElementById('mas-antigua').textContent = masAntigua ? formatFecha(masAntigua.fechaObj) : 'N/A';
         }
 
-        // Inicializar tabla con responsive
+        // Inicializar tabla con responsive y campos adicionales
         function initTable(data) {
             table = $('#datosTable').DataTable({
                 data: data,
@@ -825,12 +835,32 @@
                         responsivePriority: 4
                     },
                     { 
+                        data: 'lote',
+                        responsivePriority: 7,
+                        render: function(data) {
+                            return data ? `<span class="tooltip-cell" title="${data}">${data}</span>` : 'N/A';
+                        }
+                    },
+                    { 
+                        data: 'referencia',
+                        responsivePriority: 8,
+                        render: function(data) {
+                            return data ? `<span class="tooltip-cell" title="${data}">${data}</span>` : 'N/A';
+                        }
+                    },
+                    { 
                         data: 'cliente',
-                        responsivePriority: 5
+                        responsivePriority: 5,
+                        render: function(data) {
+                            return data ? `<span class="tooltip-cell" title="${data}">${data}</span>` : 'N/A';
+                        }
                     },
                     { 
                         data: 'proveedor',
-                        responsivePriority: 6
+                        responsivePriority: 6,
+                        render: function(data) {
+                            return data ? `<span class="tooltip-cell" title="${data}">${data}</span>` : 'N/A';
+                        }
                     },
                     { 
                         data: 'valorBruto',
@@ -876,7 +906,7 @@
                     },
                     {
                         data: 'soportes',
-                        responsivePriority: 7,
+                        responsivePriority: 9,
                         render: getImageThumbnails
                     }
                 ],
@@ -901,11 +931,23 @@
                     
                     // Contador inicial
                     document.getElementById('table-counter').textContent = `${data.length} registros`;
+                    
+                    // Tooltips para celdas con texto largo
+                    $('.tooltip-cell').tooltip({
+                        placement: 'top',
+                        trigger: 'hover'
+                    });
                 },
                 drawCallback: function() {
                     // Actualizar contador después de filtrar/buscar
                     const count = this.api().rows({ search: 'applied' }).count();
                     document.getElementById('table-counter').textContent = `${count} registros`;
+                    
+                    // Reiniciar tooltips
+                    $('.tooltip-cell').tooltip('dispose').tooltip({
+                        placement: 'top',
+                        trigger: 'hover'
+                    });
                 }
             });
         }
@@ -929,6 +971,8 @@
             const headers = [
                 'Factura',
                 'Fecha',
+                'Lote',
+                'Referencia',
                 'Cliente',
                 'Proveedor',
                 'Valor',
@@ -952,6 +996,8 @@
                 const row = [
                     `"${item.factura || ''}"`,
                     `"${item.fechaFormatted || ''}"`,
+                    `"${item.lote || ''}"`,
+                    `"${item.referencia || ''}"`,
                     `"${item.cliente || ''}"`,
                     `"${item.proveedor || ''}"`,
                     item.valorBruto || 0,
