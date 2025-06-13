@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard SIESA - Seguimiento Facturas</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/css/lightbox.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    
+    <style>
+        :root {
+            --color-primary: #3498db;
+            --color-primary-light: #5dade2;
+            --color-success: #2ecc71;
+            --color-danger: #e74c3c;
+            --color-warning: #f1c40f;
+            --color-info: #1abc9c;
+            --color-dark: #2c3e50;
+            --color-light: #ecf0f1;
+            --color-gray: #95a5a6;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #34495e;
+        }
+        
+        .container-fluid {
+            padding: 20px;
+            max-width: 1600px;
+        }
+        
+        /* Header */
+        .header-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .page-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--color-dark);
+            margin: 0;
+        }
+        
+        .page-subtitle {
+            font-size: 14px;
+            color: var(--color-gray);
+            margin: 5px 0 0;
+        }
+        
+        /* Tarjetas mejoradas */
+        .stats-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            height: 100%;
+            border-top: 4px solid var(--color-primary);
+        }
+        
+        .stats-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+        }
+        
+        .stats-card.success {
+            border-top-color: var(--color-success);
+        }
+        
+        .stats-card.warning {
+            border-top-color: var(--color-warning);
+        }
+        
+        .stats-card.danger {
+            border-top-color: var(--color-danger);
+        }
+        
+        .stats-card.info {
+            border-top-color: var(--color-info);
+        }
+        
+        .stats-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--color-dark);
+            margin: 10px 0;
+        }
+        
+        .stats-label {
+            font-size: 14px;
+            color: var(--color-gray);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+        
+        .stats-detail {
+            font-size: 13px;
+            color: var(--color-gray);
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+        }
+        
+        .stats-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+        }
+        
+        .stats-row-label {
+            font-weight: 600;
+            color: var(--color-dark);
+        }
+        
+        .stats-row-value {
+            font-weight: 600;
+        }
+        
+        /* Alertas */
+        .alert-container {
+            margin-bottom: 20px;
+        }
+        
+        .alert-card {
+            background-color: #fff5f5;
+            border-left: 4px solid var(--color-danger);
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .alert-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .alert-icon {
+            font-size: 24px;
+            color: var(--color-danger);
+            margin-right: 15px;
+        }
+        
+        .alert-content {
+            flex: 1;
+        }
+        
+        .alert-title {
+            font-weight: 700;
+            color: var(--color-danger);
+            margin-bottom: 5px;
+        }
+        
+        .alert-message {
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        
+        /* Tabla */
+        .data-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+        
+        .card-header {
+            font-weight: 700;
+            background-color: white;
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .img-thumbnail {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: transform 0.2s;
+        }
+        
+        .img-thumbnail:hover {
+            transform: scale(1.1);
+        }
+        
+        /* Badges */
+        .badge {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 12px;
+        }
+        
+        .badge-success {
+            background-color: var(--color-success);
+            color: white;
+        }
+        
+        .badge-danger {
+            background-color: var(--color-danger);
+            color: white;
+        }
+        
+        .badge-warning {
+            background-color: var(--color-warning);
+            color: var(--color-dark);
+        }
+        
+        .badge-info {
+            background-color: var(--color-info);
+            color: white;
+        }
+        
+        /* Filtros */
+        .filters-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+        
+        .filter-group {
+            margin-bottom: 15px;
+        }
+        
+        .filter-label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: block;
+            color: var(--color-dark);
+            font-size: 14px;
+        }
+        
+        /* Loading */
+        #loading-indicator {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            color: white;
+            font-size: 1.2rem;
+            flex-direction: column;
+        }
+        
+        .loading-spinner {
+            border: 5px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        
+        /* Botones */
+        .btn-download {
+            background-color: var(--color-primary);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+        
+        .btn-download:hover {
+            background-color: var(--color-primary-light);
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        /* Mensaje de estado */
+        #status-message {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            min-width: 250px;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            animation: fadeIn 0.3s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-container {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .btn-download {
+                margin-top: 15px;
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .stats-value {
+                font-size: 24px;
+            }
+            
+            #status-message {
+                left: 20px;
+                right: 20px;
+                bottom: 70px;
+            }
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Estilos para DataTables */
+        .vencido {
+            background-color: #fff5f5 !important;
+        }
+        
+        .por-vencer {
+            background-color: #fffaf2 !important;
+        }
+        
+        .entregado {
+            background-color: #f0fff4 !important;
+        }
+        
+        /* Valor monetario */
+        .monetary-value {
+            font-weight: 700;
+            color: var(--color-dark);
+        }
+        
+        .monetary-value.success {
+            color: var(--color-success);
+        }
+        
+        .monetary-value.danger {
+            color: var(--color-danger);
+        }
+        
+        /* Tooltip para tabla */
+        .tooltip-cell {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 150px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <!-- Encabezado -->
+        <div class="header-container">
+            <div>
+                <h1 class="page-title">Dashboard SIESA</h1>
+                <p class="page-subtitle">Seguimiento de facturas y soportes</p>
+            </div>
+            <button id="downloadBtn" class="btn-download">
+                <i class="fas fa-download"></i>
+                Exportar Datos
+            </button>
+        </div>
+
+        <!-- Filtros -->
+        <div class="filters-container">
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="filter-group">
+                        <label class="filter-label"><i class="fas fa-building me-2"></i>Cliente</label>
+                        <select id="filterCliente" class="form-select">
+                            <option value="">Todos los clientes</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="filter-group">
+                        <label class="filter-label"><i class="fas fa-truck me-2"></i>Proveedor</label>
+                        <select id="filterProveedor" class="form-select">
+                            <option value="">Todos los proveedores</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="filter-group">
+                        <label class="filter-label"><i class="fas fa-filter me-2"></i>Estado</label>
+                        <select id="filterEstado" class="form-select">
+                            <option value="">Todos</option>
+                            <option value="ENTREGADO">Entregado</option>
+                            <option value="PENDIENTE">Pendiente</option>
+                            <option value="VENCIDO">Vencido</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="filter-group">
+                        <label class="filter-label"><i class="far fa-calendar-alt me-2"></i>Rango de Fechas</label>
+                        <input type="text" id="filterFecha" class="form-control" placeholder="Seleccionar rango">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alertas -->
+        <div class="alert-container" id="alertContainer"></div>
+
+        <!-- Tarjetas de resumen optimizadas -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="stats-card success">
+                    <div class="stats-label"><i class="fas fa-check-circle me-2"></i>Facturas Entregadas</div>
+                    <div class="stats-value">
+                        <span id="facturas-entregadas">0</span>
+                    </div>
+                    <div class="stats-row">
+                        <span class="stats-row-label">Valor total:</span>
+                        <span class="stats-row-value monetary-value success" id="valor-entregado">$0</span>
+                    </div>
+                    <div class="stats-row">
+                        <span class="stats-row-label">Unidades:</span>
+                        <span class="stats-row-value" id="unidades-entregadas">0</span>
+                    </div>
+                    <div class="stats-row">
+                        <span class="stats-row-label">Porcentaje:</span>
+                        <span class="stats-row-value" id="porcentaje-entregado">0%</span>
+                    </div>
+                    <div class="stats-detail">
+                        <i class="fas fa-calendar-check"></i> Última entrega: <span id="ultima-entregada">N/A</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stats-card warning">
+                    <div class="stats-label"><i class="fas fa-clock me-2"></i>Facturas Pendientes</div>
+                    <div class="stats-value">
+                        <span id="facturas-pendientes">0</span>
+                    </div>
+                    <div class="stats-row">
+                        <span class="stats-row-label">Valor pendiente:</span>
+                        <span class="stats-row-value monetary-value danger" id="valor-pendiente">$0</span>
+                    </div>
+                    <div class="stats-row">
+                        <span class="stats-row-label">Unidades:</span>
+                        <span class="stats-row-value" id="unidades-pendientes">0</span>
+                    </div>
+                    <div class="stats-row">
+                        <span class="stats-row-label">Días promedio:</span>
+                        <span class="stats-row-value" id="dias-promedio">0</span>
+                    </div>
+                    <div class="stats-detail">
+                        <i class="fas fa-exclamation-triangle"></i> Más antigua: <span id="mas-antigua">N/A</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stats-card info">
+                    <div class="stats-label"><i class="fas fa-chart-line me-2"></i>Promedio Diario</div>
+                    <div class="stats-value">
+                        <span id="promedio-diario">0</span>
+                    </div>
+                    <div class="stats-row">
+                        <span class="stats-row-label">Lotes por día:</span>
+                        <span class="stats-row-value" id="lotes-promedio">0</span>
+                    </div>
+                    <div class="stats-row">
+                        <span class="stats-row-label">Valor promedio:</span>
+                        <span class="stats-row-value monetary-value" id="valor-promedio">$0</span>
+                    </div>
+                    <div class="stats-row">
+                        <span class="stats-row-label">Unidades por día:</span>
+                        <span class="stats-row-value" id="unidades-promedio">0</span>
+                    </div>
+                    <div class="stats-detail">
+                        <i class="fas fa-calendar-week"></i> Período: <span id="periodo-promedio">N/A</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla de datos con lote y referencia -->
+        <div class="data-card">
+            <div class="card-header">
+                <span>Detalle de Facturas</span>
+                <span class="badge bg-primary" id="table-counter">0 registros</span>
+            </div>
+            <div class="card-body">
+                <table id="datosTable" class="table table-hover" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>Factura</th>
+                            <th>Fecha Factura</th>
+                            <th>Lote</th>
+                            <th>Referencia</th>
+                            <th>Cliente</th>
+                            <th>Proveedor</th>
+                            <th>Valor</th>
+                            <th>Cantidad</th>
+                            <th>Estado</th>
+                            <th>Días</th>
+                            <th>Fecha Entrega</th>
+                            <th>Imágenes</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Elemento para mensajes de estado -->
+    <div id="status-message"></div>
+
+    <!-- Indicador de carga -->
+    <div id="loading-indicator">
+        <div class="loading-spinner"></div>
+        <span>Cargando datos...</span>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.2.9/js/dataTables.responsive.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/js/lightbox.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+    
+    <script>
+        // Configuración
+        const CONFIG = {
+            apiUrl: "https://script.google.com/macros/s/AKfycbwUG-zMJyhV065hf-VLJBlnH3-_M5c9I9Mm1ru25lyu_84FN440fexC418zI-QqJ-YFuQ/exec",
+            diasParaVencimiento: 2
+        };
+
+        // Variables globales
+        let globalData = [];
+        let table;
+        let today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // Función para mostrar estado
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status-message');
+            if (!statusDiv) return;
+            
+            statusDiv.textContent = message;
+            statusDiv.className = `alert alert-${type}`;
+            statusDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                statusDiv.style.opacity = '0';
+                setTimeout(() => {
+                    statusDiv.style.display = 'none';
+                    statusDiv.style.opacity = '1';
+                }, 300);
+            }, 5000);
+        }
+
+        // Función para mostrar/ocultar loading
+        function setLoading(show, message = '') {
+            const loadingIndicator = document.getElementById('loading-indicator');
+            if (loadingIndicator) {
+                loadingIndicator.style.display = show ? 'flex' : 'none';
+                if (message) {
+                    loadingIndicator.querySelector('span').textContent = message;
+                }
+            }
+        }
+
+        // Función para intentar con proxy CORS
+        async function tryCorsProxy(apiUrl) {
+            try {
+                const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(apiUrl)}`;
+                const response = await fetch(proxyUrl);
+                
+                if (!response.ok) throw new Error('Error con proxy CORS');
+                
+                const data = await response.json();
+                if (!data.contents) throw new Error('Datos no válidos del proxy');
+                
+                return JSON.parse(data.contents);
+            } catch (error) {
+                console.warn('Error con proxy CORS:', error);
+                throw error;
+            }
+        }
+
+        // Función principal para cargar datos
+        async function loadData() {
+            setLoading(true, 'Cargando datos...');
+            
+            try {
+                // Intento 1: Cargar desde la API principal
+                let data = null;
+                try {
+                    const response = await fetch(CONFIG.apiUrl, {
+                        mode: 'cors',
+                        redirect: 'follow'
+                    });
+
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    
+                    data = await response.json();
+                    if (!data.success) throw new Error('Datos no válidos');
+                } catch (error) {
+                    console.warn('Error en carga directa:', error);
+                    showStatus('Intentando con proxy CORS...', 'warning');
+                    data = await tryCorsProxy(CONFIG.apiUrl);
+                }
+                
+                // Procesar datos exitosos
+                processDataResponse(data);
+                
+            } catch (error) {
+                console.error('Error al cargar datos:', error);
+                showStatus('Error al cargar los datos', 'danger');
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        // Función para procesar la respuesta
+        function processDataResponse(responseData) {
+            try {
+                // Procesar datos con el nuevo formato
+                globalData = responseData.data.map(item => {
+                    const fechaFactura = parseFecha(item.fecha);
+                    const fechaEntrega = parseFecha(item.fechaEntrega);
+                    const dias = calcularDias(fechaFactura);
+                    
+                    return {
+                        ...item,
+                        fechaObj: fechaFactura,
+                        fechaFormatted: fechaFactura ? formatFecha(fechaFactura) : 'N/A',
+                        fechaEntregaObj: fechaEntrega,
+                        fechaEntregaFormatted: fechaEntrega ? formatFecha(fechaEntrega) : 'N/A',
+                        dias: dias,
+                        estado: determinarEstado(item.fechaEntrega, dias)
+                    };
+                });
+                
+                // Actualizar la UI
+                updateCards(globalData, responseData.ultimaEntrega);
+                initTable(globalData);
+                initFilters(globalData);
+                updateAlertas(globalData);
+                
+                showStatus('Datos cargados correctamente', 'success');
+                
+            } catch (error) {
+                console.error('Error al procesar datos:', error);
+                showStatus('Error al procesar los datos', 'danger');
+                throw error;
+            }
+        }
+
+        // Funciones de utilidad
+        function parseFecha(fechaStr) {
+            if (!fechaStr) return null;
+            const [fechaPart] = fechaStr.split(' ');
+            const [day, month, year] = fechaPart.split('/').map(Number);
+            if (!day || !month || !year) return null;
+            return new Date(year, month - 1, day);
+        }
+
+        function formatFecha(date) {
+            if (!date || !(date instanceof Date)) return 'N/A';
+            const day = date.getDate().toString().padStart(2, '0');
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+        }
+
+        function determinarEstado(fechaEntrega, dias) {
+            if (fechaEntrega) return 'ENTREGADO';
+            if (dias === null) return 'PENDIENTE';
+            return dias > CONFIG.diasParaVencimiento ? 'VENCIDO' : 'PENDIENTE';
+        }
+
+        function calcularDias(fechaFactura) {
+            if (!fechaFactura) return null;
+            const diffTime = today - fechaFactura;
+            return Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        }
+
+        // Función para manejar imágenes de Google Drive
+        function getImageThumbnails(soportes) {
+            if (!soportes || soportes.length === 0) return '<i class="fas fa-times-circle text-muted"></i>';
+            
+            const images = soportes
+                .filter(s => s.url && isGoogleDriveImage(s.url))
+                .slice(0, 3);
+            
+            if (images.length === 0) return '<i class="fas fa-times-circle text-muted"></i>';
+            
+            return images.map((soporte, i) => {
+                const imageUrl = convertToDirectImageLink(soporte.url);
+                return `
+                    <a href="${imageUrl}" data-lightbox="soporte-${soporte.registro || i}" data-title="Soporte ${soporte.registro || ''}">
+                        <img src="${imageUrl}" class="img-thumbnail me-1" alt="Soporte ${i+1}" onerror="this.style.display='none'">
+                    </a>
+                `;
+            }).join('');
+        }
+
+        function isGoogleDriveImage(url) {
+            return url.includes('lh3.googleusercontent.com') || url.includes('drive.google.com');
+        }
+
+        function convertToDirectImageLink(url) {
+            if (url.includes('lh3.googleusercontent.com')) {
+                return url.split('?')[0];
+            }
+            
+            const match = url.match(/\/d\/([^\/]+)/);
+            if (match && match[1]) {
+                return `https://lh3.googleusercontent.com/d/${match[1]}=s400`;
+            }
+            
+            return url;
+        }
+
+        // Función para actualizar tarjetas
+        function updateCards(data, ultimaEntrega) {
+            const totalFacturas = data.length;
+            const entregadas = data.filter(d => d.estado === 'ENTREGADO').length;
+            const pendientes = data.filter(d => d.estado === 'PENDIENTE').length;
+            const vencidas = data.filter(d => d.estado === 'VENCIDO').length;
+            
+            // Datos para tarjeta de entregadas
+            const valorEntregado = data
+                .filter(d => d.estado === 'ENTREGADO')
+                .reduce((sum, item) => sum + (item.valorBruto || 0), 0);
+            
+            const unidadesEntregadas = data
+                .filter(d => d.estado === 'ENTREGADO')
+                .reduce((sum, item) => sum + (item.cantidad || 0), 0);
+            
+            const porcentajeEntregado = totalFacturas > 0 ? Math.round((entregadas / totalFacturas) * 100) : 0;
+            
+            // Formatear última entrega
+            const ultimaEntregaFormatted = ultimaEntrega ? formatFecha(parseFecha(ultimaEntrega)) : 'N/A';
+            
+            // Datos para tarjeta de pendientes
+            const facturasPendientes = data.filter(d => d.estado !== 'ENTREGADO');
+            const diasPromedio = facturasPendientes.length > 0 ? 
+                Math.round(facturasPendientes.reduce((sum, item) => sum + (item.dias || 0), 0) / facturasPendientes.length) : 0;
+            
+            const masAntigua = facturasPendientes
+                .filter(d => d.fechaObj)
+                .sort((a, b) => a.fechaObj - b.fechaObj)[0];
+            
+            const valorPendiente = facturasPendientes
+                .reduce((sum, item) => sum + (item.valorBruto || 0), 0);
+            
+            const unidadesPendientes = facturasPendientes
+                .reduce((sum, item) => sum + (item.cantidad || 0), 0);
+            
+            // Datos para tarjeta de promedio diario
+            const facturasEntregadas = data.filter(d => d.estado === 'ENTREGADO' && d.fechaEntregaObj);
+            
+            // Agrupar por día de entrega
+            const entregasPorDia = {};
+            facturasEntregadas.forEach(item => {
+                const fechaKey = item.fechaEntregaObj.toISOString().split('T')[0];
+                if (!entregasPorDia[fechaKey]) {
+                    entregasPorDia[fechaKey] = {
+                        count: 0,
+                        valor: 0,
+                        cantidad: 0,
+                        fecha: item.fechaEntregaObj
+                    };
+                }
+                entregasPorDia[fechaKey].count++;
+                entregasPorDia[fechaKey].valor += item.valorBruto || 0;
+                entregasPorDia[fechaKey].cantidad += item.cantidad || 0;
+            });
+            
+            const diasConEntregas = Object.keys(entregasPorDia).length;
+            const promedioDiario = diasConEntregas > 0 ? Math.round(facturasEntregadas.length / diasConEntregas) : 0;
+            const lotesPromedio = diasConEntregas > 0 ? (facturasEntregadas.length / diasConEntregas).toFixed(1) : 0;
+            const valorPromedio = diasConEntregas > 0 ? Math.round(facturasEntregadas.reduce((sum, item) => sum + (item.valorBruto || 0), 0) / diasConEntregas) : 0;
+            const unidadesPromedio = diasConEntregas > 0 ? Math.round(facturasEntregadas.reduce((sum, item) => sum + (item.cantidad || 0), 0) / diasConEntregas) : 0;
+            
+            // Calcular rango de fechas de entrega
+            let periodoPromedio = 'N/A';
+            if (diasConEntregas > 0) {
+                const fechasEntrega = facturasEntregadas.map(d => d.fechaEntregaObj).filter(Boolean);
+                const minFecha = new Date(Math.min(...fechasEntrega));
+                const maxFecha = new Date(Math.max(...fechasEntrega));
+                
+                if (minFecha && maxFecha) {
+                    periodoPromedio = `${formatFecha(minFecha)} - ${formatFecha(maxFecha)}`;
+                }
+            }
+            
+            // Actualizar DOM
+            document.getElementById('facturas-entregadas').textContent = entregadas;
+            document.getElementById('valor-entregado').textContent = formatCurrency(valorEntregado);
+            document.getElementById('unidades-entregadas').textContent = unidadesEntregadas;
+            document.getElementById('porcentaje-entregado').textContent = `${porcentajeEntregado}%`;
+            document.getElementById('ultima-entregada').textContent = ultimaEntregaFormatted;
+            
+            document.getElementById('facturas-pendientes').textContent = pendientes + vencidas;
+            document.getElementById('valor-pendiente').textContent = formatCurrency(valorPendiente);
+            document.getElementById('unidades-pendientes').textContent = unidadesPendientes;
+            document.getElementById('dias-promedio').textContent = diasPromedio;
+            document.getElementById('mas-antigua').textContent = masAntigua ? formatFecha(masAntigua.fechaObj) : 'N/A';
+            
+            // Actualizar tarjeta de promedios
+            document.getElementById('promedio-diario').textContent = promedioDiario;
+            document.getElementById('lotes-promedio').textContent = lotesPromedio;
+            document.getElementById('valor-promedio').textContent = formatCurrency(valorPromedio);
+            document.getElementById('unidades-promedio').textContent = unidadesPromedio;
+            document.getElementById('periodo-promedio').textContent = periodoPromedio;
+        }
+
+        // Función para formatear moneda
+        function formatCurrency(value) {
+            if (value === null || value === undefined) return '$0';
+            return '$' + Math.round(value).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        }
+
+        // Función para inicializar filtros
+        function initFilters(data) {
+            const clientes = [...new Set(data.map(item => item.cliente))].filter(Boolean).sort();
+            const proveedores = [...new Set(data.map(item => item.proveedor))].filter(Boolean).sort();
+            
+            const clienteSelect = document.getElementById('filterCliente');
+            const proveedorSelect = document.getElementById('filterProveedor');
+            
+            clientes.forEach(cliente => {
+                const option = document.createElement('option');
+                option.value = cliente;
+                option.textContent = cliente;
+                clienteSelect.appendChild(option);
+            });
+            
+            proveedores.forEach(proveedor => {
+                const option = document.createElement('option');
+                option.value = proveedor;
+                option.textContent = proveedor;
+                proveedorSelect.appendChild(option);
+            });
+            
+            // Event listeners para los filtros
+            document.getElementById('filterCliente').addEventListener('change', applyFilters);
+            document.getElementById('filterProveedor').addEventListener('change', applyFilters);
+            document.getElementById('filterEstado').addEventListener('change', applyFilters);
+        }
+
+        // Función para aplicar filtros
+        function applyFilters() {
+            const cliente = document.getElementById('filterCliente').value;
+            const proveedor = document.getElementById('filterProveedor').value;
+            const estado = document.getElementById('filterEstado').value;
+            const fechaRange = document.getElementById('filterFecha')._flatpickr.selectedDates;
+            
+            let filteredData = [...globalData];
+            
+            if (cliente) {
+                filteredData = filteredData.filter(item => item.cliente === cliente);
+            }
+            
+            if (proveedor) {
+                filteredData = filteredData.filter(item => item.proveedor === proveedor);
+            }
+            
+            if (estado) {
+                filteredData = filteredData.filter(item => item.estado === estado);
+            }
+            
+            if (fechaRange && fechaRange.length === 2) {
+                const startDate = new Date(fechaRange[0]);
+                const endDate = new Date(fechaRange[1]);
+                endDate.setHours(23, 59, 59, 999);
+                
+                filteredData = filteredData.filter(item => {
+                    if (!item.fechaObj) return false;
+                    return item.fechaObj >= startDate && item.fechaObj <= endDate;
+                });
+            }
+            
+            updateCards(filteredData);
+            updateAlertas(filteredData);
+            table.clear().rows.add(filteredData).draw();
+            document.getElementById('table-counter').textContent = `${filteredData.length} registros`;
+        }
+
+        // Función para actualizar alertas
+        function updateAlertas(data = globalData) {
+            const alertContainer = document.getElementById('alertContainer');
+            alertContainer.innerHTML = '';
+            
+            // Facturas vencidas
+            const facturasVencidas = data
+                .filter(item => item.estado === 'VENCIDO')
+                .sort((a, b) => b.dias - a.dias);
+            
+            if (facturasVencidas.length > 0) {
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'alert-card';
+                alertDiv.innerHTML = `
+                    <div class="alert-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="alert-content">
+                        <div class="alert-title">¡${facturasVencidas.length} Facturas Vencidas!</div>
+                        <div class="alert-message">Hay facturas con más de ${CONFIG.diasParaVencimiento} días sin entregar. Haga clic para ver detalles.</div>
+                    </div>
+                    <i class="fas fa-chevron-right"></i>
+                `;
+                
+                alertDiv.addEventListener('click', () => {
+                    document.getElementById('filterEstado').value = 'VENCIDO';
+                    applyFilters();
+                    document.querySelector('.data-card').scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                });
+                
+                alertContainer.appendChild(alertDiv);
+            }
+        }
+
+        // Función para inicializar la tabla
+        function initTable(data) {
+            table = $('#datosTable').DataTable({
+                data: data,
+                responsive: true,
+                columns: [
+                    { 
+                        data: 'factura',
+                        responsivePriority: 1
+                    },
+                    { 
+                        data: 'fechaFormatted',
+                        responsivePriority: 4
+                    },
+                    { 
+                        data: 'lote',
+                        responsivePriority: 7,
+                        render: function(data) {
+                            return data ? `<span class="tooltip-cell" title="${data}">${data}</span>` : 'N/A';
+                        }
+                    },
+                    { 
+                        data: 'referencia',
+                        responsivePriority: 8,
+                        render: function(data) {
+                            return data ? `<span class="tooltip-cell" title="${data}">${data}</span>` : 'N/A';
+                        }
+                    },
+                    { 
+                        data: 'cliente',
+                        responsivePriority: 5,
+                        render: function(data) {
+                            return data ? `<span class="tooltip-cell" title="${data}">${data}</span>` : 'N/A';
+                        }
+                    },
+                    { 
+                        data: 'proveedor',
+                        responsivePriority: 6,
+                        render: function(data) {
+                            return data ? `<span class="tooltip-cell" title="${data}">${data}</span>` : 'N/A';
+                        }
+                    },
+                    { 
+                        data: 'valorBruto',
+                        responsivePriority: 2,
+                        render: function(data) {
+                            return formatCurrency(data || 0);
+                        }
+                    },
+                    { 
+                        data: 'cantidad',
+                        responsivePriority: 3
+                    },
+                    {
+                        data: 'estado',
+                        responsivePriority: 2,
+                        render: function(data, type, row) {
+                            let badgeClass = 'badge-success';
+                            if (data === 'PENDIENTE') badgeClass = 'badge-warning';
+                            else if (data === 'VENCIDO') badgeClass = 'badge-danger';
+                            
+                            return `<span class="badge ${badgeClass}">${data}</span>`;
+                        }
+                    },
+                    {
+                        data: 'dias',
+                        responsivePriority: 3,
+                        render: function(data, type, row) {
+                            if (data === null) return 'N/A';
+                            
+                            let className = '';
+                            let icon = '';
+                            
+                            if (row.estado === 'VENCIDO') {
+                                className = 'text-danger';
+                                icon = '<i class="fas fa-exclamation-circle me-1"></i>';
+                            } else if (data === CONFIG.diasParaVencimiento) {
+                                className = 'text-warning';
+                                icon = '<i class="fas fa-clock me-1"></i>';
+                            }
+                            
+                            return `<span class="${className}">${icon}${data} días</span>`;
+                        }
+                    },
+                    {
+                        data: 'fechaEntregaFormatted',
+                        responsivePriority: 4,
+                        render: function(data, type, row) {
+                            return data || 'N/A';
+                        }
+                    },
+                    {
+                        data: 'soportes',
+                        responsivePriority: 9,
+                        render: getImageThumbnails
+                    }
+                ],
+                pageLength: 25,
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.11.5/i18n/es-ES.json'
+                },
+                createdRow: function(row, data, dataIndex) {
+                    if (data.estado === 'VENCIDO') {
+                        $(row).addClass('vencido');
+                    } else if (data.estado === 'PENDIENTE') {
+                        $(row).addClass('por-vencer');
+                    } else if (data.estado === 'ENTREGADO') {
+                        $(row).addClass('entregado');
+                    }
+                },
+                initComplete: function() {
+                    lightbox.option({
+                        'resizeDuration': 200,
+                        'wrapAround': true,
+                        'maxWidth': 800,
+                        'maxHeight': 600
+                    });
+                    
+                    document.getElementById('table-counter').textContent = `${data.length} registros`;
+                    $('.tooltip-cell').tooltip({
+                        placement: 'top',
+                        trigger: 'hover'
+                    });
+                },
+                drawCallback: function() {
+                    const count = this.api().rows({ search: 'applied' }).count();
+                    document.getElementById('table-counter').textContent = `${count} registros`;
+                    $('.tooltip-cell').tooltip('dispose').tooltip({
+                        placement: 'top',
+                        trigger: 'hover'
+                    });
+                }
+            });
+        }
+
+        // Función para descargar datos como CSV
+        function downloadCSV() {
+            if (globalData.length === 0) {
+                showStatus('No hay datos para descargar', 'warning');
+                return;
+            }
+
+            const filteredData = table.rows({ search: 'applied' }).data().toArray();
+
+            if (filteredData.length === 0) {
+                showStatus('No hay datos filtrados para descargar', 'warning');
+                return;
+            }
+
+            const headers = [
+                'Factura', 'Fecha Factura', 'Lote', 'Referencia', 'Cliente', 
+                'Proveedor', 'Valor', 'Cantidad', 'Estado', 'Días', 
+                'Fecha Entrega', 'Situación'
+            ];
+
+            const csvRows = [];
+            csvRows.push(headers.join(';'));
+            
+            filteredData.forEach(item => {
+                const situacion = item.estado === 'VENCIDO' ? `VENCIDO (+${CONFIG.diasParaVencimiento} días)` : 
+                                (item.dias === CONFIG.diasParaVencimiento ? 'POR VENCER' : item.estado);
+                
+                const row = [
+                    `"${item.factura || ''}"`,
+                    `"${item.fechaFormatted || ''}"`,
+                    `"${item.lote || ''}"`,
+                    `"${item.referencia || ''}"`,
+                    `"${item.cliente || ''}"`,
+                    `"${item.proveedor || ''}"`,
+                    item.valorBruto || 0,
+                    item.cantidad || 0,
+                    item.estado || 'PENDIENTE',
+                    item.dias || 'N/A',
+                    item.fechaEntregaFormatted || 'N/A',
+                    situacion
+                ];
+                csvRows.push(row.join(';'));
+            });
+
+            const csvContent = csvRows.join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', `facturas_siesa_${new Date().toISOString().slice(0,10)}.csv`);
+            link.style.visibility = 'hidden';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showStatus('Exportación CSV iniciada', 'success');
+        }
+
+        // Inicialización
+        $(document).ready(function() {
+            lightbox.option({
+                'albumLabel': 'Imagen %1 de %2',
+                'disableScrolling': true
+            });
+            
+            // Configurar rango de fechas predeterminado (primer día del mes hasta hoy)
+            const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+            
+            // Inicializar datepicker
+            flatpickr("#filterFecha", {
+                mode: "range",
+                locale: "es",
+                dateFormat: "d/m/Y",
+                maxDate: "today",
+                defaultDate: [firstDayOfMonth, today],
+                onClose: function(selectedDates, dateStr, instance) {
+                    applyFilters();
+                }
+            });
+            
+            document.getElementById('downloadBtn').addEventListener('click', downloadCSV);
+            loadData();
+        });
+    </script>
+</body>
+</html>
