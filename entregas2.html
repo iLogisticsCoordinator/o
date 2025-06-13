@@ -432,6 +432,44 @@
     border-top-color: var(--color-info-light);
 }
 
+/* Agregar al final de tu CSS */
+.modal-xl {
+    max-width: 95%;
+}
+@media (max-width: 768px) {
+    .modal-xl {
+        max-width: 100%;
+        margin: 0.5rem;
+    }
+}
+
+#dailyAveragesTable th {
+    font-size: 0.75rem;
+    white-space: nowrap;
+    position: sticky;
+    top: 0;
+    background: white;
+}
+
+.bg-info-light {
+    background-color: #d1ecf1 !important;
+}
+
+.table-responsive {
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+#dailyAveragesTable tr:hover td {
+    background-color: rgba(0, 0, 0, 0.02) !important;
+}
+
+#dailyAveragesTable tr.highlight-row td {
+    background-color: #fff8e1 !important;
+    font-weight: 600;
+}
+
+
     </style>
 </head>
 <body>
@@ -563,32 +601,96 @@
             </div>
         </div>
 
-<!-- Agrega esto justo antes del cierre del body (antes de los scripts) -->
+
+
 <div class="modal fade" id="dailyAveragesModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-xl">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Detalle de Entregas por Día</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-calendar-day me-2"></i>Análisis de Entregas Diarias
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <table class="table table-sm" id="dailyAveragesTable">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Fecha</th>
-                            <th>Entregas</th>
-                            <th>Lotes</th>
-                            <th>Valor Total</th>
-                            <th>Unidades</th>
-                            <th>Valor Facturado</th>
-                            <th>% Entregado</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover" id="dailyAveragesTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="bg-info text-white">Fecha Entrega</th>
+                                <th colspan="4" class="text-center bg-success text-white">Entregas Totales</th>
+                                <th colspan="3" class="text-center bg-warning text-dark">Entregas Mismo Día</th>
+                                <th colspan="3" class="text-center bg-primary text-white">Entregas Backlog</th>
+                            </tr>
+                            <tr>
+                                <!-- Columnas para Entregas Totales -->
+                                <th class="bg-info-light">Día</th>
+                                <th>Facturas</th>
+                                <th>Lotes</th>
+                                <th>Valor</th>
+                                <th>Unidades</th>
+                                
+                                <!-- Columnas para Entregas Mismo Día -->
+                                <th>Cant.</th>
+                                <th>Valor</th>
+                                <th>%</th>
+                                
+                                <!-- Columnas para Entregas Backlog -->
+                                <th>Cant.</th>
+                                <th>Valor</th>
+                                <th>Días Prom.</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                
+                <div class="mt-4">
+                    <h6 class="text-muted"><i class="fas fa-info-circle me-2"></i>Métricas Clave</h6>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body">
+                                    <h6 class="card-subtitle mb-2 text-muted">Eficiencia Inmediata</h6>
+                                    <div class="d-flex align-items-center">
+                                        <div class="display-5 me-3" id="avgImmediateRate">0%</div>
+                                        <div class="text-muted small">% de entregas el mismo día de facturación</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body">
+                                    <h6 class="card-subtitle mb-2 text-muted">Backlog Promedio</h6>
+                                    <div class="d-flex align-items-center">
+                                        <div class="display-5 me-3" id="avgBacklogDays">0</div>
+                                        <div class="text-muted small">Días promedio de retraso en entregas</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body">
+                                    <h6 class="card-subtitle mb-2 text-muted">Valoración Diaria</h6>
+                                    <div class="d-flex align-items-center">
+                                        <div class="display-5 me-3" id="dailyPerformance">-</div>
+                                        <div class="text-muted small">Relación entregas/facturación</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Cerrar
+                </button>
+                <button type="button" class="btn btn-info" id="exportDailyData">
+                    <i class="fas fa-file-excel me-2"></i>Exportar
+                </button>
             </div>
         </div>
     </div>
@@ -847,76 +949,206 @@ document.querySelector('.stats-card.info').style.cursor = 'pointer';
 document.querySelector('.stats-card.info').addEventListener('click', showDailyAverages);
 
 // Nueva función para calcular y mostrar los promedios diarios
+// Función para mostrar los promedios diarios (actualizada)
 function showDailyAverages() {
     const dailyData = getDailyAverages(globalData);
     const tbody = document.querySelector('#dailyAveragesTable tbody');
     tbody.innerHTML = '';
-
+    
+    let totalImmediate = 0;
+    let totalBacklogDays = 0;
+    let backlogCount = 0;
+    let immediateCount = 0;
+    
     dailyData.forEach(day => {
         const row = document.createElement('tr');
+        if (day.immediateRate > 50) {
+            row.classList.add('highlight-row');
+        }
         
-        // Calcular porcentaje entregado si hay valor facturado
-        const percentage = day.valorFacturado > 0 
-            ? (day.valorEntregado / day.valorFacturado * 100).toFixed(1) + '%'
-            : 'N/A';
-            
+        // Calcular métricas acumulativas
+        if (day.immediate.count > 0) {
+            immediateCount++;
+            totalImmediate += day.immediateRate;
+        }
+        if (day.backlog.count > 0) {
+            backlogCount++;
+            totalBacklogDays += day.avgBacklogDays;
+        }
+        
         row.innerHTML = `
-            <td>${day.fecha}</td>
-            <td>${day.entregas}</td>
-            <td>${day.lotes}</td>
-            <td>${formatCurrency(day.valorEntregado)}</td>
-            <td>${day.unidades}</td>
-            <td>${day.valorFacturado > 0 ? formatCurrency(day.valorFacturado) : 'N/A'}</td>
-            <td>${percentage}</td>
+            <!-- Entregas Totales -->
+            <td class="fw-bold">${day.date}</td>
+            <td>${day.total.count}</td>
+            <td>${day.total.lotes}</td>
+            <td>${formatCurrency(day.total.value)}</td>
+            <td>${day.total.units}</td>
+            
+            <!-- Entregas Mismo Día -->
+            <td>${day.immediate.count}</td>
+            <td>${formatCurrency(day.immediate.value)}</td>
+            <td>${day.immediateRate.toFixed(1)}%</td>
+            
+            <!-- Entregas Backlog -->
+            <td>${day.backlog.count}</td>
+            <td>${formatCurrency(day.backlog.value)}</td>
+            <td>${day.avgBacklogDays.toFixed(1)}</td>
         `;
         tbody.appendChild(row);
     });
-
+    
+    // Calcular y mostrar métricas resumen
+    const avgImmediateRate = immediateCount > 0 ? (totalImmediate / immediateCount) : 0;
+    const avgBacklogDays = backlogCount > 0 ? (totalBacklogDays / backlogCount) : 0;
+    
+    document.getElementById('avgImmediateRate').textContent = `${avgImmediateRate.toFixed(1)}%`;
+    document.getElementById('avgBacklogDays').textContent = `${avgBacklogDays.toFixed(1)}`;
+    
+    // Calcular valoración diaria general
+    const performanceRating = calculatePerformanceRating(dailyData);
+    document.getElementById('dailyPerformance').textContent = performanceRating.rating;
+    document.getElementById('dailyPerformance').className = `display-5 me-3 text-${performanceRating.color}`;
+    
+    // Configurar exportación
+    document.getElementById('exportDailyData').addEventListener('click', () => exportDailyData(dailyData));
+    
     dailyAveragesModal.show();
 }
 
-// Función para calcular los promedios diarios
+// Función mejorada para calcular los promedios diarios
 function getDailyAverages(data) {
-    const facturasEntregadas = data.filter(d => d.estado === 'ENTREGADO' && d.fechaEntregaObj);
-    const facturasPorDia = {};
+    const result = {};
     
-    // Agrupar facturas por día de entrega
-    facturasEntregadas.forEach(item => {
-        const fechaKey = item.fechaEntregaObj.toISOString().split('T')[0];
-        if (!facturasPorDia[fechaKey]) {
-            facturasPorDia[fechaKey] = {
-                fecha: formatFecha(item.fechaEntregaObj),
-                entregas: 0,
-                lotes: new Set(),
-                valorEntregado: 0,
-                unidades: 0,
-                valorFacturado: 0
+    // 1. Procesar todas las facturas entregadas
+    data.filter(d => d.estado === 'ENTREGADO' && d.fechaEntregaObj).forEach(item => {
+        const deliveryDate = item.fechaEntregaObj.toISOString().split('T')[0];
+        const invoiceDate = item.fechaObj ? item.fechaObj.toISOString().split('T')[0] : null;
+        
+        if (!result[deliveryDate]) {
+            result[deliveryDate] = {
+                date: formatFecha(item.fechaEntregaObj),
+                total: { count: 0, value: 0, units: 0, lotes: new Set() },
+                immediate: { count: 0, value: 0, units: 0 },
+                backlog: { count: 0, value: 0, units: 0, days: [] },
+                sameDayInvoices: new Set()
             };
         }
         
-        facturasPorDia[fechaKey].entregas++;
-        facturasPorDia[fechaKey].lotes.add(item.lote);
-        facturasPorDia[fechaKey].valorEntregado += item.valorBruto || 0;
-        facturasPorDia[fechaKey].unidades += item.cantidad || 0;
-    });
-    
-    // Agregar valor facturado por día (de todas las facturas, no solo entregadas)
-    data.forEach(item => {
-        if (!item.fechaObj) return;
+        // Agregar a totales
+        result[deliveryDate].total.count++;
+        result[deliveryDate].total.value += item.valorBruto || 0;
+        result[deliveryDate].total.units += item.cantidad || 0;
+        if (item.lote) result[deliveryDate].total.lotes.add(item.lote);
         
-        const fechaKey = item.fechaObj.toISOString().split('T')[0];
-        if (facturasPorDia[fechaKey]) {
-            facturasPorDia[fechaKey].valorFacturado += item.valorBruto || 0;
+        // Clasificar como inmediata o backlog
+        if (invoiceDate && invoiceDate === deliveryDate) {
+            result[deliveryDate].immediate.count++;
+            result[deliveryDate].immediate.value += item.valorBruto || 0;
+            result[deliveryDate].immediate.units += item.cantidad || 0;
+            result[deliveryDate].sameDayInvoices.add(item.factura);
+        } else if (item.fechaObj) {
+            result[deliveryDate].backlog.count++;
+            result[deliveryDate].backlog.value += item.valorBruto || 0;
+            result[deliveryDate].backlog.units += item.cantidad || 0;
+            const daysDiff = Math.round((item.fechaEntregaObj - item.fechaObj) / (1000 * 60 * 60 * 24));
+            result[deliveryDate].backlog.days.push(daysDiff);
         }
     });
     
-    // Convertir a array y formatear
-    return Object.values(facturasPorDia)
-        .map(day => ({
+    // 2. Procesar facturación diaria para contexto
+    const dailyInvoicing = {};
+    data.forEach(item => {
+        if (!item.fechaObj) return;
+        const invoiceDate = item.fechaObj.toISOString().split('T')[0];
+        if (!dailyInvoicing[invoiceDate]) {
+            dailyInvoicing[invoiceDate] = { value: 0, count: 0 };
+        }
+        dailyInvoicing[invoiceDate].value += item.valorBruto || 0;
+        dailyInvoicing[invoiceDate].count++;
+    });
+    
+    // 3. Formatear resultados finales
+    return Object.values(result).map(day => {
+        const invoiceDate = day.date.split('/').reverse().join('-');
+        const invoicedThatDay = dailyInvoicing[invoiceDate] || { value: 0, count: 0 };
+        
+        return {
             ...day,
-            lotes: day.lotes.size
-        }))
-        .sort((a, b) => new Date(b.fecha.split('/').reverse().join('-')) - new Date(a.fecha.split('/').reverse().join('-')));
+            total: {
+                ...day.total,
+                lotes: day.total.lotes.size
+            },
+            immediateRate: day.total.count > 0 ? (day.immediate.value / day.total.value * 100) : 0,
+            avgBacklogDays: day.backlog.days.length > 0 ? 
+                day.backlog.days.reduce((a, b) => a + b, 0) / day.backlog.days.length : 0,
+            invoicedValue: invoicedThatDay.value,
+            invoicedCount: invoicedThatDay.count
+        };
+    }).sort((a, b) => new Date(b.date.split('/').reverse().join('-')) - new Date(a.date.split('/').reverse().join('-')));
+}
+
+// Función para calcular la valoración de desempeño
+function calculatePerformanceRating(dailyData) {
+    if (dailyData.length === 0) return { rating: 'N/A', color: 'muted' };
+    
+    const totalImmediateRate = dailyData.reduce((sum, day) => sum + day.immediateRate, 0) / dailyData.length;
+    const totalBacklogDays = dailyData.reduce((sum, day) => sum + (day.avgBacklogDays || 0), 0) / dailyData.filter(d => d.avgBacklogDays > 0).length;
+    
+    if (totalImmediateRate > 60 && totalBacklogDays < 3) {
+        return { rating: 'Excelente', color: 'success' };
+    } else if (totalImmediateRate > 40 || totalBacklogDays < 5) {
+        return { rating: 'Bueno', color: 'info' };
+    } else if (totalImmediateRate > 20) {
+        return { rating: 'Regular', color: 'warning' };
+    } else {
+        return { rating: 'A Mejorar', color: 'danger' };
+    }
+}
+
+// Función para exportar datos diarios
+function exportDailyData(dailyData) {
+    const headers = [
+        'Fecha Entrega', 'Total Facturas', 'Lotes Únicos', 'Valor Total', 'Unidades Total',
+        'Facturas Inmediatas', 'Valor Inmediato', '% Inmediato',
+        'Facturas Backlog', 'Valor Backlog', 'Días Promedio Backlog',
+        'Facturas Facturadas Ese Día', 'Valor Facturado Ese Día'
+    ];
+    
+    const csvRows = [headers.join(';')];
+    
+    dailyData.forEach(day => {
+        const row = [
+            `"${day.date}"`,
+            day.total.count,
+            day.total.lotes,
+            day.total.value,
+            day.total.units,
+            day.immediate.count,
+            day.immediate.value,
+            day.immediateRate.toFixed(2),
+            day.backlog.count,
+            day.backlog.value,
+            day.avgBacklogDays.toFixed(1),
+            day.invoicedCount,
+            day.invoicedValue
+        ];
+        csvRows.push(row.join(';'));
+    });
+    
+    const csvContent = csvRows.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `analisis_entregas_diarias_${new Date().toISOString().slice(0,10)}.csv`);
+    link.style.visibility = 'hidden';
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    showStatus('Exportación de análisis diario completada', 'success');
 }
 
         // Función para actualizar tarjetas
