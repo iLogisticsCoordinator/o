@@ -47,7 +47,7 @@
         <div class="row justify-content-center">
             <div class="col-lg-10">
                 <h1 class="text-center mb-4 text-primary">
-                    <i class="fas fa-file-csv me-2"></i>Procesador de CSV a JSON 2
+                    <i class="fas fa-file-csv me-2"></i>Procesador de CSV a JSON
                 </h1>
                 
                 <div class="card mb-4 border-0">
@@ -180,73 +180,65 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
 
 <script>
-    // Función para enviar datos a Google Sheets 
-    function saveToSheets(jsonData) {
-        const loadingSwal = Swal.fire({
-            title: 'Guardando en Sheets...',
-            html: 'Por favor espera mientras se guardan los datos',
-            allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
-            }
-        });
+// Función para enviar datos a Google Sheets
+function saveToSheets(jsonData) {
+    const loadingSwal = Swal.fire({
+        title: 'Guardando en Sheets...',
+        html: 'Por favor espera mientras se guardan los datos',
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
 
-        const apiUrl = "https://script.google.com/macros/s/AKfycbyJXqnvNahoEkUf4XSY916E6ov3BvEtOyq_pBJNzINNmzvfrKsd5owR_cVsbSYyqfy3/exec";
+    const apiUrl = "https://script.google.com/macros/s/AKfycbyJXqnvNahoEkUf4XSY916E6ov3BvEtOyq_pBJNzINNmzvfrKsd5owR_cVsbSYyqfy3/exec";
 
-        fetch(apiUrl, {
-            method: 'POST',
-            mode: 'no-cors',
-            cache: 'no-cache',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(jsonData)
-        })
-        .then(response => {
-            // Cambiar aquí para manejar la respuesta correctamente
-            return response.text(); // Cambiar a text() para evitar el error de "Unexpected end of input"
-        })
-        .then(data => {
-            loadingSwal.close();
-            const jsonResponse = JSON.parse(data); // Parsear la respuesta JSON
-            if (jsonResponse.success) {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Éxito',
-                    text: `Datos de OP ${jsonData.A} guardados correctamente en Sheets`,
-                    confirmButtonText: 'Aceptar'
-                });
-            } else {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Advertencia',
-                    text: jsonResponse.message, // Mostrar mensaje de advertencia si ya existe
-                    confirmButtonText: 'Entendido'
-                });
-            }
-        })
-        .catch(error => {
-            loadingSwal.close();
-            console.error('Error al guardar en Sheets:', error);
+    fetch(apiUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        cache: 'no-cache',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(jsonData)
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Error en la respuesta del servidor');
+        }
+        return response.json();
+    })
+    .then(data => {
+        loadingSwal.close();
+        if (data.success) {
             Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                html: `No se pudo guardar en Sheets:<br><small>${error.message}</small>`,
-                confirmButtonText: 'Entendido'
+                icon: 'success',
+                title: 'Éxito',
+                text: `Datos de OP ${jsonData.A} guardados correctamente en Sheets`,
+                confirmButtonText: 'Aceptar'
             });
+        } else {
+            throw new Error(data.message || 'Error desconocido al guardar');
+        }
+    })
+    .catch(error => {
+        loadingSwal.close();
+        console.error('Error al guardar en Sheets:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            html: `No se pudo guardar en Sheets:<br><small>${error.message}</small>`,
+            confirmButtonText: 'Entendido'
         });
-    }
+    });
+}
 
-    // Configurar el botón de guardar en Sheets
-    document.getElementById('saveToSheetsBtn').onclick = function() {
-        const jsonData = JSON.parse(document.getElementById('jsonViewer').textContent);
-        saveToSheets(jsonData);
-    };
+// Configurar el botón de guardar en Sheets
+document.getElementById('saveToSheetsBtn').onclick = function() {
+    const jsonData = JSON.parse(document.getElementById('jsonViewer').textContent);
+    saveToSheets(jsonData);
+};
 </script>
-
-
-
-
     <script>
         // Variables globales
         let processedData = [];
