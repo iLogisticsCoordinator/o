@@ -47,7 +47,7 @@
         <div class="row justify-content-center">
             <div class="col-lg-10">
                 <h1 class="text-center mb-4 text-primary">
-                    <i class="fas fa-file-csv me-2"></i>Procesador de CSV a JSON
+                    <i class="fas fa-file-csv me-2"></i>Procesador de CSV a JSON 2
                 </h1>
                 
                 <div class="card mb-4 border-0">
@@ -178,67 +178,72 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/11.7.32/sweetalert2.all.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
-<!-- Incluye SweetAlert2 -->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-    async function saveToSheets(jsonData) {
-        const apiUrl = 'https://script.google.com/macros/s/AKfycbyJXqnvNahoEkUf4XSY916E6ov3BvEtOyq_pBJNzINNmzvfrKsd5owR_cVsbSYyqfy3/exec';
-
-        Swal.fire({
+    // Función para enviar datos a Google Sheets 
+    function saveToSheets(jsonData) {
+        const loadingSwal = Swal.fire({
             title: 'Guardando en Sheets...',
-            html: 'Por favor espera...',
+            html: 'Por favor espera mientras se guardan los datos',
             allowOutsideClick: false,
-            didOpen: () => Swal.showLoading()
+            didOpen: () => {
+                Swal.showLoading();
+            }
         });
 
-        try {
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                mode: 'cors',
-                cache: 'no-cache',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(jsonData)
-            });
+        const apiUrl = "https://script.google.com/macros/s/AKfycbyJXqnvNahoEkUf4XSY916E6ov3BvEtOyq_pBJNzINNmzvfrKsd5owR_cVsbSYyqfy3/exec";
 
-            const result = await response.json();
-
-            Swal.close();
-
-            if (result.success) {
+        fetch(apiUrl, {
+            method: 'POST',
+            mode: 'no-cors',
+            cache: 'no-cache',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(jsonData)
+        })
+        .then(response => {
+            // Cambiar aquí para manejar la respuesta correctamente
+            return response.text(); // Cambiar a text() para evitar el error de "Unexpected end of input"
+        })
+        .then(data => {
+            loadingSwal.close();
+            const jsonResponse = JSON.parse(data); // Parsear la respuesta JSON
+            if (jsonResponse.success) {
                 Swal.fire({
                     icon: 'success',
                     title: 'Éxito',
-                    text: result.message,
+                    text: `Datos de OP ${jsonData.A} guardados correctamente en Sheets`,
                     confirmButtonText: 'Aceptar'
                 });
             } else {
                 Swal.fire({
                     icon: 'warning',
                     title: 'Advertencia',
-                    text: result.message,
+                    text: jsonResponse.message, // Mostrar mensaje de advertencia si ya existe
                     confirmButtonText: 'Entendido'
                 });
             }
-        } catch (error) {
-            Swal.close();
+        })
+        .catch(error => {
+            loadingSwal.close();
             console.error('Error al guardar en Sheets:', error);
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
-                html: `No se pudo guardar:<br><small>${error.message}</small>`,
+                html: `No se pudo guardar en Sheets:<br><small>${error.message}</small>`,
                 confirmButtonText: 'Entendido'
             });
-        }
+        });
     }
 
-    document.getElementById('saveToSheetsBtn').onclick = function () {
+    // Configurar el botón de guardar en Sheets
+    document.getElementById('saveToSheetsBtn').onclick = function() {
         const jsonData = JSON.parse(document.getElementById('jsonViewer').textContent);
         saveToSheets(jsonData);
     };
 </script>
+
 
 
 
