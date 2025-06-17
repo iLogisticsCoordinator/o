@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Procesador de CSV a JSON Confiable</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/11.7.32/sweetalert2.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+            .json-viewer {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            max-height: 500px;
+            overflow-y: auto;
+            font-family: monospace;
+            white-space: pre;
+        }
+        #loadingData {
+            display: none;
+            margin: 10px 0;
+        }
+        .required-field::after {
+            content: " *";
+            color: red;
+        }
+        .card {
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+        #dataStatus {
+            transition: all 0.3s ease;
+        }
+        .pvp-container {
+            display: flex;
+            align-items: center;
+        }
+        .pvp-prefix, .pvp-suffix {
+            margin: 0 0.5rem;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid py-4">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <h1 class="text-center mb-4 text-primary">
+                    <i class="fas fa-file-csv me-2"></i>Procesador de CSV a JSON
+                </h1>
+                
+                <div class="card mb-4 border-0">
+                    <div class="card-header bg-primary text-white">
+                        <h2 class="card-title mb-0">
+                            <i class="fas fa-upload me-2"></i>Cargar archivo CSV
+                        </h2>
+                    </div>
+                    <div class="card-body upload-section">
+                        <div class="row">
+                            <div class="col-md-6 mb-3 input-icon">
+                                <i class="fas fa-file-csv icon"></i>
+                                <label for="csvFile" class="form-label required-field">Archivo CSV</label>
+                                <input type="file" id="csvFile" accept=".csv" class="form-control" required disabled>
+                                <small class="form-text text-muted">Seleccione un archivo CSV separado por punto y coma (;)</small>
+                            </div>
+                            <div class="col-md-6 mb-3 input-icon">
+                                <i class="fas fa-industry icon"></i>
+                                <label for="proveedor" class="form-label required-field">Proveedor</label>
+                                <select id="proveedor" class="form-select" required>
+                                    <option value="">Seleccione...</option>
+                                    <option value="TEXTILES Y CREACIONES EL UNIVERSO SAS">TEXTILES Y CREACIONES EL UNIVERSO SAS</option>
+                                    <option value="TEXTILES Y CREACIONES LOS ANGELES SAS">TEXTILES Y CREACIONES LOS ANGELES SAS</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3 input-icon">
+                                <i class="fas fa-user-check icon"></i>
+                                <label for="auditor" class="form-label required-field">Auditor</label>
+                                <select id="auditor" class="form-select" required>
+                                    <option value="">Seleccione...</option>
+                                    <option value="GLORICED QUIÑONEZ BOJORJE">GLORICED QUIÑONEZ BOJORJE</option>
+                                    <option value="MAYRA ALEJANDRA GOMEZ OSORIO">MAYRA ALEJANDRA GOMEZ OSORIO</option>
+                                    <option value="MARYURI GARCIA RENTERIA">MARYURI GARCIA RENTERIA</option>
+                                    <option value="GREIZY JULIETH ESCOBAR SABOGAL">GREIZY JULIETH ESCOBAR SABOGAL</option>
+                                    <option value="ANA GABRIELA GUZMAN BETANCOURT">ANA GABRIELA GUZMAN BETANCOURT</option>
+                                    <option value="YULI ANGELY MUÑOZ MANCGABAJOY">YULI ANGELY MUÑOZ MANCGABAJOY</option>
+                                    <option value="JOHANA LISETH DAZA ERASO">JOHANA LISETH DAZA ERASO</option>
+                                    <option value="BRESLEE DANIELA USMA CEPEDA">BRESLEE DANIELA USMA CEPEDA</option>
+                                    <option value="MAYERLY DEL MAR MORALES QUIROGA">MAYERLY DEL MAR MORALES QUIROGA</option>
+                                    <option value="DIANA PAOLA HENAO HERRERA">DIANA PAOLA HENAO HERRERA</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3 input-icon">
+                                <i class="fas fa-user-tie icon"></i>
+                                <label for="gestor" class="form-label required-field">Gestor
+                                </label>
+                                <select id="gestor" class="form-select" required>
+                                    <option value="">Seleccione...</option>
+                                    <option value="FABIAN MARIN FLOREZ">FABIAN MARIN FLOREZ</option>
+                                    <option value="CESAR AUGUSTO LOPEZ GIRALDO">CESAR AUGUSTO LOPEZ GIRALDO</option>
+                                    <option value="KELLY GIOVANA ZULUAGA HOYOS">KELLY GIOVANA ZULUAGA HOYOS</option>
+                                    <option value="MARYI ANDREA GONZALEZ SILVA">MARYI ANDREA GONZALEZ SILVA</option>
+                                    <option value="JOHAN STEPHANIE ESPÍNOSA RAMIREZ">JOHAN STEPHANIE ESPÍNOSA RAMIREZ</option>
+                                    <option value="SANCHEZ LOPEZ YULIETH">SANCHEZ LOPEZ YULIETH</option>
+                                    <option value="JUAN ESTEBAN ZULUAGA HOYOS">JUAN ESTEBAN ZULUAGA HOYOS</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3 input-icon">
+                                <i class="fas fa-dollar-sign icon"></i>
+                                <label for="pvp" class="form-label required-field">PVP</label>
+                                <div class="pvp-container">
+                                    <span class="pvp-prefix">$</span>
+                                    <div class="pvp-input-wrapper">
+                                        <input type="number" id="pvp" class="form-control" min="1" max="999" required>
+                                    </div>
+                                    <span class="pvp-suffix">.900</span>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3 input-icon">
+                                <i class="fas fa-shopping-bag icon"></i>
+                                <label for="bolsas" class="form-label required-field">Bolsas</label>
+                                <input type="number" id="bolsas" class="form-control" min="0" value="0" required>
+                            </div>
+                        </div>
+                        
+                        <div id="dataStatus" class="alert alert-info">
+                            <div class="d-flex align-items-center">
+                                <div class="spinner-border spinner-border-sm me-2" role="status">
+                                    <span class="visually-hidden">Cargando...</span>
+                                </div>
+                                <span>Iniciando carga de datos externos...</span>
+                            </div>
+                        </div>
+                        <div id="loadingData"></div>
+                    </div>
+                </div>
+
+                <div class="card mb-4 border-0" id="results" style="display: none;">
+                    <div class="card-header bg-primary text-white">
+                        <h2 class="card-title mb-0">
+                            <i class="fas fa-table me-2"></i>Resultados
+                        </h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div id="filteredCount" class="badge bg-primary fs-6"></div>
+                            <button id="generateJsonBtn" class="btn btn-primary">
+                                <i class="fas fa-file-code me-2"></i>Generar JSON
+                            </button>
+                        </div>
+
+                        <div id="jsonResultContainer" style="display: none;">
+                            <h5 class="mb-3">JSON Generado:</h5>
+                            <div class="json-viewer" id="jsonViewer"></div>
+                            <button id="downloadJsonBtn" class="btn btn-success mt-3">
+                                <i class="fas fa-download me-2"></i>Descargar JSON
+                            </button>
+
+                            <!-- Dentro del div con id="jsonResultContainer", después del botón de descarga -->
+<button id="saveToSheetsBtn" class="btn btn-primary mt-3 ms-2">
+    <i class="fas fa-save me-2"></i>Guardar en Sheets
+</button>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/11.7.32/sweetalert2.all.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+<!-- Incluye SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    async function saveToSheets(jsonData) {
+        const apiUrl = 'https://script.google.com/macros/s/AKfycbyJXqnvNahoEkUf4XSY916E6ov3BvEtOyq_pBJNzINNmzvfrKsd5owR_cVsbSYyqfy3/exec';
+
+        Swal.fire({
+            title: 'Guardando en Sheets...',
+            html: 'Por favor espera...',
+            allowOutsideClick: false,
+            didOpen: () => Swal.showLoading()
+        });
+
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                mode: 'cors',
+                cache: 'no-cache',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(jsonData)
+            });
+
+            const result = await response.json();
+
+            Swal.close();
+
+            if (result.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Éxito',
+                    text: result.message,
+                    confirmButtonText: 'Aceptar'
+                });
+            } else {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Advertencia',
+                    text: result.message,
+                    confirmButtonText: 'Entendido'
+                });
+            }
+        } catch (error) {
+            Swal.close();
+            console.error('Error al guardar en Sheets:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                html: `No se pudo guardar:<br><small>${error.message}</small>`,
+                confirmButtonText: 'Entendido'
+            });
+        }
+    }
+
+    document.getElementById('saveToSheetsBtn').onclick = function () {
+        const jsonData = JSON.parse(document.getElementById('jsonViewer').textContent);
+        saveToSheets(jsonData);
+    };
+</script>
+
+
+
+    <script>
+        // Variables globales
+        let processedData = [];
+        let externalData = {
+            colores: [],
+            sisproweb: [],
+            historicas: []
+        };
+        let originalColumnsCount = 0;
+
+        // Mapeo de usuarios a escaners
+        const escanersMap = {
+            "LORTIZ": "LEIDY TATIANA ORTIZ",
+            "APOLO": "ANGIE LIZETH POLO CAPERA",
+            "KFERNANDEZ": "KELLY TATIANA FERNANDEZ ASTUDILLO",
+            "MONCALEANO": "NICOLE VALERIA MONCALEANO DIAZ",
+            "LOCHOA": "LESLY CAMILA OCHOA PEDRAZA",
+            "PJARAMILLO": "PILAR CRISTINA JARAMILLO SANCHEZ"
+        };
+
+        // Cargar datos externos al iniciar
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("Iniciando carga de datos externos...");
+            loadExternalData();
+        });
+
+        // Función para cargar datos externos
+        async function loadExternalData() {
+            const loadingDiv = document.getElementById('loadingData');
+            const fileInput = document.getElementById('csvFile');
+            const dataStatus = document.getElementById('dataStatus');
+            
+            loadingDiv.style.display = 'block';
+            dataStatus.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <div class="spinner-border spinner-border-sm me-2" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                    <span>Conectando con servidor de datos...</span>
+                </div>
+            `;
+            
+            const apiUrl = "https://script.google.com/macros/s/AKfycbwziXtD6agWHvgALOZIkmYiPz_D9cfZcZjiLCeJpeEFluZylUuY-K_PYGbCvkKmeMxtXg/exec";
+            
+            try {
+                let response = await fetch(apiUrl, {
+                    mode: 'cors',
+                    redirect: 'follow'
+                });
+
+                if (!response.ok) {
+                    throw new Error('Error al cargar datos externos');
+                }
+
+                const data = await response.json();
+                externalData = {
+                    colores: data.colores || [],
+                    sisproweb: data.sisproweb || [],
+                    historicas: data.historicas || []
+                };
+
+                dataStatus.innerHTML = `
+                    <div class="alert alert-info d-flex align-items-center">
+                        <i class="fas fa-check-circle me-2"></i>
+                        <span>Datos cargados correctamente (${externalData.colores.length} colores, ${externalData.sisproweb.length} OPs)</span>
+                    </div>
+                `;
+                fileInput.disabled = false;
+
+            } catch (error) {
+                console.error('Error al cargar datos:', error);
+                dataStatus.innerHTML = `
+                    <div class="alert alert-danger d-flex align-items-center">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <span>Error al cargar datos: ${error.message}</span>
+                    </div>
+                `;
+                fileInput.disabled = true;
+            } finally {
+                loadingDiv.style.display = 'none';
+            }
+        }
+
+        // Procesar CSV cuando se selecciona un archivo
+        document.getElementById('csvFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                processCSV(e.target.result);
+            };
+            reader.readAsText(file);
+        });
+
+        // Función para procesar el CSV
+        function processCSV(csvData) {
+            const loadingDiv = document.getElementById('loadingData');
+            loadingDiv.style.display = 'block';
+            loadingDiv.innerHTML = '<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Procesando...</span></div> Procesando archivo CSV...';
+            
+            setTimeout(() => {
+                try {
+                    const lines = csvData.split('\n').filter(line => line.trim() !== '');
+                    if (lines.length === 0) throw new Error('El archivo CSV está vacío');
+
+                    originalColumnsCount = Math.max(...lines.map(line => line.split(/;(?=(?:(?:[^"]*"){2})*[^"]*$)/).length));
+                    
+                    processedData = [];
+                    const targetUsers = ["APOLO", "LORTIZ", "KFERNANDEZ", "MONCALEANO", "LOCHOA", "PJARAMILLO"];
+                    const targetValues = ["ZY", "PR"];
+                    const missingColors = new Set();
+                    const missingOps = new Set();
+
+                    // Acumulador para HR
+                    const hrMap = {};
+                    const anexos = {}; // Cambiar a un objeto para unificar
+
+                    for (let i = 0; i < lines.length; i++) {
+                        let row = lines[i].split(/;(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(cell => {
+                            let trimmed = cell.trim();
+                            if (trimmed.startsWith('"') && trimmed.endsWith('"')) {
+                                return trimmed.substring(1, trimmed.length - 1);
+                            }
+                            return trimmed;
+                        });
+
+                        console.log(row); // Imprimir el contenido de la fila
+
+                        if (row.length > 14 && targetUsers.includes(row[1]) && targetValues.includes(row[14])) {
+                            // Asegurar que la fila tenga todas las columnas
+                            while (row.length < originalColumnsCount) {
+                                row.push('');
+                            }
+                            
+                            // Formatear campos específicos
+                            if (row[4]) row[4] = row[4].replace(/ 00:00:00$/, ''); // FECHA
+                            if (row[9]) row[9] = parseInt(row[9]) || 0; // CANTIDAD
+                            if (row[10]) row[10] = parseInt(row[10]) || 0; // COSTO
+                            
+                            // Obtener datos externos
+                            const colorInfo = getColorInfo(row[12]); // CODCOLOR
+                            const sisproInfo = getSisproInfo(row[2]); // OP
+                            const referencia = getReferencia(row[0]); // REFPROV
+                            
+                            // Registrar datos faltantes
+                            if (row[12] && !colorInfo.color) missingColors.add(row[12]);
+                            if (row[2] && !sisproInfo.prenda) missingOps.add(row[2]);
+                            
+                            // Añadir nuevas columnas
+                            row.push(referencia); // REFERENCIA
+                            row.push(getClassification(row)); // CLASIFICACION
+                            row.push(colorInfo.color || 'No encontrado'); // COLOR
+                            row.push(sisproInfo.prenda || 'No encontrado'); // PRENDA
+                            row.push(sisproInfo.linea || 'No encontrado'); // LINEA
+                            row.push(sisproInfo.genero || 'No encontrado'); // GENERO
+                            row.push(getMarca(sisproInfo.genero, row[row.length-3])); // MARCA
+                            row.push(getDescripcion(sisproInfo.prenda, sisproInfo.genero, row[row.length-1], row[0], row[row.length-6])); // DESCRIPCION
+                            row.push(escanersMap[row[1]] || row[1]); // ESCANER
+                            row.push(document.getElementById('gestor').value); // GESTOR
+
+                            processedData.push(row);
+
+                            // Clasificación para HR y Anexos
+                            const tipo = row[originalColumnsCount + 1]; // CLASIFICACION
+                            const codcolor = row[12]; // CODCOLOR
+                            const color = row[50]; // COLOR
+                            const talla = row[11]; // TALLAS
+                            const cantidad = parseInt(row[9]) || 0; // CANTIDAD
+
+                            if (tipo === "FULL") {
+                                // Acumular datos para HR
+                                const key = `${codcolor}-${color}-${talla}`;
+                                if (!hrMap[key]) {
+                                    hrMap[key] = [codcolor, color, talla, 0]; // Inicializar con cantidad 0
+                                }
+                                                               hrMap[key][3] += cantidad; // Acumular cantidad
+                            } else if (tipo === "PROMO" || tipo === "COBRO" || tipo === "SIN CONFECCIONAR") {
+                                // Manejar anexos
+                                const anexoKey = `${row[0]}-${talla}-${color}`; // Crear una clave única para cada anexo
+                                if (!anexos[anexoKey]) {
+                                    anexos[anexoKey] = {
+                                        "DOCUMENTO": row[0], // REFPROV
+                                        "TALLA": talla, // TALLAS
+                                        "COLOR": color, // COLOR
+                                        "TIPO": tipo,
+                                        "CANTIDAD": cantidad
+                                    };
+                                } else {
+                                    anexos[anexoKey].CANTIDAD += cantidad; // Acumular cantidad si ya existe
+                                }
+                            }
+                        }
+                    }
+
+                    // Convertir el objeto hrMap a un array
+                    const hr = Object.values(hrMap);
+
+                    // Convertir el objeto anexos a un array
+                    const anexosArray = Object.values(anexos);
+
+                    // Mostrar advertencias para datos faltantes
+                    if (missingColors.size > 0 || missingOps.size > 0) {
+                        let warningMsg = '';
+                        if (missingColors.size > 0) {
+                            warningMsg += `<strong>Códigos de color no encontrados:</strong> ${Array.from(missingColors).join(', ')}<br>`;
+                        }
+                        if (missingOps.size > 0) {
+                            warningMsg += `<strong>OPs no encontradas:</strong> ${Array.from(missingOps).join(', ')}`;
+                        }
+                        
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Datos faltantes',
+                            html: warningMsg,
+                            confirmButtonText: 'Entendido'
+                        });
+                    }
+
+                    document.getElementById('results').style.display = 'block';
+                    document.getElementById('filteredCount').textContent = `Registros procesados: ${processedData.length}`;
+
+                    // Almacenar el array HR en el JSON final
+                    const jsonData = generateConsolidatedJson(processedData, hr, anexosArray);
+                    displayJson(jsonData);
+
+                } catch (error) {
+                    Swal.fire('Error', `Error al procesar el CSV: ${error.message}`, 'error');
+                    console.error(error);
+                } finally {
+                    loadingDiv.style.display = 'none';
+                }
+            }, 100);
+        }
+
+        // Función para generar el JSON consolidado
+        function generateConsolidatedJson(data, hr, anexos) {
+            if (data.length === 0) return null;
+
+            const firstRow = data[0]; // Usar la primera fila como referencia
+            const op = firstRow[2]; // OP es la columna 2
+            
+            // Calcular cantidades
+            let cantidadFull = 0;
+            let cantidadPromo = 0;
+
+            data.forEach(row => {
+                const tipo = row[originalColumnsCount + 1]; // CLASIFICACION
+                const cantidad = parseInt(row[9]) || 0; // CANTIDAD
+
+                if (tipo === "FULL") {
+                    cantidadFull += cantidad;
+                } else if (tipo === "PROMO") {
+                    cantidadPromo += cantidad;
+                }
+            });
+
+            // Obtener información de OP para prenda y género
+            const sisproInfo = getSisproInfo(firstRow[2]); // OP
+            const prenda = sisproInfo.prenda || 'No encontrado'; // Asegurarse de que se obtenga la prenda correcta
+            const genero = sisproInfo.genero || 'No encontrado'; // Obtener género correctamente
+
+            return {
+                "A": op.toString(),
+                "FECHA": firstRow[4], // FECHA
+                "TALLER": firstRow[18], // TALLER
+                "LINEA": firstRow[originalColumnsCount + 4], // LINEA
+                "AUDITOR": document.getElementById('auditor').value,
+                "GESTOR": document.getElementById('gestor').value,
+                "ESCANER": firstRow[originalColumnsCount + 8], // ESCANER
+                "LOTE": parseInt(op),
+                "REFPROV": firstRow[0], // REFPROV
+                "DESCRIPCIÓN": firstRow[originalColumnsCount + 7], // DESCRIPCION
+                "CANTIDAD": cantidadFull + cantidadPromo,
+                "REFERENCIA": firstRow[originalColumnsCount], // REFERENCIA
+                "TIPO": "FULL",
+                "PVP": document.getElementById('pvp').value ? `${document.getElementById('pvp').value}.900` : null,
+                "PRENDA": prenda, // Agregar prenda correctamente
+                "GENERO": genero, // Agregar género correctamente
+                "PROVEEDOR": document.getElementById('proveedor').value, // Agregar proveedor
+                "ANEXOS": anexos,
+                "HR": hr, // Incluir el array HR
+                "BOLSAS": parseInt(document.getElementById('bolsas').value) || 0
+            };
+        }
+
+        // Mostrar JSON en la interfaz
+        function displayJson(jsonData) {
+            const jsonViewer = document.getElementById('jsonViewer');
+            jsonViewer.textContent = JSON.stringify(jsonData, null, 2);
+            document.getElementById('jsonResultContainer').style.display = 'block';
+            
+            // Configurar botón de descarga
+            document.getElementById('downloadJsonBtn').onclick = function() {
+                downloadJson(jsonData);
+            };
+        }
+
+        // Descargar JSON como archivo
+        function downloadJson(jsonData) {
+            const jsonStr = JSON.stringify(jsonData, null, 2);
+            const blob = new Blob([jsonStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `datos_${jsonData.A}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        // ===== FUNCIONES AUXILIARES =====
+        
+        // Obtener información de color
+        function getColorInfo(codigo) {
+            if (!codigo || !externalData.colores) return {};
+            return externalData.colores.find(item => item.codigo === codigo) || {};
+        }
+        
+        // Obtener información de OP
+        function getSisproInfo(op) {
+            if (!op || !externalData.sisproweb) return {};
+            return externalData.sisproweb.find(item => item.op === op) || {};
+        }
+        
+        // Obtener referencia histórica
+        function getReferencia(refProv) {
+            if (!refProv || !externalData.historicas) return refProv;
+            const found = externalData.historicas.find(item => item.refProv === refProv);
+            return found ? found.referencia : refProv;
+        }
+        
+        // Determinar clasificación
+        function getClassification(row) {
+            const bodega = row[14]; // BODEGA
+            const codcolor = row[12]; // CODCOLOR
+            const total = row[25]; // TOTAL
+            
+            if (bodega === "ZY") return "SIN CONFECCIONAR";
+            if (bodega === "PR") {
+                if (codcolor === "181") return "PROMO";
+                if (total && total !== "00" && total !== "0" && total !== "0.00") return "COBRO";
+                return "FULL";
+            }
+            return "NO DEFINIDO";
+        }
+        
+        // Determinar marca
+        function getMarca(genero, classification) {
+            if (classification === "PROMO") return "PROMOCION";
+            if (!genero) return "SIN MARCA";
+            
+            genero = (genero || '').toUpperCase();
+            if (genero.includes("DAMA") || genero.includes("NIÑA") || genero.includes("MUJER")) {
+                return "CHICA CHIC";
+            } else if (genero.includes("HOMBRE") || genero.includes("NIÑO") || genero.includes("VARON")) {
+                return "80 GRADOS";
+            }
+            return "GENERO NO DEFINIDO";
+        }
+        
+        // Crear descripción
+        function getDescripcion(prenda, genero, marca, refprov, classification) {
+            const partes = [];
+            if (prenda) partes.push(prenda);
+            if (genero) partes.push(genero);
+            
+            if (classification !== "PROMOCION" && marca) {
+                partes.push(marca);
+            }
+            
+            if (refprov) partes.push(refprov);
+            
+            return partes.join(" ");
+        }
+    </script>
+</body>
+</html>
+
