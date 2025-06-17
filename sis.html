@@ -181,6 +181,7 @@
 
 <script>
 // Función para enviar datos a Google Sheets
+/**
 function saveToSheets(jsonData) {
     const loadingSwal = Swal.fire({
         title: 'Guardando en Sheets...',
@@ -237,8 +238,62 @@ function saveToSheets(jsonData) {
 document.getElementById('saveToSheetsBtn').onclick = function() {
     const jsonData = JSON.parse(document.getElementById('jsonViewer').textContent);
     saveToSheets(jsonData);
-};
+}; */
 </script>
+
+
+
+
+<script>
+    function saveToSheets(jsonData) {
+        Swal.fire({
+            title: 'Guardando en Sheets...',
+            html: 'Por favor espera mientras se guardan los datos',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        const apiUrl = "https://script.google.com/macros/s/AKfycbyJXqnvNahoEkUf4XSY916E6ov3BvEtOyq_pBJNzINNmzvfrKsd5owR_cVsbSYyqfy3/exec";
+
+        fetch(apiUrl, {
+            method: 'POST',
+            mode: 'no-cors',
+            cache: 'no-cache',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(jsonData)
+        })
+        .then(() => {
+            Swal.close();
+            Swal.fire({
+                icon: 'success',
+                title: 'Datos enviados',
+                text: `Los datos se han guardado correctamente.`,
+                confirmButtonText: 'Aceptar'
+            });
+        })
+        .catch(error => {
+            Swal.close();
+            console.error('Error al guardar en Sheets:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                html: `No se pudo guardar en Sheets:<br><small>${error.message}</small>`,
+                confirmButtonText: 'Entendido'
+            });
+        });
+    }
+
+    document.getElementById('saveToSheetsBtn').onclick = function() {
+        const jsonData = JSON.parse(document.getElementById('jsonViewer').textContent);
+        saveToSheets(jsonData);
+    };
+</script>
+
+
     <script>
         // Variables globales
         let processedData = [];
