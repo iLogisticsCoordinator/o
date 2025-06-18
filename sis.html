@@ -47,7 +47,7 @@
         <div class="row justify-content-center">
             <div class="col-lg-10">
                 <h1 class="text-center mb-4 text-primary">
-                    <i class="fas fa-file-csv me-2"></i>Procesador de CSV a JSON 3
+                    <i class="fas fa-file-csv me-2"></i>Procesador de CSV a JSON
                 </h1>
                 
                 <div class="card mb-4 border-0">
@@ -271,7 +271,7 @@ document.getElementById('saveToSheetsBtn').onclick = function() {
             Swal.fire({
                 icon: 'success',
                 title: 'Datos enviados',
-                text: `Se enviaron los datos. Verifica en Sheets si se guardaron correctamente.`,
+                text: `Los datos se han guardado correctamente.`,
                 confirmButtonText: 'Aceptar'
             });
         })
@@ -463,6 +463,7 @@ document.getElementById('saveToSheetsBtn').onclick = function() {
                             const color = row[50]; // COLOR
                             const talla = row[11]; // TALLAS
                             const cantidad = parseInt(row[9]) || 0; // CANTIDAD
+                            const costo = (tipo === "SIN CONFECCIONAR") ? 0 : (parseInt(row[10]) || 0); // COSTO (0 para SIN CONFECCIONAR)
 
                             if (tipo === "FULL") {
                                 // Acumular datos para HR
@@ -474,17 +475,23 @@ document.getElementById('saveToSheetsBtn').onclick = function() {
                             } else if (tipo === "PROMO" || tipo === "COBRO" || tipo === "SIN CONFECCIONAR") {
                                 // Manejar anexos
                                 const anexoKey = `${row[0]}-${talla}-${color}`; // Crear una clave única para cada anexo
-                                if (!anexos[anexoKey]) {
-                                    anexos[anexoKey] = {
-                                        "DOCUMENTO": row[0], // REFPROV
-                                        "TALLA": talla, // TALLAS
-                                        "COLOR": color, // COLOR
-                                        "TIPO": tipo,
-                                        "CANTIDAD": cantidad
-                                    };
-                                } else {
-                                    anexos[anexoKey].CANTIDAD += cantidad; // Acumular cantidad si ya existe
-                                }
+                                // Dentro del bucle donde se procesan los anexos
+if (!anexos[anexoKey]) {
+    anexos[anexoKey] = {
+        "DOCUMENTO": row[0], // REFPROV
+        "TALLA": talla, // TALLAS
+        "COLOR": color, // COLOR
+        "TIPO": tipo,
+        "CANTIDAD": cantidad,
+        "COSTO_UNITARIO": costo,
+        "COSTO_TOTAL": cantidad * costo,
+        "BODEGA": row[14], // BODEGA
+        "TRASLADO": row[7] // TRASLADO
+    };
+} else {
+    anexos[anexoKey].CANTIDAD += cantidad;
+    anexos[anexoKey].COSTO_TOTAL += cantidad * costo;
+}
                             }
                         }
                     }
@@ -529,56 +536,97 @@ document.getElementById('saveToSheetsBtn').onclick = function() {
             }, 100);
         }
 
-        // Función para generar el JSON consolidado
-        function generateConsolidatedJson(data, hr, anexos) {
-            if (data.length === 0) return null;
+// Función para generar el JSON consolidado
+function generateConsolidatedJson(data, hr, anexos) {
+    if (data.length === 0) return null;
 
-            const firstRow = data[0]; // Usar la primera fila como referencia
-            const op = firstRow[2]; // OP es la columna 2
-            
-            // Calcular cantidades
-            let cantidadFull = 0;
-            let cantidadPromo = 0;
+    const firstRow = data[0];
+    const op = firstRow[2]; // OP es la columna 2
+    
+    // Variables para cálculos
+    let cantidadFull = 0;
+    let cantidadPromo = 0;
+    let cantidadCobros = 0;
+    let totalGeneral = 0;
+    let costoUnitario = 0;
+    let costoTotal = 0;
+    let auditoria = '';
+    let trasladoFull = '';
 
-            data.forEach(row => {
-                const tipo = row[originalColumnsCount + 1]; // CLASIFICACION
-                const cantidad = parseInt(row[9]) || 0; // CANTIDAD
-
-                if (tipo === "FULL") {
-                    cantidadFull += cantidad;
-                } else if (tipo === "PROMO") {
-                    cantidadPromo += cantidad;
-                }
-            });
-
-            // Obtener información de OP para prenda y género
-            const sisproInfo = getSisproInfo(firstRow[2]); // OP
-            const prenda = sisproInfo.prenda || 'No encontrado'; // Asegurarse de que se obtenga la prenda correcta
-            const genero = sisproInfo.genero || 'No encontrado'; // Obtener género correctamente
-
-            return {
-                "A": op.toString(),
-                "FECHA": firstRow[4], // FECHA
-                "TALLER": firstRow[18], // TALLER
-                "LINEA": firstRow[originalColumnsCount + 4], // LINEA
-                "AUDITOR": document.getElementById('auditor').value,
-                "GESTOR": document.getElementById('gestor').value,
-                "ESCANER": firstRow[originalColumnsCount + 8], // ESCANER
-                "LOTE": parseInt(op),
-                "REFPROV": firstRow[0], // REFPROV
-                "DESCRIPCIÓN": firstRow[originalColumnsCount + 7], // DESCRIPCION
-                "CANTIDAD": cantidadFull + cantidadPromo,
-                "REFERENCIA": firstRow[originalColumnsCount], // REFERENCIA
-                "TIPO": "FULL",
-                "PVP": document.getElementById('pvp').value ? `${document.getElementById('pvp').value}.900` : null,
-                "PRENDA": prenda, // Agregar prenda correctamente
-                "GENERO": genero, // Agregar género correctamente
-                "PROVEEDOR": document.getElementById('proveedor').value, // Agregar proveedor
-                "ANEXOS": anexos,
-                "HR": hr, // Incluir el array HR
-                "BOLSAS": parseInt(document.getElementById('bolsas').value) || 0
-            };
+    // Buscar el primer registro con datos válidos
+    for (const row of data) {
+        // Obtener TOTAL GENERAL (índice 19) del primer registro con valor
+        if (totalGeneral === 0 && row[19] && row[19] !== '0') {
+            totalGeneral = parseInt(row[19]) || 0;
         }
+
+        // Obtener COSTO UNITARIO (índice 10) del primer registro con valor
+        if (costoUnitario === 0 && row[10] && row[10] !== '0') {
+            costoUnitario = parseInt(row[10]) || 0;
+        }
+
+        // Obtener AUDITORIA (índice 37) del primer registro con valor
+        if (!auditoria && row[37]) {
+            auditoria = row[37];
+        }
+
+        // Obtener TRASLADO (índice 7) del primer registro FULL con valor
+        const tipo = row[originalColumnsCount + 1];
+        if (!trasladoFull && tipo === "FULL" && row[7]) {
+            trasladoFull = row[7];
+        }
+
+        const cantidad = parseInt(row[9]) || 0;
+
+        if (tipo === "FULL") {
+            cantidadFull += cantidad;
+        } else if (tipo === "PROMO") {
+            cantidadPromo += cantidad;
+        } else if (tipo === "COBRO") {
+            cantidadCobros += cantidad;
+        }
+    }
+
+    // Calcular costo total (Full + Promo + Cobros) * costo unitario
+    costoTotal = (cantidadFull + cantidadPromo + cantidadCobros) * costoUnitario;
+
+    // Calcular diferencia (faltante)
+    const diferencia = totalGeneral - (cantidadFull + cantidadPromo + cantidadCobros);
+
+    // Obtener información de OP para prenda y género
+    const sisproInfo = getSisproInfo(firstRow[2]);
+    const prenda = sisproInfo.prenda || 'No encontrado';
+    const genero = sisproInfo.genero || 'No encontrado';
+
+    return {
+        "A": op.toString(),
+        "FECHA": firstRow[4], // FECHA
+        "TALLER": firstRow[18], // TALLER
+        "LINEA": firstRow[originalColumnsCount + 4], // LINEA
+        "AUDITOR": document.getElementById('auditor').value,
+        "GESTOR": document.getElementById('gestor').value,
+        "ESCANER": firstRow[originalColumnsCount + 8], // ESCANER
+        "LOTE": parseInt(op),
+        "REFPROV": firstRow[0], // REFPROV
+        "DESCRIPCIÓN": firstRow[originalColumnsCount + 7], // DESCRIPCION
+        "CANTIDAD": cantidadFull + cantidadPromo + cantidadCobros,
+        "COSTO_UNITARIO": costoUnitario,
+        "COSTO_TOTAL": costoTotal,
+        "TOTAL_GENERAL": totalGeneral,
+        "DIFERENCIA": diferencia,
+        "AUDITORIA": auditoria,
+        "TRASLADO": trasladoFull, // NUEVO CAMPO A NIVEL FULL
+        "REFERENCIA": firstRow[originalColumnsCount], // REFERENCIA
+        "TIPO": "FULL",
+        "PVP": document.getElementById('pvp').value ? `${document.getElementById('pvp').value}.900` : null,
+        "PRENDA": prenda,
+        "GENERO": genero,
+        "PROVEEDOR": document.getElementById('proveedor').value,
+        "ANEXOS": anexos,
+        "HR": hr,
+        "BOLSAS": parseInt(document.getElementById('bolsas').value) || 0
+    };
+}
 
         // Mostrar JSON en la interfaz
         function displayJson(jsonData) {
@@ -630,12 +678,12 @@ document.getElementById('saveToSheetsBtn').onclick = function() {
         function getClassification(row) {
             const bodega = row[14]; // BODEGA
             const codcolor = row[12]; // CODCOLOR
-            const total = row[25]; // TOTAL
+            const colz = row[25]; // COLUMNA Z
             
             if (bodega === "ZY") return "SIN CONFECCIONAR";
             if (bodega === "PR") {
                 if (codcolor === "181") return "PROMO";
-                if (total && total !== "00" && total !== "0" && total !== "0.00") return "COBRO";
+                if (colz && colz !== "00" && colz !== "0" && colz !== "0.00") return "COBRO";
                 return "FULL";
             }
             return "NO DEFINIDO";
