@@ -648,7 +648,7 @@
         <div class="container">
             <div class="header-content">
                 <div>
-                    <h1 class="title">Dashboard de Distribución</h1>
+                    <h1 class="title">Dashboard de Distribución 2</h1>
                     <p class="subtitle">Sistema de gestión y seguimiento de productos</p>
                 </div>
                 <div class="header-controls">
@@ -801,6 +801,32 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
+
+
+      // Añadir esta función al inicio de tu script
+function parseCustomDate(dateStr) {
+    if (!dateStr) return null;
+    
+    // Intentar formato D/M/YYYY
+    const parts = dateStr.split('/');
+    if (parts.length === 3) {
+        const day = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10) - 1; // meses 0-11
+        const year = parseInt(parts[2], 10);
+        
+        // Validar valores
+        if (day > 0 && day <= 31 && month >= 0 && month <= 11 && year > 1900) {
+            return new Date(year, month, day);
+        }
+    }
+    
+    // Intentar parsear como ISO o lo que sea
+    const date = new Date(dateStr);
+    return isNaN(date.getTime()) ? null : date;
+}
+
+
+
         // Configuración de Toast
         const Toast = Swal.mixin({
             toast: true,
@@ -944,11 +970,35 @@
 
             filteredData = allData.filter(item => {
                 // Filtro por fecha
-                if (dateFrom || dateTo) {
-                    const itemDate = new Date(item.FECHA);
-                    if (dateFrom && itemDate < new Date(dateFrom)) return false;
-                    if (dateTo && itemDate > new Date(dateTo)) return false;
-                }
+// En la función applyFilters(), modificar el filtrado por fecha:
+if (dateFrom || dateTo) {
+    const itemParts = item.FECHA.split('/');
+    let itemDate;
+    
+    if (itemParts.length === 3) {
+        // Formato D/M/YYYY
+        itemDate = new Date(itemParts[2], itemParts[1] - 1, itemParts[0]);
+    } else {
+        // Intentar parsear como está
+        itemDate = new Date(item.FECHA);
+    }
+    
+    if (isNaN(itemDate)) {
+        console.warn('Fecha inválida:', item.FECHA);
+        return false;
+    }
+    
+    if (dateFrom) {
+        const fromDate = new Date(dateFrom);
+        if (itemDate < fromDate) return false;
+    }
+    
+    if (dateTo) {
+        const toDate = new Date(dateTo);
+        toDate.setDate(toDate.getDate() + 1); // Incluir todo el día
+        if (itemDate >= toDate) return false;
+    }
+}
 
                 // Filtro por planta
                 if (plant && item.TALLER !== plant) return false;
@@ -1007,15 +1057,24 @@
                         width: '20px'
                     },
                     { data: 'A', title: 'OP' },
-                    { 
-                        data: 'FECHA', 
-                        title: 'Fecha',
-                        render: function(data) {
-                            if (!data) return '';
-                            const date = new Date(data);
-                            return date.toLocaleDateString('es-ES');
-                        }
-                    },
+// Reemplazar el render de fecha en las columnas de DataTables
+{
+    data: 'FECHA', 
+    title: 'Fecha',
+    render: function(data) {
+        if (!data) return '';
+        // Parsear fecha en formato D/M/YYYY
+        const parts = data.split('/');
+        if (parts.length === 3) {
+            // Nota: los meses en JavaScript son 0-indexados (0-11)
+            const date = new Date(parts[2], parts[1] - 1, parts[0]);
+            return date.toLocaleDateString('es-ES');
+        }
+        // Si el formato no coincide, intentar parsear como está
+        const date = new Date(data);
+        return isNaN(date) ? data : date.toLocaleDateString('es-ES');
+    }
+},
                     { data: 'TALLER', title: 'Planta' },
                     { data: 'REFPROV', title: 'REF.PROV' },
                     { 
@@ -1320,7 +1379,6 @@
         // Función para exportar a Excel
         // Función mejorada para exportar a Excel
 function exportToExcel() {
-    // Mostrar carga mientras se procesa
     const loadingToast = Toast.fire({
         icon: 'info',
         title: 'Preparando archivo Excel...',
@@ -1329,7 +1387,6 @@ function exportToExcel() {
         }
     });
 
-    // Usar setTimeout para evitar bloqueo de la UI
     setTimeout(() => {
         try {
             const dataToExport = filteredData.length > 0 ? filteredData : allData;
@@ -1345,7 +1402,7 @@ function exportToExcel() {
                 return;
             }
 
-            // Preparar datos de forma segura
+            // Preparar datos con el formato de fecha correcto
             const exportData = dataToExport.map(row => {
                 let totalDistribuciones = 0;
                 let clientesInfo = [];
@@ -1360,12 +1417,27 @@ function exportToExcel() {
                     }
                 }
 
+                // Formatear la fecha correctamente para Excel
+                let formattedDate = '';
+                if (row.FECHA) {
+                    const date = parseCustomDate(row.FECHA);
+                    if (date && !isNaN(date)) {
+                        // Formato DD/MM/YYYY para Excel
+                        const day = date.getDate().toString().padStart(2, '0');
+                        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+                        const year = date.getFullYear();
+                        formattedDate = `${day}/${month}/${year}`;
+                    } else {
+                        formattedDate = row.FECHA; // Mantener el valor original si no se puede parsear
+                    }
+                }
+
                 return {
                     'OP': row.A || '',
-                    'Fecha': row.FECHA ? new Date(row.FECHA).toLocaleDateString('es-ES') : '',
+                    'Fecha': formattedDate,
                     'Planta': row.TALLER || '',
                     'REF.PROV': row.REFPROV || '',
-                    'Descripción': (row.DESCRIPCIÓN || '').substring(0, 100), // Limitar longitud
+                    'Descripción': (row.DESCRIPCIÓN || '').substring(0, 100),
                     'Referencia': row.REFERENCIA || '',
                     'Tipo': row.TIPO || '',
                     'Cantidad Total': row.CANTIDAD || 0,
@@ -1404,9 +1476,7 @@ function exportToExcel() {
             const timeStr = now.toTimeString().slice(0, 8).replace(/:/g, '');
             const filename = `Distribuciones_${dateStr}_${timeStr}.xlsx`;
 
-            // Intentar diferentes métodos de descarga
             try {
-                // Método 1: Usando FileSaver.js (el más confiable)
                 const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
                 const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
                 saveAs(blob, filename);
@@ -1419,7 +1489,6 @@ function exportToExcel() {
                 });
             } catch (e) {
                 console.error("Error con FileSaver:", e);
-                // Método 2: Alternativa si FileSaver falla
                 try {
                     XLSX.writeFile(workbook, filename);
                     loadingToast.close();
@@ -1451,8 +1520,9 @@ function exportToExcel() {
                 confirmButtonColor: 'var(--color-primary)'
             });
         }
-    }, 100); // Pequeño delay para permitir que se muestre el Toast
+    }, 100);
 }
+
 
         // Inicialización cuando el documento está listo
         $(document).ready(function() {
