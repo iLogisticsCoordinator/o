@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Monitor de Datos</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --blue-sky: #00B4D8;
+      --fresh-green: #00C897;
+      --warm-orange: #FF7B25;
+      --alert-red: #FF2E63;
+      --dark-text: #2D3748;
+      --gray-text: #718096;
+      --light-bg: #F7FAFC;
+      --card-bg: #ffffff;
+      --border-radius: 12px;
+    }
+
+    body {
+      background-color: var(--light-bg);
+      font-family: 'Inter', sans-serif;
+      padding: 50px 20px;
+      color: var(--dark-text);
+    }
+
+    .data-banner {
+      background-color: var(--card-bg);
+      border-radius: var(--border-radius);
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
+      padding: 20px 25px;
+      width: 100%;
+      max-width: 700px;
+      margin: 0 auto;
+      border-left: 5px solid var(--blue-sky);
+      cursor: pointer;
+      transition: all 0.4s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .data-banner.collapsed .details {
+      max-height: 0;
+      opacity: 0;
+      padding-top: 0;
+      transition: max-height 0.3s ease, opacity 0.3s ease;
+    }
+
+    .data-banner.expanded .details {
+      max-height: 200px;
+      opacity: 1;
+      padding-top: 15px;
+    }
+
+    .data-banner .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .status-info {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .status-icon {
+      font-size: 1.5rem;
+    }
+
+    .message-text {
+      font-weight: 600;
+    }
+
+    .last-updated {
+      font-size: 0.85rem;
+      color: var(--gray-text);
+    }
+
+    .refresh-btn {
+      background: none;
+      border: none;
+      color: var(--blue-sky);
+      cursor: pointer;
+      transition: transform 0.3s ease;
+      font-size: 1.2rem;
+    }
+
+    .refresh-btn:hover {
+      transform: rotate(90deg);
+    }
+
+    .toggle-arrow {
+      font-size: 1.2rem;
+      color: var(--gray-text);
+      transition: transform 0.3s ease;
+    }
+
+    .data-banner.collapsed .toggle-arrow {
+      transform: rotate(0deg);
+    }
+
+    .data-banner.expanded .toggle-arrow {
+      transform: rotate(90deg);
+    }
+
+    .data-stats {
+      display: flex;
+      gap: 30px;
+      margin-top: 10px;
+    }
+
+    .stat-item {
+      font-size: 0.9rem;
+      color: var(--gray-text);
+      font-weight: 500;
+    }
+
+    .stat-value {
+      font-weight: 600;
+      color: var(--dark-text);
+      margin-right: 6px;
+    }
+
+    /* States */
+    .status-loading { border-left-color: var(--blue-sky); }
+    .status-success { border-left-color: var(--fresh-green); }
+    .status-cached  { border-left-color: var(--warm-orange); }
+    .status-error   { border-left-color: var(--alert-red); }
+
+    .icon-loading { color: var(--blue-sky); }
+    .icon-success { color: var(--fresh-green); }
+    .icon-cached  { color: var(--warm-orange); }
+    .icon-error   { color: var(--alert-red); }
+
+    .spinner {
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .details {
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+  </style>
+</head>
+<body>
+  <div class="data-banner status-loading collapsed" id="dataBanner">
+    <div class="header">
+      <div class="status-info">
+        <i id="statusIcon" class="fas fa-sync-alt spinner status-icon icon-loading"></i>
+        <div>
+          <div class="message-text" id="messageText">Cargando datos...</div>
+          <div class="last-updated" id="updateTime">-</div>
+        </div>
+      </div>
+      <div class="d-flex align-items-center gap-3">
+        <button class="refresh-btn" id="refreshDataBtn" title="Actualizar">
+          <i id="refreshIcon" class="fas fa-arrows-rotate"></i>
+        </button>
+        <i class="fas fa-chevron-right toggle-arrow" id="toggleArrow"></i>
+      </div>
+    </div>
+    <div class="details" id="detailsPanel">
+      <div class="data-stats mt-2">
+        <div class="stat-item"><span class="stat-value" id="colorsCount">0</span> colores</div>
+        <div class="stat-item"><span class="stat-value" id="opsCount">0</span> órdenes</div>
+        <div class="stat-item"><span class="stat-value" id="historicCount">0</span> históricos</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const elements = {
+      banner: document.getElementById('dataBanner'),
+      statusIcon: document.getElementById('statusIcon'),
+      messageText: document.getElementById('messageText'),
+      updateTime: document.getElementById('updateTime'),
+      colorsCount: document.getElementById('colorsCount'),
+      opsCount: document.getElementById('opsCount'),
+      historicCount: document.getElementById('historicCount'),
+      refreshBtn: document.getElementById('refreshDataBtn'),
+      refreshIcon: document.getElementById('refreshIcon'),
+      toggleArrow: document.getElementById('toggleArrow')
+    };
+
+    const apiConfig = {
+      url: "https://script.google.com/macros/s/AKfycbwziXtD6agWHvgALOZIkmYiPz_D9cfZcZjiLCeJpeEFluZylUuY-K_PYGbCvkKmeMxtXg/exec",
+      options: {
+        mode: 'cors',
+        redirect: 'follow',
+        cache: 'no-store'
+      }
+    };
+
+    let externalData = {
+      data: null,
+      lastUpdated: null,
+      isCached: false,
+      cacheDuration: 5 * 60 * 1000
+    };
+
+    const formatDate = (date) => {
+      const d = new Date(date);
+      return `${d.toLocaleDateString()} ${d.toLocaleTimeString()}`;
+    };
+
+    const updateVisualState = (state, isCached = false) => {
+      const banner = elements.banner;
+      banner.classList.remove('status-loading', 'status-success', 'status-cached', 'status-error');
+      elements.statusIcon.className = '';
+      
+      if (state === 'loading') {
+        banner.classList.add('status-loading');
+        elements.statusIcon.className = 'fas fa-sync-alt spinner status-icon icon-loading';
+        elements.messageText.textContent = 'Cargando datos...';
+      } else if (state === 'success') {
+        if (isCached) {
+          banner.classList.add('status-cached');
+          elements.statusIcon.className = 'fas fa-database status-icon icon-cached';
+          elements.messageText.textContent = 'Datos en caché';
+        } else {
+          banner.classList.add('status-success');
+          elements.statusIcon.className = 'fas fa-circle-check status-icon icon-success';
+          elements.messageText.textContent = 'Datos actualizados';
+        }
+      } else {
+        banner.classList.add('status-error');
+        elements.statusIcon.className = 'fas fa-triangle-exclamation status-icon icon-error';
+        elements.messageText.textContent = 'Error al cargar datos';
+      }
+    };
+
+    const updateUI = () => {
+      if (!externalData.data) return;
+      elements.colorsCount.textContent = externalData.data.colores?.length || 0;
+      elements.opsCount.textContent = externalData.data.sisproweb?.length || 0;
+      elements.historicCount.textContent = externalData.data.historicas?.length || 0;
+      elements.updateTime.textContent = formatDate(externalData.lastUpdated);
+    };
+
+    const setLoadingState = (isLoading) => {
+      elements.refreshIcon.classList.toggle('spinner', isLoading);
+      elements.refreshBtn.disabled = isLoading;
+    };
+
+    const loadData = async (force = false) => {
+      try {
+        if (!force && externalData.data && externalData.lastUpdated && (Date.now() - externalData.lastUpdated < externalData.cacheDuration)) {
+          updateUI();
+          updateVisualState('success', true);
+          return;
+        }
+
+        setLoadingState(true);
+        updateVisualState('loading');
+
+        const res = await fetch(apiConfig.url, apiConfig.options);
+        const data = await res.json();
+
+        externalData.data = data;
+        externalData.lastUpdated = Date.now();
+        externalData.isCached = false;
+
+        updateUI();
+        updateVisualState('success');
+      } catch (err) {
+        console.error(err);
+        if (externalData.data) {
+          updateUI();
+          updateVisualState('success', true);
+        } else {
+          updateVisualState('error');
+        }
+      } finally {
+        setLoadingState(false);
+      }
+    };
+
+    // Expand/Collapse logic
+    const togglePanel = () => {
+      const banner = elements.banner;
+      const isCollapsed = banner.classList.contains('collapsed');
+      banner.classList.toggle('collapsed', !isCollapsed);
+      banner.classList.toggle('expanded', isCollapsed);
+      localStorage.setItem('dataBannerCollapsed', (!isCollapsed).toString());
+    };
+
+    elements.banner.addEventListener('click', (e) => {
+      const ignoreClicks = [elements.refreshBtn, elements.refreshIcon];
+      if (ignoreClicks.includes(e.target)) return;
+      togglePanel();
+    });
+
+    elements.refreshBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      loadData(true);
+    });
+
+    // Inicialización
+    document.addEventListener('DOMContentLoaded', () => {
+      const savedState = localStorage.getItem('dataBannerCollapsed');
+      const isCollapsed = savedState === 'true';
+      elements.banner.classList.toggle('collapsed', isCollapsed);
+      elements.banner.classList.toggle('expanded', !isCollapsed);
+      loadData();
+    });
+  </script>
+</body>
+</html>
