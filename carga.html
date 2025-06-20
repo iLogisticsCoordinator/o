@@ -69,6 +69,7 @@
 
     .status-icon {
       font-size: 1.5rem;
+      cursor: pointer;
     }
 
     .message-text {
@@ -78,19 +79,6 @@
     .last-updated {
       font-size: 0.85rem;
       color: var(--gray-text);
-    }
-
-    .refresh-btn {
-      background: none;
-      border: none;
-      color: var(--blue-sky);
-      cursor: pointer;
-      transition: transform 0.3s ease;
-      font-size: 1.2rem;
-    }
-
-    .refresh-btn:hover {
-      transform: rotate(90deg);
     }
 
     .toggle-arrow {
@@ -155,18 +143,13 @@
   <div class="data-banner status-loading collapsed" id="dataBanner">
     <div class="header">
       <div class="status-info">
-        <i id="statusIcon" class="fas fa-sync-alt spinner status-icon icon-loading"></i>
+        <i id="statusIcon" class="fas fa-sync-alt spinner status-icon icon-loading" title="Actualizar"></i>
         <div>
           <div class="message-text" id="messageText">Cargando datos...</div>
-          <div class="last-updated" id="updateTime">-</div>
+          <div class="last-updated" id="updateTime"></div>
         </div>
       </div>
-      <div class="d-flex align-items-center gap-3">
-        <button class="refresh-btn" id="refreshDataBtn" title="Actualizar">
-          <i id="refreshIcon" class="fas fa-arrows-rotate"></i>
-        </button>
-        <i class="fas fa-chevron-right toggle-arrow" id="toggleArrow"></i>
-      </div>
+      <i class="fas fa-chevron-right toggle-arrow" id="toggleArrow"></i>
     </div>
     <div class="details" id="detailsPanel">
       <div class="data-stats mt-2">
@@ -186,8 +169,6 @@
       colorsCount: document.getElementById('colorsCount'),
       opsCount: document.getElementById('opsCount'),
       historicCount: document.getElementById('historicCount'),
-      refreshBtn: document.getElementById('refreshDataBtn'),
-      refreshIcon: document.getElementById('refreshIcon'),
       toggleArrow: document.getElementById('toggleArrow')
     };
 
@@ -216,7 +197,7 @@
       const banner = elements.banner;
       banner.classList.remove('status-loading', 'status-success', 'status-cached', 'status-error');
       elements.statusIcon.className = '';
-      
+
       if (state === 'loading') {
         banner.classList.add('status-loading');
         elements.statusIcon.className = 'fas fa-sync-alt spinner status-icon icon-loading';
@@ -247,8 +228,7 @@
     };
 
     const setLoadingState = (isLoading) => {
-      elements.refreshIcon.classList.toggle('spinner', isLoading);
-      elements.refreshBtn.disabled = isLoading;
+      elements.statusIcon.classList.toggle('spinner', isLoading);
     };
 
     const loadData = async (force = false) => {
@@ -284,7 +264,6 @@
       }
     };
 
-    // Expand/Collapse logic
     const togglePanel = () => {
       const banner = elements.banner;
       const isCollapsed = banner.classList.contains('collapsed');
@@ -293,18 +272,18 @@
       localStorage.setItem('dataBannerCollapsed', (!isCollapsed).toString());
     };
 
+    // Solo se expande si NO haces clic en el icono de recarga
     elements.banner.addEventListener('click', (e) => {
-      const ignoreClicks = [elements.refreshBtn, elements.refreshIcon];
-      if (ignoreClicks.includes(e.target)) return;
+      if (e.target === elements.statusIcon) return;
       togglePanel();
     });
 
-    elements.refreshBtn.addEventListener('click', (e) => {
+    // Recargar datos desde el ícono
+    elements.statusIcon.addEventListener('click', (e) => {
       e.stopPropagation();
       loadData(true);
     });
 
-    // Inicialización
     document.addEventListener('DOMContentLoaded', () => {
       const savedState = localStorage.getItem('dataBannerCollapsed');
       const isCollapsed = savedState === 'true';
