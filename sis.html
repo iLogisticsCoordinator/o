@@ -537,6 +537,7 @@ if (!anexos[anexoKey]) {
         }
 
 // Función para generar el JSON consolidado
+// Función para generar el JSON consolidado
 function generateConsolidatedJson(data, hr, anexos) {
     if (data.length === 0) return null;
 
@@ -553,9 +554,19 @@ function generateConsolidatedJson(data, hr, anexos) {
     let costoTotal = 0;
     let auditoria = '';
     let trasladoFull = '';
+    let refProvFull = ''; // Variable para almacenar REFPROV de un registro FULL
+    let referenciaFull = ''; // Variable para almacenar la referencia correspondiente a REFPROV FULL
 
     // Buscar el primer registro con datos válidos
     for (const row of data) {
+        const tipo = row[originalColumnsCount + 1]; // CLASIFICACION
+        
+        // Obtener REFPROV del primer registro FULL y su referencia correspondiente
+        if (!refProvFull && tipo === "FULL") {
+            refProvFull = row[0]; // REFPROV
+            referenciaFull = getReferencia(refProvFull); // Buscar la referencia usando REFPROV de FULL
+        }
+
         // Obtener TOTAL GENERAL (índice 19) del primer registro con valor
         if (totalGeneral === 0 && row[19] && row[19] !== '0') {
             totalGeneral = parseInt(row[19]) || 0;
@@ -572,7 +583,6 @@ function generateConsolidatedJson(data, hr, anexos) {
         }
 
         // Obtener TRASLADO (índice 7) del primer registro FULL con valor
-        const tipo = row[originalColumnsCount + 1];
         if (!trasladoFull && tipo === "FULL" && row[7]) {
             trasladoFull = row[7];
         }
@@ -589,6 +599,12 @@ function generateConsolidatedJson(data, hr, anexos) {
         } else if (tipo === "SIN CONFECCIONAR") {
             cantidadSinConfeccionar += cantidad;
         }
+    }
+
+    // Si no encontramos REFPROV en FULL, usar la del primer registro como fallback
+    if (!refProvFull) {
+        refProvFull = firstRow[0];
+        referenciaFull = getReferencia(refProvFull);
     }
 
     // Calcular valores finales
@@ -613,7 +629,7 @@ function generateConsolidatedJson(data, hr, anexos) {
         "GESTOR": document.getElementById('gestor').value,
         "ESCANER": firstRow[originalColumnsCount + 8], // ESCANER
         "LOTE": parseInt(op),
-        "REFPROV": firstRow[0], // REFPROV
+        "REFPROV": refProvFull, // Usamos la REFPROV de FULL
         "DESCRIPCIÓN": firstRow[originalColumnsCount + 7], // DESCRIPCION
         "CANTIDAD": cantidad, // Mantiene cálculo original (sin Sin Confeccionar)
         "TOTAL_RELATIVO": totalRelativo, // NUEVO: Incluye todo
@@ -623,7 +639,7 @@ function generateConsolidatedJson(data, hr, anexos) {
         "DIFERENCIA": diferencia, // Ahora calculada contra Total Relativo
         "AUDITORIA": auditoria,
         "TRASLADO": trasladoFull,
-        "REFERENCIA": firstRow[originalColumnsCount], // REFERENCIA
+        "REFERENCIA": referenciaFull, // Usamos la referencia correspondiente a REFPROV FULL
         "TIPO": "FULL",
         "PVP": document.getElementById('pvp').value ? `${document.getElementById('pvp').value}.900` : null,
         "PRENDA": prenda,
@@ -733,4 +749,3 @@ function generateConsolidatedJson(data, hr, anexos) {
     </script>
 </body>
 </html>
-
