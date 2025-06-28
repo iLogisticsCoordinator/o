@@ -47,7 +47,7 @@
         <div class="row justify-content-center">
             <div class="col-lg-10">
                 <h1 class="text-center mb-4 text-primary">
-                    <i class="fas fa-file-csv me-2"></i>Procesador de CSV a JSON error + FULL PARA XT
+                    <i class="fas fa-file-csv me-2"></i>Procesador de CSV a JSON
                 </h1>
                 
                 <div class="card mb-4 border-0">
@@ -414,7 +414,7 @@ document.getElementById('csvFile').addEventListener('change', function(e) {
                     
                     processedData = [];
                     const targetUsers = ["APOLO", "LORTIZ", "KFERNANDEZ", "MONCALEANO", "LOCHOA", "PJARAMILLO"];
-                    const targetValues = ["ZY", "PR", "XT"];
+                    const targetValues = ["ZY", "DI", "XT", "BP"];
                     const missingColors = new Set();
                     const missingOps = new Set();
 
@@ -482,28 +482,27 @@ document.getElementById('csvFile').addEventListener('change', function(e) {
                                     hrMap[key] = [codcolor, color, talla, 0]; // Inicializar con cantidad 0
                                 }
                                                                hrMap[key][3] += cantidad; // Acumular cantidad
-                            } else // Dentro del bucle donde se procesan los anexos
-if (tipo === "PROMO" || tipo === "COBRO" || tipo === "SIN CONFECCIONAR") {
-    // Crear una clave única más específica que incluya el tipo
-    const anexoKey = `${row[0]}-${talla}-${color}-${tipo}-${row[14]}`; // REFPROV-TALLA-COLOR-TIPO-BODEGA
-    
-    if (!anexos[anexoKey]) {
-        anexos[anexoKey] = {
-            "DOCUMENTO": row[0], // REFPROV
-            "TALLA": talla, // TALLAS
-            "COLOR": color, // COLOR
-            "TIPO": tipo,
-            "CANTIDAD": cantidad,
-            "COSTO_UNITARIO": costo,
-            "COSTO_TOTAL": cantidad * costo,
-            "BODEGA": row[14], // BODEGA
-            "TRASLADO": row[7] // TRASLADO
-        };
-    } else {
-        anexos[anexoKey].CANTIDAD += cantidad;
-        anexos[anexoKey].COSTO_TOTAL += cantidad * costo;
-    }
+                            } else if (tipo === "PROMO" || tipo === "COBRO" || tipo === "SIN CONFECCIONAR") {
+                                // Manejar anexos
+                                const anexoKey = `${row[0]}-${talla}-${color}-${tipo}-${row[14]}`; // Crear una clave única para cada anexo
+                                // Dentro del bucle donde se procesan los anexos
+if (!anexos[anexoKey]) {
+    anexos[anexoKey] = {
+        "DOCUMENTO": row[0], // REFPROV
+        "TALLA": talla, // TALLAS
+        "COLOR": color, // COLOR
+        "TIPO": tipo,
+        "CANTIDAD": cantidad,
+        "COSTO_UNITARIO": costo,
+        "COSTO_TOTAL": cantidad * costo,
+        "BODEGA": row[14], // BODEGA
+        "TRASLADO": row[7] // TRASLADO
+    };
+} else {
+    anexos[anexoKey].CANTIDAD += cantidad;
+    anexos[anexoKey].COSTO_TOTAL += cantidad * costo;
 }
+                            }
                         }
                     }
 
@@ -781,60 +780,47 @@ function generateConsolidatedJson(data, hr, anexos) {
             return found ? found.referencia : refProv;
         }
         
-// Determinar clasificación - VERSIÓN JERÁRQUICA
+        // Determinar clasificación
+// Determinar clasificación
 function getClassification(row) {
     const bodega = row[14]; // BODEGA
-    const codcolor = row[12]; // CODCOLOR
-    const colz = row[25]; // COLUMNA Z
     
+    if (bodega === "DI") return "FULL";
     if (bodega === "ZY") return "SIN CONFECCIONAR";
-    
-    // Primera prioridad: Bodega XT
     if (bodega === "XT") return "PROMO";
+    if (bodega === "BP") return "COBRO";
     
-    // Segunda prioridad: Bodega PR y código color 181 (solo si no hay XT en los datos)
-    if (bodega === "PR") {
-        if (codcolor === "181" && !existsBodegaXT()) return "PROMO";
-        if (colz && colz !== "00" && colz !== "0" && colz !== "0.00") return "COBRO";
-        return "FULL";
-    }
     return "NO DEFINIDO";
-}
-
-// Función auxiliar para verificar si existe al menos un registro con bodega XT
-function existsBodegaXT() {
-    return processedData.some(row => row[14] === "XT");
 }
         
         // Determinar marca
-// Determinar marca - VERSIÓN MODIFICADA
-function getMarca(genero, classification) {
-    // Eliminamos la condición de PROMO ya que no queremos que afecte la marca
-    if (!genero) return "SIN MARCA";
-    
-    genero = (genero || '').toUpperCase();
-    if (genero.includes("DAMA") || genero.includes("NIÑA") || genero.includes("MUJER")) {
-        return "CHICA CHIC";
-    } else if (genero.includes("HOMBRE") || genero.includes("NIÑO") || genero.includes("VARON")) {
-        return "80 GRADOS";
-    }
-    return "GENERO NO DEFINIDO";
-}
+        function getMarca(genero, classification) {
+            if (classification === "PROMO") return "PROMOCION";
+            if (!genero) return "SIN MARCA";
+            
+            genero = (genero || '').toUpperCase();
+            if (genero.includes("DAMA") || genero.includes("NIÑA") || genero.includes("MUJER")) {
+                return "CHICA CHIC";
+            } else if (genero.includes("HOMBRE") || genero.includes("NIÑO") || genero.includes("VARON")) {
+                return "80 GRADOS";
+            }
+            return "GENERO NO DEFINIDO";
+        }
         
         // Crear descripción
-// Crear descripción - VERSIÓN MODIFICADA
-function getDescripcion(prenda, genero, marca, refprov, classification) {
-    const partes = [];
-    if (prenda) partes.push(prenda);
-    if (genero) partes.push(genero);
-    
-    // Eliminamos la condición de classification !== "PROMOCION" ya que queremos que la marca siempre aparezca
-    if (marca) partes.push(marca);
-    
-    if (refprov) partes.push(refprov);
-    
-    return partes.join(" ");
-}
+        function getDescripcion(prenda, genero, marca, refprov, classification) {
+            const partes = [];
+            if (prenda) partes.push(prenda);
+            if (genero) partes.push(genero);
+            
+            if (classification !== "PROMOCION" && marca) {
+                partes.push(marca);
+            }
+            
+            if (refprov) partes.push(refprov);
+            
+            return partes.join(" ");
+        }
     </script>
 </body>
 </html>
