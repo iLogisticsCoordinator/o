@@ -430,7 +430,12 @@ document.getElementById('csvFile').addEventListener('change', function(e) {
                             }
                             return trimmed;
                         });
-
+                        
+                            // SOLUCIÓN MÍNIMA MEJORADA: Corregir ñ y convertir a MAYÚSCULAS
+                            row = row.map(cell => cell
+                                .replace(/�/g, 'Ñ')  // Corrige � a Ñ
+                                .toUpperCase());     // Convierte todo a mayúsculas
+        
                         console.log(row); // Imprimir el contenido de la fila
 
                         if (row.length > 14 && targetUsers.includes(row[1]) && targetValues.includes(row[14])) {
