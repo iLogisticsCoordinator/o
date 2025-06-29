@@ -413,7 +413,7 @@ document.getElementById('csvFile').addEventListener('change', function(e) {
                     originalColumnsCount = Math.max(...lines.map(line => line.split(/;(?=(?:(?:[^"]*"){2})*[^"]*$)/).length));
                     
                     processedData = [];
-                    const targetUsers = ["APOLO", "LORTIZ", "KFERNANDEZ", "MONCALEANO", "LOCHOA", "PJARAMILLO"];
+                    const targetUsers = ["APOLO", "LORTIZ", "KFERNANDEZ", "MONCALEANO", "LOCHOA", "PJARAMILLO", "CMENDOZA"]; // CMENDOZA SE USA PARA CORRECION DE ERRORES 
                     const targetValues = ["ZY", "DI", "XT", "BP", "PR"]; // PR SE USA SOLO PARA OBTENER LOS COSTOS EL VALOR DE OS Y DE AUDITORIA
                     const missingColors = new Set();
                     const missingOps = new Set();
