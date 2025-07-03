@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Procesador de CSV a JSON Confiable</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/11.7.32/sweetalert2.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+            .json-viewer {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            max-height: 500px;
+            overflow-y: auto;
+            font-family: monospace;
+            white-space: pre;
+        }
+        #loadingData {
+            display: none;
+            margin: 10px 0;
+        }
+        .required-field::after {
+            content: " *";
+            color: red;
+        }
+        .card {
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+        #dataStatus {
+            transition: all 0.3s ease;
+        }
+        .pvp-container {
+            display: flex;
+            align-items: center;
+        }
+        .pvp-prefix, .pvp-suffix {
+            margin: 0 0.5rem;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid py-4">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <h1 class="text-center mb-4 text-primary">
+                    <i class="fas fa-file-csv me-2"></i>Procesador de CSV a JSON v2 XT & ZZ
+                </h1>
+                
+                <div class="card mb-4 border-0">
+                    <div class="card-header bg-primary text-white">
+                        <h2 class="card-title mb-0">
+                            <i class="fas fa-upload me-2"></i>Cargar archivo CSV
+                        </h2>
+                    </div>
+                    <div class="card-body upload-section">
+                        <div class="row">
+                            <div class="col-md-6 mb-3 input-icon">
+                                <i class="fas fa-file-csv icon"></i>
+                                <label for="csvFile" class="form-label required-field">Archivo CSV</label>
+                                <input type="file" id="csvFile" accept=".csv" class="form-control" required disabled>
+                                <small class="form-text text-muted">Seleccione un archivo CSV separado por punto y coma (;)</small>
+                            </div>
+                            <div class="col-md-6 mb-3 input-icon">
+                                <i class="fas fa-industry icon"></i>
+                                <label for="proveedor" class="form-label required-field">Proveedor</label>
+                                <select id="proveedor" class="form-select" required>
+                                    <option value="">Seleccione...</option>
+                                    <option value="TEXTILES Y CREACIONES EL UNIVERSO SAS" selected>TEXTILES Y CREACIONES EL UNIVERSO SAS</option>
+                                    <option value="TEXTILES Y CREACIONES LOS ANGELES SAS">TEXTILES Y CREACIONES LOS ANGELES SAS</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3 input-icon">
+                                <i class="fas fa-user-check icon"></i>
+                                <label for="auditor" class="form-label required-field">Auditor</label>
+                                <select id="auditor" class="form-select" required>
+                                    <option value="">Seleccione...</option>
+                                    <option value="GLORICED QUIÑONEZ BOJORJE">GLORICED QUIÑONEZ BOJORJE</option>
+                                    <option value="MAYRA ALEJANDRA GOMEZ OSORIO">MAYRA ALEJANDRA GOMEZ OSORIO</option>
+                                    <option value="MARYURI GARCIA RENTERIA">MARYURI GARCIA RENTERIA</option>
+                                    <option value="GREIZY JULIETH ESCOBAR SABOGAL">GREIZY JULIETH ESCOBAR SABOGAL</option>
+                                    <option value="ANA GABRIELA GUZMAN BETANCOURT">ANA GABRIELA GUZMAN BETANCOURT</option>
+                                    <option value="YULI ANGELY MUÑOZ MANCGABAJOY">YULI ANGELY MUÑOZ MANCGABAJOY</option>
+                                    <option value="JOHANA LISETH DAZA ERASO">JOHANA LISETH DAZA ERASO</option>
+                                    <option value="ROSA ALICIA VIERA BERNAL">ROSA ALICIA VIERA BERNAL</option>
+                                    <option value="BRESLEE DANIELA USMA CEPEDA">BRESLEE DANIELA USMA CEPEDA</option>
+                                    <option value="MAYERLY DEL MAR MORALES QUIROGA">MAYERLY DEL MAR MORALES QUIROGA</option>
+                                    <option value="DIANA PAOLA HENAO HERRERA">DIANA PAOLA HENAO HERRERA</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3 input-icon">
+                                <i class="fas fa-user-tie icon"></i>
+                                <label for="gestor" class="form-label required-field">Gestor
+                                </label>
+                                <select id="gestor" class="form-select" required>
+                                    <option value="">Seleccione...</option>
+                                    <option value="FABIAN MARIN FLOREZ">FABIAN MARIN FLOREZ</option>
+                                    <option value="CESAR AUGUSTO LOPEZ GIRALDO">CESAR AUGUSTO LOPEZ GIRALDO</option>
+                                    <option value="KELLY GIOVANA ZULUAGA HOYOS">KELLY GIOVANA ZULUAGA HOYOS</option>
+                                    <option value="MARYI ANDREA GONZALEZ SILVA">MARYI ANDREA GONZALEZ SILVA</option>
+                                    <option value="JOHAN STEPHANIE ESPÍNOSA RAMIREZ">JOHAN STEPHANIE ESPÍNOSA RAMIREZ</option>
+                                    <option value="SANCHEZ LOPEZ YULIETH">SANCHEZ LOPEZ YULIETH</option>
+                                    <option value="JUAN ESTEBAN ZULUAGA HOYOS">JUAN ESTEBAN ZULUAGA HOYOS</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3 input-icon">
+                                <i class="fas fa-dollar-sign icon"></i>
+                                <label for="pvp" class="form-label required-field">PVP</label>
+                                <div class="pvp-container">
+                                    <span class="pvp-prefix">$</span>
+                                    <div class="pvp-input-wrapper">
+                                        <input type="number" id="pvp" class="form-control" min="1" max="999" required>
+                                    </div>
+                                    <span class="pvp-suffix">.900</span>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3 input-icon">
+                                <i class="fas fa-shopping-bag icon"></i>
+                                <label for="bolsas" class="form-label required-field">Bolsas</label>
+                                <input type="number" id="bolsas" class="form-control" min="0" required>
+                            </div>
+                        </div>
+                        
+                        <div id="dataStatus" class="alert alert-info">
+                            <div class="d-flex align-items-center">
+                                <div class="spinner-border spinner-border-sm me-2" role="status">
+                                    <span class="visually-hidden">Cargando...</span>
+                                </div>
+                                <span>Iniciando carga de datos externos...</span>
+                            </div>
+                        </div>
+                        <div id="loadingData"></div>
+                    </div>
+                </div>
+
+                <div class="card mb-4 border-0" id="results" style="display: none;">
+                    <div class="card-header bg-primary text-white">
+                        <h2 class="card-title mb-0">
+                            <i class="fas fa-table me-2"></i>Resultados
+                        </h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div id="filteredCount" class="badge bg-primary fs-6"></div>
+                            <button id="generateJsonBtn" class="btn btn-primary">
+                                <i class="fas fa-file-code me-2"></i>Generar JSON
+                            </button>
+                        </div>
+
+                        <div id="jsonResultContainer" style="display: none;">
+                            <h5 class="mb-3">JSON Generado:</h5>
+                            <div class="json-viewer" id="jsonViewer"></div>
+                            <button id="downloadJsonBtn" class="btn btn-success mt-3">
+                                <i class="fas fa-download me-2"></i>Descargar JSON
+                            </button>
+
+                            <!-- Dentro del div con id="jsonResultContainer", después del botón de descarga -->
+<button id="saveToSheetsBtn" class="btn btn-primary mt-3 ms-2">
+    <i class="fas fa-save me-2"></i>Guardar en Sheets
+</button>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/11.7.32/sweetalert2.all.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+
+<script>
+// Función para enviar datos a Google Sheets
+/**
+function saveToSheets(jsonData) {
+    const loadingSwal = Swal.fire({
+        title: 'Guardando en Sheets...',
+        html: 'Por favor espera mientras se guardan los datos',
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+
+    const apiUrl = "https://script.google.com/macros/s/AKfycbyJXqnvNahoEkUf4XSY916E6ov3BvEtOyq_pBJNzINNmzvfrKsd5owR_cVsbSYyqfy3/exec";
+
+    fetch(apiUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        cache: 'no-cache',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(jsonData)
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Error en la respuesta del servidor');
+        }
+        return response.json();
+    })
+    .then(data => {
+        loadingSwal.close();
+        if (data.success) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Éxito',
+                text: `Datos de OP ${jsonData.A} guardados correctamente en Sheets`,
+                confirmButtonText: 'Aceptar'
+            });
+        } else {
+            throw new Error(data.message || 'Error desconocido al guardar');
+        }
+    })
+    .catch(error => {
+        loadingSwal.close();
+        console.error('Error al guardar en Sheets:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            html: `No se pudo guardar en Sheets:<br><small>${error.message}</small>`,
+            confirmButtonText: 'Entendido'
+        });
+    });
+}
+
+// Configurar el botón de guardar en Sheets
+document.getElementById('saveToSheetsBtn').onclick = function() {
+    const jsonData = JSON.parse(document.getElementById('jsonViewer').textContent);
+    saveToSheets(jsonData);
+}; */
+</script>
+
+
+
+
+<script>
+// Modificar la función saveToSheets
+function saveToSheets(jsonData) {
+    const loadingSwal = Swal.fire({
+        title: 'Guardando en Sheets...',
+        html: 'Por favor espera mientras se guardan los datos',
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+
+    const apiUrl = "https://script.google.com/macros/s/AKfycbyJXqnvNahoEkUf4XSY916E6ov3BvEtOyq_pBJNzINNmzvfrKsd5owR_cVsbSYyqfy3/exec";
+
+    fetch(apiUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        cache: 'no-cache',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(jsonData)
+    })
+    .then(() => {
+        loadingSwal.close();
+        Swal.fire({
+            icon: 'success',
+            title: '¡Guardado exitoso!',
+            text: 'Los datos se guardaron correctamente.',
+            confirmButtonText: 'Aceptar'
+        });
+        resetFormAfterSave(); // Limpiar solo lo necesario
+    })
+    .catch(error => {
+        loadingSwal.close();
+        console.error('Error al guardar en Sheets:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            html: `No se pudo guardar en Sheets:<br><small>${error.message}</small>`,
+            confirmButtonText: 'Entendido'
+        });
+    });
+}
+
+    document.getElementById('saveToSheetsBtn').onclick = function() {
+        const jsonData = JSON.parse(document.getElementById('jsonViewer').textContent);
+        saveToSheets(jsonData);
+    };
+</script>
+
+
+    <script>
+        // Variables globales
+        let processedData = [];
+        let externalData = {
+            colores: [],
+            sisproweb: [],
+            historicas: []
+        };
+        let originalColumnsCount = 0;
+
+        // Mapeo de usuarios a escaners
+        const escanersMap = {
+            "LORTIZ": "LEIDY TATIANA ORTIZ",
+            "APOLO": "ANGIE LIZETH POLO CAPERA",
+            "KFERNANDEZ": "KELLY TATIANA FERNANDEZ ASTUDILLO",
+            "MONCALEANO": "NICOLE VALERIA MONCALEANO DIAZ",
+            "LOCHOA": "LESLY CAMILA OCHOA PEDRAZA",
+            "PJARAMILLO": "PILAR CRISTINA JARAMILLO SANCHEZ"
+        };
+
+        // Cargar datos externos al iniciar
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("Iniciando carga de datos externos...");
+            loadExternalData();
+        });
+
+        // Función para cargar datos externos
+        async function loadExternalData() {
+            const loadingDiv = document.getElementById('loadingData');
+            const fileInput = document.getElementById('csvFile');
+            const dataStatus = document.getElementById('dataStatus');
+            
+            loadingDiv.style.display = 'block';
+            dataStatus.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <div class="spinner-border spinner-border-sm me-2" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                    <span>Conectando con servidor de datos...</span>
+                </div>
+            `;
+            
+            const apiUrl = "https://script.google.com/macros/s/AKfycbwziXtD6agWHvgALOZIkmYiPz_D9cfZcZjiLCeJpeEFluZylUuY-K_PYGbCvkKmeMxtXg/exec";
+            
+            try {
+                let response = await fetch(apiUrl, {
+                    mode: 'cors',
+                    redirect: 'follow'
+                });
+
+                if (!response.ok) {
+                    throw new Error('Error al cargar datos externos');
+                }
+
+                const data = await response.json();
+                externalData = {
+                    colores: data.colores || [],
+                    sisproweb: data.sisproweb || [],
+                    historicas: data.historicas || []
+                };
+
+                dataStatus.innerHTML = `
+                    <div class="alert alert-info d-flex align-items-center">
+                        <i class="fas fa-check-circle me-2"></i>
+                        <span>Datos cargados correctamente (${externalData.colores.length} colores, ${externalData.sisproweb.length} OPs)</span>
+                    </div>
+                `;
+                fileInput.disabled = false;
+
+            } catch (error) {
+                console.error('Error al cargar datos:', error);
+                dataStatus.innerHTML = `
+                    <div class="alert alert-danger d-flex align-items-center">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <span>Error al cargar datos: ${error.message}</span>
+                    </div>
+                `;
+                fileInput.disabled = true;
+            } finally {
+                loadingDiv.style.display = 'none';
+            }
+        }
+
+        // Procesar CSV cuando se selecciona un archivo
+document.getElementById('csvFile').addEventListener('change', function(e) {
+    // Limpiar solo el procesamiento anterior
+    processedData = [];
+    document.getElementById('results').style.display = 'none';
+    document.getElementById('jsonResultContainer').style.display = 'none';
+    document.getElementById('jsonViewer').textContent = '';
+    
+    // Procesar nuevo archivo
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        processCSV(e.target.result);
+    };
+    reader.readAsText(file);
+});
+
+        // Función para procesar el CSV
+        function processCSV(csvData) {
+            const loadingDiv = document.getElementById('loadingData');
+            loadingDiv.style.display = 'block';
+            loadingDiv.innerHTML = '<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Procesando...</span></div> Procesando archivo CSV...';
+            
+            setTimeout(() => {
+                try {
+                    const lines = csvData.split('\n').filter(line => line.trim() !== '');
+                    if (lines.length === 0) throw new Error('El archivo CSV está vacío');
+
+                    originalColumnsCount = Math.max(...lines.map(line => line.split(/;(?=(?:(?:[^"]*"){2})*[^"]*$)/).length));
+                    
+                    processedData = [];
+                    const targetUsers = ["APOLO", "LORTIZ", "KFERNANDEZ", "MONCALEANO", "LOCHOA", "PJARAMILLO", "CMENDOZA"]; // CMENDOZA SE USA PARA CORRECION DE ERRORES 
+                    const targetValues = ["ZY", "DI", "XT", "BP", "PR", "ZZ"]; // PR SE USA SOLO PARA OBTENER LOS COSTOS EL VALOR DE OS Y DE AUDITORIA
+                    const missingColors = new Set();
+                    const missingOps = new Set();
+
+                    // Acumulador para HR
+                    const hrMap = {};
+                    const anexos = {}; // Cambiar a un objeto para unificar
+
+                    for (let i = 0; i < lines.length; i++) {
+                        let row = lines[i].split(/;(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(cell => {
+                            let trimmed = cell.trim();
+                            if (trimmed.startsWith('"') && trimmed.endsWith('"')) {
+                                return trimmed.substring(1, trimmed.length - 1);
+                            }
+                            return trimmed;
+                        });
+                        
+                            // SOLUCIÓN MÍNIMA MEJORADA: Corregir ñ y convertir a MAYÚSCULAS
+                            row = row.map(cell => cell
+                                .replace(/�/g, 'Ñ')  // Corrige � a Ñ
+                                .toUpperCase());     // Convierte todo a mayúsculas
+        
+                        console.log(row); // Imprimir el contenido de la fila
+
+                        if (row.length > 14 && targetUsers.includes(row[1]) && targetValues.includes(row[14])) {
+                            // Asegurar que la fila tenga todas las columnas
+                            while (row.length < originalColumnsCount) {
+                                row.push('');
+                            }
+                            
+                            // Formatear campos específicos
+                            if (row[4]) row[4] = row[4].replace(/ 00:00:00$/, ''); // FECHA
+                            if (row[9]) row[9] = parseInt(row[9]) || 0; // CANTIDAD
+                            if (row[10]) row[10] = parseInt(row[10]) || 0; // COSTO
+                            
+                            // Obtener datos externos
+                            const colorInfo = getColorInfo(row[12]); // CODCOLOR
+                            const sisproInfo = getSisproInfo(row[2]); // OP
+                            const referencia = getReferencia(row[0]); // REFPROV
+                            
+                            // Registrar datos faltantes
+                            if (row[12] && !colorInfo.color) missingColors.add(row[12]);
+                            if (row[2] && !sisproInfo.prenda) missingOps.add(row[2]);
+                            
+                            // Añadir nuevas columnas
+                            row.push(referencia); // REFERENCIA
+                            row.push(getClassification(row)); // CLASIFICACION
+                            row.push(colorInfo.color || 'No encontrado'); // COLOR
+                            row.push(sisproInfo.prenda || 'No encontrado'); // PRENDA
+                            row.push(sisproInfo.linea || 'No encontrado'); // LINEA
+                            row.push(sisproInfo.genero || 'No encontrado'); // GENERO
+                            row.push(getMarca(sisproInfo.genero, row[row.length-3])); // MARCA
+                            row.push(getDescripcion(sisproInfo.prenda, sisproInfo.genero, row[row.length-1], row[0], row[row.length-6])); // DESCRIPCION
+                            row.push(escanersMap[row[1]] || row[1]); // ESCANER
+                            row.push(document.getElementById('gestor').value); // GESTOR
+
+                            processedData.push(row);
+
+                            // Clasificación para HR y Anexos
+                            const tipo = row[originalColumnsCount + 1]; // CLASIFICACION
+                            const codcolor = row[12]; // CODCOLOR
+                            const color = row[50]; // COLOR
+                            const talla = row[11]; // TALLAS
+                            const cantidad = parseInt(row[9]) || 0; // CANTIDAD
+                            const costo = (tipo === "SIN CONFECCIONAR") ? 0 : (parseInt(row[10]) || 0); // COSTO (0 para SIN CONFECCIONAR)
+
+                            if (tipo === "FULL") {
+                                // Acumular datos para HR
+                                const key = `${codcolor}-${color}-${talla}`;
+                                if (!hrMap[key]) {
+                                    hrMap[key] = [codcolor, color, talla, 0]; // Inicializar con cantidad 0
+                                }
+                                                               hrMap[key][3] += cantidad; // Acumular cantidad
+                            } else if (tipo === "PROMO" || tipo === "COBRO" || tipo === "SIN CONFECCIONAR") {
+                                // Manejar anexos
+                                const anexoKey = `${row[0]}-${talla}-${color}-${tipo}-${row[14]}`; // Crear una clave única para cada anexo
+                                // Dentro del bucle donde se procesan los anexos
+if (!anexos[anexoKey]) {
+    anexos[anexoKey] = {
+        "DOCUMENTO": row[0], // REFPROV
+        "TALLA": talla, // TALLAS
+        "COLOR": color, // COLOR
+        "TIPO": tipo,
+        "CANTIDAD": cantidad,
+        "COSTO_UNITARIO": costo,
+        "COSTO_TOTAL": cantidad * costo,
+        "BODEGA": row[14], // BODEGA
+        "TRASLADO": row[7] // TRASLADO
+    };
+} else {
+    anexos[anexoKey].CANTIDAD += cantidad;
+    anexos[anexoKey].COSTO_TOTAL += cantidad * costo;
+}
+                            }
+                        }
+                    }
+
+                    // Convertir el objeto hrMap a un array
+                    const hr = Object.values(hrMap);
+
+                    // Convertir el objeto anexos a un array
+                    const anexosArray = Object.values(anexos);
+
+                    // Mostrar advertencias para datos faltantes
+                    if (missingColors.size > 0 || missingOps.size > 0) {
+                        let warningMsg = '';
+                        if (missingColors.size > 0) {
+                            warningMsg += `<strong>Códigos de color no encontrados:</strong> ${Array.from(missingColors).join(', ')}<br>`;
+                        }
+                        if (missingOps.size > 0) {
+                            warningMsg += `<strong>OPs no encontradas:</strong> ${Array.from(missingOps).join(', ')}`;
+                        }
+                        
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Datos faltantes',
+                            html: warningMsg,
+                            confirmButtonText: 'Entendido'
+                        });
+                    }
+
+                    document.getElementById('results').style.display = 'block';
+                    document.getElementById('filteredCount').textContent = `Registros procesados: ${processedData.length}`;
+
+                    // Almacenar el array HR en el JSON final
+                    const jsonData = generateConsolidatedJson(processedData, hr, anexosArray);
+                    displayJson(jsonData);
+
+                } catch (error) {
+                    Swal.fire('Error', `Error al procesar el CSV: ${error.message}`, 'error');
+                    console.error(error);
+                } finally {
+                    loadingDiv.style.display = 'none';
+                }
+            }, 100);
+        }
+
+// Función para limpiar todos los inputs y restablecer el formulario
+function resetForm() {
+    // Limpiar inputs principales
+    document.getElementById('csvFile').value = '';
+    document.getElementById('proveedor').value = 'TEXTILES Y CREACIONES EL UNIVERSO SAS';
+    document.getElementById('auditor').value = '';
+    document.getElementById('gestor').value = '';
+    document.getElementById('pvp').value = '';
+    document.getElementById('bolsas').value = '';
+    
+    // Ocultar resultados
+    document.getElementById('results').style.display = 'none';
+    document.getElementById('jsonResultContainer').style.display = 'none';
+    
+    // Limpiar el visor JSON
+    document.getElementById('jsonViewer').textContent = '';
+    
+    // Restablecer contador
+    document.getElementById('filteredCount').textContent = '';
+    
+    // Restablecer estado de datos
+    processedData = [];
+    externalData = {
+        colores: [],
+        sisproweb: [],
+        historicas: []
+    };
+    
+    // Mostrar mensaje inicial
+    document.getElementById('dataStatus').innerHTML = `
+        <div class="d-flex align-items-center">
+            <i class="fas fa-check-circle me-2"></i>
+            <span>Datos cargados correctamente (${externalData.colores.length} colores, ${externalData.sisproweb.length} OPs)</span>
+        </div>
+    `;
+}
+
+// Función para limpiar inputs y preparar para nuevo archivo (sin afectar datos externos)
+function resetFormAfterSave() {
+    // 1. Limpiar inputs del formulario
+    document.getElementById('csvFile').value = '';
+    document.getElementById('pvp').value = '';
+    document.getElementById('bolsas').value = '';
+    
+    // 2. Limpiar resultados pero mantener datos cargados
+    document.getElementById('results').style.display = 'none';
+    document.getElementById('jsonResultContainer').style.display = 'none';
+    document.getElementById('jsonViewer').textContent = '';
+    document.getElementById('filteredCount').textContent = '';
+    
+    // 3. Resetear variables de procesamiento (sin tocar externalData)
+    processedData = [];
+    
+    // 4. Mostrar estado listo para nuevo archivo
+    document.getElementById('dataStatus').innerHTML = `
+        <div class="alert alert-info d-flex align-items-center">
+            <i class="fas fa-check-circle me-2"></i>
+            <span>Datos listos para nuevo archivo (${externalData.colores.length} colores, ${externalData.sisproweb.length} OPs cargados)</span>
+        </div>
+    `;
+    
+    // 5. Mantener selecciones de usuario (proveedor, auditor, gestor)
+    // (Opcional) Si quieres limpiar estos también, quita el comentario:
+     document.getElementById('proveedor').value = 'TEXTILES Y CREACIONES EL UNIVERSO SAS';
+     document.getElementById('auditor').value = '';
+     document.getElementById('gestor').value = '';
+}
+
+// Función para generar el JSON consolidado
+function generateConsolidatedJson(data, hr, anexos) {
+    if (data.length === 0) return null;
+
+    const firstRow = data[0];
+    const op = firstRow[2]; // OP es la columna 2
+    
+    // Variables para cálculos
+    let cantidadFull = 0;
+    let cantidadPromo = 0;
+    let cantidadCobros = 0;
+    let cantidadSinConfeccionar = 0;
+    let totalGeneral = 0;
+    let costoUnitario = 0;
+    let costoTotal = 0;
+    let auditoria = '';
+    let ordenServicio = '';
+    let trasladoFull = '';
+    let refProvFull = '';
+    let referenciaFull = '';
+
+    // Buscar el primer registro con datos válidos para cada campo
+    for (const row of data) {
+        const tipo = row[originalColumnsCount + 1]; // CLASIFICACION
+        
+        // Obtener REFPROV del primer registro FULL y su referencia
+        if (!refProvFull && tipo === "FULL") {
+            refProvFull = row[0]; // REFPROV
+            referenciaFull = getReferencia(refProvFull);
+        }
+
+        // Obtener TOTAL GENERAL (índice 19) del primer registro con valor
+        if (totalGeneral === 0 && row[19] && row[19] !== '0') {
+            totalGeneral = parseInt(row[19]) || 0;
+        }
+
+        // Obtener COSTO UNITARIO (índice 10) del primer registro con valor diferente a 0
+        if (costoUnitario === 0 && row[10] && row[10] !== '0') {
+            costoUnitario = parseInt(row[10]) || 0;
+        }
+
+        // Obtener AUDITORIA (índice 37) del primer registro con valor
+        if (!auditoria && row[37]) {
+            auditoria = row[37];
+        }
+
+        // Obtener ORDEN_SERVICIO (índice 13) del primer registro con valor
+        if (!ordenServicio && row[13]) {
+            ordenServicio = row[13];
+        }
+
+        // Obtener TRASLADO (índice 7) del primer registro FULL con valor
+        if (!trasladoFull && tipo === "FULL" && row[7]) {
+            trasladoFull = row[7];
+        }
+
+        const cantidad = parseInt(row[9]) || 0;
+
+        // Acumular según tipo
+        if (tipo === "FULL") {
+            cantidadFull += cantidad;
+        } else if (tipo === "PROMO") {
+            cantidadPromo += cantidad;
+        } else if (tipo === "COBRO") {
+            cantidadCobros += cantidad;
+        } else if (tipo === "SIN CONFECCIONAR") {
+            cantidadSinConfeccionar += cantidad;
+        }
+    }
+
+    // Si no encontramos REFPROV en FULL, usar la del primer registro
+    if (!refProvFull) {
+        refProvFull = firstRow[0];
+        referenciaFull = getReferencia(refProvFull);
+    }
+
+    // Calcular valores finales
+    const totalRelativo = cantidadFull + cantidadPromo + cantidadCobros + cantidadSinConfeccionar;
+    const cantidad = cantidadFull + cantidadPromo + cantidadCobros;
+    costoTotal = cantidad * costoUnitario;
+    const diferencia = totalGeneral - totalRelativo;
+
+    // Obtener información de OP
+    const sisproInfo = getSisproInfo(firstRow[2]);
+    const prenda = sisproInfo.prenda || 'No encontrado';
+    const genero = sisproInfo.genero || 'No encontrado';
+
+    // Aplicar costo unitario a los anexos (excepto SIN CONFECCIONAR)
+    anexos.forEach(anexo => {
+        if (anexo.TIPO !== "SIN CONFECCIONAR") {
+            anexo.COSTO_UNITARIO = costoUnitario;
+            anexo.COSTO_TOTAL = anexo.CANTIDAD * costoUnitario;
+        }
+    });
+
+    return {
+        "A": op.toString(),
+        "FECHA": firstRow[4],
+        "TALLER": firstRow[18],
+        "LINEA": firstRow[originalColumnsCount + 4],
+        "AUDITOR": document.getElementById('auditor').value,
+        "GESTOR": document.getElementById('gestor').value,
+        "ESCANER": firstRow[originalColumnsCount + 8],
+        "LOTE": parseInt(op),
+        "REFPROV": refProvFull,
+        "DESCRIPCIÓN": firstRow[originalColumnsCount + 7],
+        "CANTIDAD": cantidad,
+        "TOTAL_RELATIVO": totalRelativo,
+        "COSTO_UNITARIO": costoUnitario,
+        "COSTO_TOTAL": costoTotal,
+        "TOTAL_GENERAL": totalGeneral,
+        "DIFERENCIA": diferencia,
+        "AUDITORIA": auditoria,
+        "ORDEN_SERVICIO": ordenServicio, // Nueva propiedad añadida
+        "TRASLADO": trasladoFull,
+        "REFERENCIA": referenciaFull,
+        "TIPO": "FULL",
+        "PVP": document.getElementById('pvp').value ? `${document.getElementById('pvp').value}.900` : null,
+        "PRENDA": prenda,
+        "GENERO": genero,
+        "PROVEEDOR": document.getElementById('proveedor').value,
+        "ANEXOS": anexos,
+        "HR": hr,
+        "BOLSAS": parseInt(document.getElementById('bolsas').value) || 0,
+        "DETALLE_CANTIDADES": {
+            "FULL": cantidadFull,
+            "PROMO": cantidadPromo,
+            "COBRO": cantidadCobros,
+            "SIN_CONFECCIONAR": cantidadSinConfeccionar
+        }
+    };
+}
+        // Mostrar JSON en la interfaz
+        function displayJson(jsonData) {
+            const jsonViewer = document.getElementById('jsonViewer');
+            jsonViewer.textContent = JSON.stringify(jsonData, null, 2);
+            document.getElementById('jsonResultContainer').style.display = 'block';
+            
+            // Configurar botón de descarga
+            document.getElementById('downloadJsonBtn').onclick = function() {
+                downloadJson(jsonData);
+            };
+        }
+
+        // Descargar JSON como archivo
+        function downloadJson(jsonData) {
+            const jsonStr = JSON.stringify(jsonData, null, 2);
+            const blob = new Blob([jsonStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `datos_${jsonData.A}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        // ===== FUNCIONES AUXILIARES =====
+        
+        // Obtener información de color
+        function getColorInfo(codigo) {
+            if (!codigo || !externalData.colores) return {};
+            return externalData.colores.find(item => item.codigo === codigo) || {};
+        }
+        
+        // Obtener información de OP
+        function getSisproInfo(op) {
+            if (!op || !externalData.sisproweb) return {};
+            return externalData.sisproweb.find(item => item.op === op) || {};
+        }
+        
+        // Obtener referencia histórica
+        function getReferencia(refProv) {
+            if (!refProv || !externalData.historicas) return refProv;
+            const found = externalData.historicas.find(item => item.refProv === refProv);
+            return found ? found.referencia : refProv;
+        }
+        
+        // Determinar clasificación
+// Determinar clasificación
+function getClassification(row) {
+    const bodega = row[14]; // BODEGA
+    
+    if (bodega === "DI") return "FULL";
+    if (bodega === "ZY") return "SIN CONFECCIONAR";
+    if (bodega === "XT") return "PROMO";
+    if (bodega === "ZZ") return "PROMO";
+    if (bodega === "BP") return "COBRO";
+    
+    return "NO DEFINIDO";
+}
+        
+        // Determinar marca
+        function getMarca(genero, classification) {
+            if (classification === "PROMO") return "PROMOCION";
+            if (!genero) return "SIN MARCA";
+            
+            genero = (genero || '').toUpperCase();
+            if (genero.includes("DAMA") || genero.includes("NIÑA") || genero.includes("MUJER")) {
+                return "CHICA CHIC";
+            } else if (genero.includes("HOMBRE") || genero.includes("NIÑO") || genero.includes("VARON")) {
+                return "80 GRADOS";
+            }
+            return "GENERO NO DEFINIDO";
+        }
+        
+        // Crear descripción
+        function getDescripcion(prenda, genero, marca, refprov, classification) {
+            const partes = [];
+            if (prenda) partes.push(prenda);
+            if (genero) partes.push(genero);
+            
+            if (classification !== "PROMOCION" && marca) {
+                partes.push(marca);
+            }
+            
+            if (refprov) partes.push(refprov);
+            
+            return partes.join(" ");
+        }
+    </script>
+</body>
+</html>
