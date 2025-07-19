@@ -847,7 +847,7 @@ function parseCustomDate(dateStr) {
 
         // Función para obtener datos reales de la API
         async function fetchRealData() {
-            const apiKey = '';
+            const apiKey = 'AIzaSyCrTSddJcCaJCqQ_Cr_PC2zt-eVZAihC38';
             const fetchSheet = async (id, range) => {
                 const url = `https://sheets.googleapis.com/v4/spreadsheets/${id}/values/${range}?key=${apiKey}`;
                 const res = await fetch(url);
